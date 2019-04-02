@@ -29,6 +29,17 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 * Select the Correct COM Port
 * Upload The Code
 
+## Linear Actuator Pin Definitions
+
+| Linear Actuator No. | Motor PWM | Motor Direction | Encoder Interrupt | Encoder Phase |
+|---------------------|-----------|-----------------|-------------------|---------------|
+| 1                   | D3        | D2              | D13               | D11           |
+| 2                   | D15       | D19             | D14               | D7            |
+| 3                   | D16       | D20             | D12               | D10           |
+| 4                   | D25       | D21             | D31               | D30           |
+| 5                   | D26       | D22             | D17               | D5            |
+| 6                   | D27       | D28             | D18               | D29           |
+
 ## PCB Pin Definitions (STM32F103CBT6)
 
 | Pin | GPIO | ADC | Timer (PWM) | I2C    | UART  | SPI    | 5 V? | PCB Function           | Notes                                                                             |
