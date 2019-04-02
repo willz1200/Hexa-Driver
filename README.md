@@ -1,6 +1,8 @@
 # Hexa-Driver
 Firmware for the Hexa H-Bridge driver board with encoder position feedback based on the STM32F103 MCU
 
+## PCB Pin Definitions
+
 | Pin | GPIO | ADC | Timer (PWM) | I2C    | UART  | SPI    | 5 V? | PCB Function           | Notes                                                                             |
 |-----|------|-----|-------------|--------|-------|--------|------|------------------------|-----------------------------------------------------------------------------------|
 | D0  | PB11 |     |             | 2_SDA  | 3_RX  |        | Yes  | I2C SDA / IO Expander  | Also used for current sense (Must be I2C)                                         |
