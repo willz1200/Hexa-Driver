@@ -1,7 +1,35 @@
-# Hexa-Driver
-Firmware for the Hexa H-Bridge driver board with encoder position feedback based on the STM32F103 MCU
+# Hexa Driver
+Firmware and overview for the Hexa H-Bridge driver board with encoder position feedback based on the STM32F103 MCU designed for Sheffield Bionics.
 
-## PCB Pin Definitions
+## Features
+
+* STM32F103CBT6 Microcontroller (ARM 32-bit Cortex-M3)
+  * Clock Speed 72 MHz
+  * Flash 128 KB
+  * RAM 20 KB
+  * STM32duino Bootloader or Maple Bootloader
+* x6 Linear Actuator Channels Each Containing:
+  * L9110S 800mA H-bridge Driver with PWM Control
+  * INA219 Bidirectional Current Monitor (0.1Ω Shunt)
+  * Quadrature Encoder Input with Hardware Schmitt Trigger Debouncing
+* MPU-6050 Six-Axis (Gyro + Accelerometer)
+* IO Expansion Header with 3.3V, ADC, I2C, SPI out, PWM, UART (SH1.0-10P)
+* USB Micro B Port for Programming the MCU
+* 12V 3.5A Boost Convert for the Linear Actuaor DC Motors
+* 3.3V 800mA Low-Dropout Voltage Regulator
+* 5V up to 4A Auto Switching External Power Input (5V 1.3mm DC Barrel Jack).
+* Single Cell 1A Constant-Current / Constant-Voltage Linear Lithium Polymer Charger (Set to 800mA)
+* Button and LED for Testing / Debugging Purposes
+* 1.27mm Header for SWD & JTAG Interface
+
+## How to Use Within the Arduino IDE
+
+* Install the STM32duino Core in the Arduino IDE Explained [Here](https://github.com/stm32duino/wiki/wiki/Getting-Started)
+* Select "Maple Mini" Under 'Tools → Board' in the Arduino IDE
+* Select the Correct COM Port
+* Upload The Code
+
+## PCB Pin Definitions (STM32F103CBT6)
 
 | Pin | GPIO | ADC | Timer (PWM) | I2C    | UART  | SPI    | 5 V? | PCB Function           | Notes                                                                             |
 |-----|------|-----|-------------|--------|-------|--------|------|------------------------|-----------------------------------------------------------------------------------|
@@ -39,3 +67,12 @@ Firmware for the Hexa H-Bridge driver board with encoder position feedback based
 | D31 | PB12 |     | 1_BKIN      | 2_SMBA | 3_CK  | 2_NSS  | Yes  | E4 Interrupt           |                                                                                   |
 | D32 | PB8  |     | 4_CH3       |        |       |        | Yes  | Button / IO Expander   | Button can also put board in DFU (device firmware update) mode during boot        |
 | D33 | PB1  | CH9 | 3_CH4       |        |       |        |      | LED / IO Expander      | Jumper to 12V Enable Line (only solder 1 of the jumpers!)                         |
+
+
+## Useful Links
+
+* [STM32duino Arduino Core](https://github.com/stm32duino/Arduino_Core_STM32)
+* [Measure PWM Current with a Modified Moving Average](https://www.baldengineer.com/measure-pwm-current.html)
+* [Quadrature Encoder Overview](https://www.dynapar.com/technology/encoder_basics/quadrature_encoder/)
+
+## Licence
