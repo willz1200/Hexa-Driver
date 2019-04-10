@@ -7,7 +7,7 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
   * Clock Speed 72 MHz
   * Flash 128 KB
   * RAM 20 KB
-  * STM32duino Bootloader or Maple Bootloader
+  * STM32duino Bootloader
 * x6 Linear Actuator Channels Each Containing:
   * L9110S 800mA H-bridge Driver with PWM Control
   * INA219 Bidirectional Current Monitor (0.1Ω Shunt)
@@ -26,6 +26,7 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 
 * Install the STM32duino Core in the Arduino IDE Explained [Here](https://github.com/stm32duino/wiki/wiki/Getting-Started)
 * Select "Maple Mini" Under 'Tools → Board' in the Arduino IDE
+* Select "Bootloader 2.0 (20k RAM, 120k Flash)" Under 'Tools → Bootloader Version' in the Arduino IDE
 * Select the Correct COM Port
 * Upload The Code
 
