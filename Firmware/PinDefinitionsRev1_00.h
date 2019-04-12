@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		PinDefinitionsRev1_00.h
  * @Brief		Pin definitions for revision 1.00 of the hexa driver PCB,
- *				based on the STM32F103CBT6 MCU.
+ *				based on the STM32F103CBT6 MCU. (Indent Mode = Tabs, Indent Size = 4)
  * @Date		12/04/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
