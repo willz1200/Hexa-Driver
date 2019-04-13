@@ -38,6 +38,13 @@
 #define Encoder5_PHA 5
 #define Encoder6_PHA 29
 
+#define Encoder1_Flip 0 //Some of the C1 and C2 lines for the encoder are swapped on the PCB
+#define Encoder2_Flip 1
+#define Encoder3_Flip 0
+#define Encoder4_Flip 0
+#define Encoder5_Flip 0
+#define Encoder6_Flip 1
+
 //I2C
 #define I2C_SCL 1
 #define I2C_SDA 0
