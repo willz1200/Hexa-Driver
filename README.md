@@ -30,6 +30,13 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 * Select the Correct COM Port
 * Upload The Code
 
+## Hexa Driver PCB
+
+![Hexa Render](https://raw.githubusercontent.com/willz1200/Hexa-Driver/master/Documentation/PCB-R1_00-3D-Render.png "Hexa Driver 3D Render")
+
+![Hexa Pinout](https://raw.githubusercontent.com/willz1200/Hexa-Driver/master/Documentation/PCB-R1_00-pinout.png "Hexa Driver Side View Pinout")
+
+
 ## Linear Actuator Pin Definitions
 
 | Linear Actuator No. | Motor PWM | Motor Direction | Encoder Interrupt | Encoder Phase |
