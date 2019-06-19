@@ -24,7 +24,8 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 
 ## How to Use Within the Arduino IDE
 
-* Install the STM32duino Core in the Arduino IDE Explained [Here](https://github.com/stm32duino/wiki/wiki/Getting-Started)
+* Install the STM32duino Core **(Version: 1.5.0)** in the Arduino IDE Explained [Here](https://github.com/stm32duino/wiki/wiki/Getting-Started)
+* Install the "Arduino SAM boards (32-bits ARM Cortex-M3)" which can be found in Boards Manager by default
 * Select "Maple Mini" Under 'Tools → Board' in the Arduino IDE
 * Select "Bootloader 2.0 (20k RAM, 120k Flash)" Under 'Tools → Bootloader Version' in the Arduino IDE
 * Select the Correct COM Port
