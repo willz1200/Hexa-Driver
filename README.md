@@ -98,7 +98,7 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 
 ## Useful Links
 
-* [STM32duino Arduino Core](https://github.com/stm32duino/Arduino_Core_STM32)
+* [Arduino_STM32](https://github.com/rogerclarkmelbourne/Arduino_STM32)
 * [Measure PWM Current with a Modified Moving Average](https://www.baldengineer.com/measure-pwm-current.html)
 * [Quadrature Encoder Overview](https://www.dynapar.com/technology/encoder_basics/quadrature_encoder/)
 
