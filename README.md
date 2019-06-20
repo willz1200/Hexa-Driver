@@ -24,7 +24,7 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 
 ## How to Use Within the Arduino IDE
 
-* Install the [Arduino STM32](https://github.com/rogerclarkmelbourne/Arduino_STM32) via the following steps:
+* Install the [Arduino STM32](https://github.com/rogerclarkmelbourne/Arduino_STM32) add on via the following steps:
   * Download the Arduino STM32 repo as a zip file
   * Navigate to the arduino directory usually, Documents -> Arduino
   * Create a new folder in the arduino directory called "hardware" if it doesn't already exist
