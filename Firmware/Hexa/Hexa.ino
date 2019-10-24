@@ -6,8 +6,7 @@
  * @Date		12/04/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
-//some line, nice things - WE'RE GOING THROUH CHANGES!!
- 
+
 #include "LinearActuator.h"
 
 //Swap these numbers if its not stopping
