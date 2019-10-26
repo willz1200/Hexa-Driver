@@ -48,7 +48,7 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 * Minimum input voltage for the XL6009S 12V boost converter is 5V, the main power input is 5V but the lithium-ion battery is 3.7 - 4.2V. Therefore a boost converter with a minimum input voltage of at least 3.5V must be implemented, TPS611781RNWR looks promising.
 * USB connector and power jack are slightly too close together, adding a few millimeters of space between them would be nice.
 * Back EMF protection is needed, back driving the motor has been seen to fry the XL6009S boost converter, some kind of snubber or better quality H-bridge driver might be needed.
-* When running the motor at full speed the STM32 starts to hang because it doesn't have enough clock cycles per second to handle all of the encoder interrupts. An FPGA could be used to track encoder movement and relieve the STM32.
+* When running the motor at full speed the STM32 starts to hang because it doesn't have enough clock cycles per second to handle all of the encoder interrupts. An FPGA (LCMXO2-1200HC-4SG32C) could be used to track encoder movement and relieve the STM32.
 * The main power switch has been known to fail, maybe an alternative could be used.
 
 ## Linear Actuator Pin Definitions
