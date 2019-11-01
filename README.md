@@ -47,7 +47,7 @@ Firmware and overview for the Hexa H-Bridge driver board with encoder position f
 ## Bugs That Will Be Fixed in the Next Release (Rev 1.0 -> Rev 2.0) 
 * [ ] Minimum input voltage for the XL6009S 12V boost converter is 5V, the main power input is 5V but the lithium-ion battery is 3.7 - 4.2V. Therefore a boost converter with a minimum input voltage of at least 3.5V must be implemented, TPS611781RNWR looks promising.
 * [ ] USB connector and power jack are slightly too close together, adding a few millimeters of space between them would be nice. Possibly replace both with one USB C port.
-* [ ] The input polyfuse is causing a voltage drop at the 5V input, which is resulting in the XL6009S boost converter being under voltaged and not starting up correctly. In some cases the boost converter has been seen too output 25V in this unstable state. The temporary fix was to remove the polyfuse and directly connect the 5V input.
+* [ ] The input polyfuse is causing a voltage drop at the 5V input, which is resulting in the XL6009S boost converter being under voltaged and not starting up correctly. In some cases the boost converter has been seen to output 25V in this unstable state. The temporary fix was to remove the polyfuse and directly connect the 5V input.
 * [ ] When running the motor at full speed the STM32 starts to hang because it doesn't have enough clock cycles per second to handle all of the encoder interrupts. An FPGA (ICE40LP8K-CM81) could be used to track encoder movement and relieve the STM32.
 * [ ] The main power switch has been known to fail, maybe an alternative could be used. Ideally a 3D printed casing should provide a switch covering.
 
