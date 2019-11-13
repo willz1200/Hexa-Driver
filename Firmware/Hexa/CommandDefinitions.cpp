@@ -14,6 +14,5 @@ void ledfunc(){
 
 void stepResponce(){
 	int input = CLI.readInt();
-	LA0.SpinMotor( input , dirB); //Start Spinning Motor
-
+	LA0.SpinMotor( input , 2); //Start Spinning Motor
 }

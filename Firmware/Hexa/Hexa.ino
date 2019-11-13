@@ -7,7 +7,6 @@
  * @Author(s)	William Bednall
  ******************************************************************************/
 
-#include "LinearActuator.h"
 #include "CommandDefinitions.h"
 
 //Swap these numbers if its not stopping

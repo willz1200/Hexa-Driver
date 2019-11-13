@@ -7,9 +7,11 @@
 #ifndef CommandDefinitions_h
 #define CommandDefinitions_h
 
+#include "LinearActuator.h"
 #include "CommandLineInterface.h"
 
 void ledfunc();
+void stepResponce();
 
 //Commands cannot contain spaces or `
 #define cmd_total 2
