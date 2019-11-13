@@ -13,7 +13,7 @@ void ledfunc(){
 
 
 void stepResponce(){
-
-	LA0.SpinMotor(75, dirB); //Start Spinning Motor
+	int input = CLI.readInt();
+	LA0.SpinMotor( input , dirB); //Start Spinning Motor
 
 }
