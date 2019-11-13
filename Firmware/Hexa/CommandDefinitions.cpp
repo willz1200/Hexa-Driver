@@ -23,3 +23,7 @@ void stepResponce(){
 	}
 	
 }
+
+void lsFunc(){
+	Serial.println(LA0.GetEncoderPos());
+}
