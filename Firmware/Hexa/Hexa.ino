@@ -8,6 +8,7 @@
  ******************************************************************************/
 
 #include "LinearActuator.h"
+#include "CommandDefinitions.h"
 
 //Swap these numbers if its not stopping
 #define dirA 1 //Spin ->
