@@ -12,9 +12,10 @@
 void ledfunc();
 
 //Commands cannot contain spaces or `
-#define cmd_total 1
+#define cmd_total 2
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
-	{ "led",		ledfunc }
+	{ "led", ledfunc },
+	{ "step", stepResponce }
 };
 
 #endif

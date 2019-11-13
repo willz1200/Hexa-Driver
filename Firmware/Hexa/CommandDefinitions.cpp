@@ -10,3 +10,10 @@
 void ledfunc(){
 	analogWrite(33, CLI.readInt());
 }
+
+
+void stepResponce(){
+
+	LA0.SpinMotor(75, dirB); //Start Spinning Motor
+
+}
