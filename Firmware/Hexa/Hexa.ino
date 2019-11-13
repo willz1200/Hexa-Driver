@@ -15,25 +15,35 @@
 #define dirB 2 //Spin <-
 
 void setup() {
-	Serial.begin(250000);
+	Serial.begin(115200);
 
 	//Duty cycle can be 0-255
-	LA0.SpinMotor(75, dirB); //Start Spinning Motor
+	LA0.SpinMotor(0, dirB); //Start Spinning Motor
+
+	/* - Only testing on LA0 for now
 	LA1.SpinMotor(75, dirB); //Start Spinning Motor
 	LA2.SpinMotor(75, dirB); //Start Spinning Motor
 	LA3.SpinMotor(75, dirB); //Start Spinning Motor
 	LA4.SpinMotor(75, dirB); //Start Spinning Motor
 	LA5.SpinMotor(75, dirB); //Start Spinning Motor
+	*/
+
+	CLI.bind(cmd_bind,cmd_total);
 }
 
 void loop() {
-	closedSpinTest(LA0);
+	//closedSpinTest(LA0);
+	CLI.loop();
+
+	/* - Only testing on LA0 for now
 	closedSpinTest(LA1);
 	closedSpinTest(LA2);
 	closedSpinTest(LA3);
 	closedSpinTest(LA4);
 	closedSpinTest(LA5);
-	Serial.println("");//Move to next line in serial monitor
+	*/
+
+	//Serial.println("");//Move to next line in serial monitor
 }
 
 //Super janky feedback loop :O

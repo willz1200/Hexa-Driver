@@ -9,6 +9,12 @@
 
 #include "CommandLineInterface.h"
 
+void ledfunc();
 
+//Commands cannot contain spaces or `
+#define cmd_total 1
+const cmdFormat cmd_bind[cmd_total] PROGMEM = {
+	{ "led",		ledfunc }
+};
 
 #endif
