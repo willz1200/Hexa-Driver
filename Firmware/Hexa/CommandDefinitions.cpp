@@ -13,6 +13,13 @@ void ledfunc(){
 
 
 void stepResponce(){
+	int motor = CLI.readInt();
 	int input = CLI.readInt();
-	LA0.SpinMotor( input , 2); //Start Spinning Motor
+	if ( motor == 0 ){
+		LA0.SpinMotor( input , 2); //Start Spinning Motor
+	} else {
+		// CLI.sendError("motor not found")
+		// CLI.sendMessage("some message")
+	}
+	
 }
