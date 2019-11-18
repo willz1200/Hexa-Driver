@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		Controller.h
  * @Brief		DC motor control systems are implemented here
- * @Date		17/11/2019 (Last Updated)
+ * @Date		18/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 
@@ -20,6 +20,14 @@ class Controller: public LinearActuator {
 		//using LinearActuator::GetEncoderPos;
 		Controller(const byte _LinearActuatorID);
 		void closedSpinTest();
+		void setGain(float gain);
+		void setPoint(float setpoint);
+		void position();
+	private:
+		float posGain;
+		float pos_Setpoint;
+		float velDesired;
+		unsigned long timeKeep;
 
 };
 

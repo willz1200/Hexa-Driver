@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		CommandDefinitions.h
  * @Brief		Put your custom commands in here
- * @Date		17/11/2019 (Last Updated)
+ * @Date		18/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #ifndef CommandDefinitions_h
@@ -15,14 +15,18 @@ void ledfunc();
 void stepResponce();
 void lsFunc();
 void spinFunc();
+void gainFunc();
+void setpointFunc();
 
 //Commands cannot contain spaces or `
-#define cmd_total 4
+#define cmd_total 6
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
 	{ "step", stepResponce },
 	{ "ls", lsFunc },
-	{ "spin", spinFunc }
+	{ "r", spinFunc },
+	{ "g", gainFunc },
+	{ "s", setpointFunc }
 };
 
 #endif

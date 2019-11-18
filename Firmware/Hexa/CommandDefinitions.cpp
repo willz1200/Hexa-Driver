@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		CommandDefinitions.cpp
  * @Brief		Put your custom commands in here
- * @Date		17/11/2019 (Last Updated)
+ * @Date		18/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -27,10 +27,13 @@ void stepResponce(){
 }
 
 void lsFunc(){
-	Serial.println(LA0.GetEncoderPos());
+	Serial.println(LA5.GetEncoderPos());
 }
 
-//Not currently work, seems to cause 12V rail to dip dramatically???
+//Not currently working, seems to cause 12V rail to dip dramatically??? --> Issue with LA0 on my board now using LA5 :)
 void spinFunc(){
-	//spinRunning = CLI.readBool();
+	spinRunning = CLI.readBool();
 }
+
+void gainFunc(){ LA5.setGain(CLI.readFloat()); }
+void setpointFunc(){ LA5.setPoint(CLI.readFloat()); }

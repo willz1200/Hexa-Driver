@@ -1,14 +1,19 @@
 /******************************************************************************
  * @File		Controller.cpp
  * @Brief		DC motor control systems are implemented here 
- * @Date		17/11/2019 (Last Updated)
+ * @Date		18/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
 #include "Controller.h"
 
 //Controller::Controller(const laFormat *_LA) : LinearActuator(_LA){}
-Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearActuatorID){}
+Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearActuatorID){
+	posGain = 0.5;
+	pos_Setpoint = 800.0;
+	velDesired = 0.0;
+	timeKeep = millis();
+}
 
 void Controller::closedSpinTest(){
 	if (GetEncoderPos() <= 0){
@@ -30,6 +35,49 @@ void Controller::closedSpinTest(){
 
 	//Serial.print(GetEncoderPos());
 	//Serial.print(", ");
+}
+
+void Controller::setGain(float gain){
+	posGain = gain;
+}
+
+void Controller::setPoint(float setpoint){
+	pos_Setpoint = setpoint;
+}
+
+//The position controller is a P loop with a single proportional gain.
+void Controller::position(){
+
+	//Proportional error calc
+	float posError;
+	posError = pos_Setpoint - GetEncoderPos();
+	velDesired += posGain * posError;
+
+	//Limit the velocity
+    float vel_Limit = 75.0;
+    if (velDesired > vel_Limit) velDesired = vel_Limit;
+    if (velDesired < -vel_Limit) velDesired = -vel_Limit;
+
+    //Set motor direction
+	uint8_t dirSet = 0;
+	if (velDesired < 0){
+		dirSet = 1;
+	} else {
+		dirSet = 2;
+	}
+
+	//Limit print speed
+	if (millis() - timeKeep > 100){
+		Serial.print(GetEncoderPos());
+		Serial.print(" ");
+		Serial.print(velDesired);
+		Serial.print(" ");
+		Serial.println(dirSet);
+		timeKeep = millis();
+	}
+
+    SpinMotor(abs(velDesired), dirSet);
+
 }
 
 //Instantiate 6 Linear Actuator Objects and Allocate Their IO
