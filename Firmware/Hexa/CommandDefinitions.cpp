@@ -1,11 +1,13 @@
 /******************************************************************************
  * @File		CommandDefinitions.cpp
  * @Brief		Put your custom commands in here
- * @Date		13/11/2019 (Last Updated)
+ * @Date		17/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
 #include "CommandDefinitions.h"
+
+bool spinRunning = 0;
 
 void ledfunc(){
 	analogWrite(33, CLI.readInt());
@@ -26,4 +28,9 @@ void stepResponce(){
 
 void lsFunc(){
 	Serial.println(LA0.GetEncoderPos());
+}
+
+//Not currently work, seems to cause 12V rail to dip dramatically???
+void spinFunc(){
+	//spinRunning = CLI.readBool();
 }

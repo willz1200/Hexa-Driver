@@ -3,7 +3,7 @@
  * @Brief		Arduino file that uses Hexa class to spin up motor between a
  *				start/end point. Also Implements super janky deceleration code
  *				to help stop overshoot, current test speed is 75/255 duty.
- * @Date		13/11/2019 (Last Updated)
+ * @Date		17/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 
@@ -13,11 +13,13 @@
 #define dirA 1 //Spin ->
 #define dirB 2 //Spin <-
 
+unsigned long timeSince;
+
 void setup() {
 	Serial.begin(115200);
 
 	//Duty cycle can be 0-255
-	LA0.SpinMotor(0, dirB); //Start Spinning Motor
+	//LA0.SpinMotor(0, dirB); //Start Spinning Motor
 
 	/* - Only testing on LA0 for now
 	LA1.SpinMotor(75, dirB); //Start Spinning Motor
@@ -28,11 +30,22 @@ void setup() {
 	*/
 
 	CLI.bind(cmd_bind,cmd_total);
+	timeSince = millis();
 }
 
 void loop() {
 	//closedSpinTest(LA0);
-	CLI.loop();
+	if (millis() - timeSince > 100){
+		CLI.loop();
+		timeSince = millis();
+	}
+	
+	if (spinRunning){
+		LA0.closedSpinTest();
+	} else {
+		LA0.SpinMotor(0, dirB);
+	}
+	
 
 	/* - Only testing on LA0 for now
 	closedSpinTest(LA1);
@@ -46,7 +59,7 @@ void loop() {
 }
 
 //Super janky feedback loop :O
-void closedSpinTest(LinearActuator &m){
+/*void closedSpinTest(Controller &m){
 	if (m.GetEncoderPos() <= 0){
 		m.SpinMotor(75, dirB); //Change turning to head towards end point
 	}
@@ -66,4 +79,4 @@ void closedSpinTest(LinearActuator &m){
 
 	Serial.print(m.GetEncoderPos());
 	Serial.print(", ");
-}
+}*/

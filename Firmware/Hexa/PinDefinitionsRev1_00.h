@@ -2,7 +2,7 @@
  * @File		PinDefinitionsRev1_00.h
  * @Brief		Pin definitions for revision 1.00 of the hexa driver PCB,
  *				based on the STM32F103CBT6 MCU.
- * @Date		12/04/2019 (Last Updated)
+ * @Date		17/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #ifndef PinDefinitionsRev1_00_h
@@ -44,6 +44,24 @@
 #define Encoder4_Flip 1
 #define Encoder5_Flip 1
 #define Encoder6_Flip 0
+
+//Linear Actuator Signal Structure
+struct laFormat {
+	const unsigned char MotorPWM;
+	const unsigned char MotorDIR;
+	const unsigned char EncoderINT;
+	const unsigned char EncoderPHA;
+	const bool EncoderFlip;
+};
+
+const laFormat LinearActuatorsAvailable[6] PROGMEM = {
+	{ Motor1_PWM, Motor1_DIR, Encoder1_INT, Encoder1_PHA, Encoder1_Flip },
+	{ Motor2_PWM, Motor2_DIR, Encoder2_INT, Encoder2_PHA, Encoder2_Flip },
+	{ Motor3_PWM, Motor3_DIR, Encoder3_INT, Encoder3_PHA, Encoder3_Flip },
+	{ Motor4_PWM, Motor4_DIR, Encoder4_INT, Encoder4_PHA, Encoder4_Flip },
+	{ Motor5_PWM, Motor5_DIR, Encoder5_INT, Encoder5_PHA, Encoder5_Flip },
+	{ Motor6_PWM, Motor6_DIR, Encoder6_INT, Encoder6_PHA, Encoder6_Flip }
+};
 
 //I2C
 #define I2C_SCL 1
