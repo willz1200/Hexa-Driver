@@ -93,6 +93,7 @@ const laFormat LinearActuatorsAvailable[6] PROGMEM = {
 					//GND					(Pin 10)
 
 //Encoder Constants
-#define PulsesPerTurn 7
+#define PulsesPerTurn 7.0
+#define GearReduction 30.0 //Gear Reduction Ratio is 1:30
 
 #endif
