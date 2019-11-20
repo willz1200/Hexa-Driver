@@ -39,3 +39,4 @@ void spinFunc(){
 
 void gainFunc(){ LA5.setGain(CLI.readFloat()); }
 void setpointFunc(){ LA5.setPoint(CLI.readFloat()); }
+void setSampleRateFunc(){ LA5.setSampleRate(CLI.readInt()); }

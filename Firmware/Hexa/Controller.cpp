@@ -13,6 +13,8 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	pos_Setpoint = 800.0;
 	velDesired = 0.0;
 	timeKeep = millis();
+	timeSinceUpdate = millis();
+	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
 }
 
 void Controller::closedSpinTest(){
@@ -43,6 +45,20 @@ void Controller::setGain(float gain){
 
 void Controller::setPoint(float setpoint){
 	pos_Setpoint = setpoint;
+}
+
+void Controller::setSampleRate(unsigned int rate){
+	sampleRate = rate;
+}
+
+void Controller::update(){
+	if (millis() - timeSinceUpdate > sampleRate){
+		timeSinceUpdate = millis();
+		LA5.VelocityUpdate();
+		Serial.print(LA5.GetEncoderPos());
+		Serial.print(", ");
+		Serial.println(LA5.GetEncoderRPM());
+	}
 }
 
 //The position controller is a P loop with a single proportional gain.

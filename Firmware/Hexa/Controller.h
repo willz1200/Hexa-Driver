@@ -22,12 +22,15 @@ class Controller: public LinearActuator {
 		void closedSpinTest();
 		void setGain(float gain);
 		void setPoint(float setpoint);
+		void setSampleRate(unsigned int rate);
+		void update();
 		void position();
 	private:
 		float posGain;
 		float pos_Setpoint;
 		float velDesired;
-		unsigned long timeKeep;
+		unsigned int sampleRate;
+		unsigned long timeKeep, timeSinceUpdate;
 
 };
 

@@ -17,16 +17,18 @@ void lsFunc();
 void spinFunc();
 void gainFunc();
 void setpointFunc();
+void setSampleRateFunc();
 
 //Commands cannot contain spaces or `
-#define cmd_total 6
+#define cmd_total 7
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
 	{ "step", stepResponce },
 	{ "ls", lsFunc },
 	{ "r", spinFunc },
 	{ "g", gainFunc },
-	{ "s", setpointFunc }
+	{ "s", setpointFunc },
+	{ "t", setSampleRateFunc }
 };
 
 #endif
