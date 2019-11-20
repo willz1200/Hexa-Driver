@@ -40,3 +40,4 @@ void spinFunc(){
 void gainFunc(){ Dev_LA->setGain(CLI.readFloat()); }
 void setpointFunc(){ Dev_LA->setPoint(CLI.readFloat()); }
 void setSampleRateFunc(){ Dev_LA->setSampleRate(CLI.readInt()); }
+void togPosVelFunc(){ Dev_LA->streamPosVel(CLI.readBool()); }

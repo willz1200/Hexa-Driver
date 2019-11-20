@@ -23,6 +23,7 @@ class Controller: public LinearActuator {
 		void setGain(float gain);
 		void setPoint(float setpoint);
 		void setSampleRate(unsigned int rate);
+		void streamPosVel(bool toggle);
 		void update();
 		void position();
 	private:
