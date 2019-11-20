@@ -1,11 +1,17 @@
 import serial 
 import time
+import matplotlib.pyplot as plt
 
 ser = serial.Serial('COM5')
 ser.baudrate = 115200
 old_input = None
 ser.write(b'z 1\r') #Sets to sdk mode. So it dosn't echo all commands.
 # ser.port = 'COM4'while True:
+
+time = []
+position = []
+velocity = []
+
 while True:
     # time.sleep(1)
     
@@ -25,7 +31,8 @@ while True:
             print ("request sensor")
         elif (old_input == 3):
             ser.write(b'v 0\r') 
-            print ("request sensor") 
+            print ("request sensor")
+            break 
         elif (old_input == 4):
             ser.write(b'v 1\r') 
             print ("request sensor") 
@@ -34,9 +41,26 @@ while True:
         line = line.decode('utf-8')
         line = line.replace("\r\n","")
         line = line.split(',')
-    if (line[0] == "s"):
-        print (type(float(line[1])))
+        if (line[0] == 's'):
+            time.append(float(line[1]))
+            position.append(float(line[2]))
+            velocity.append(float(line[3]))
+        print(line)
+    
+    
+        # print (type(float(line[0])))
         # print (line.decode('utf-8').split(','))
         # breakpoint()
-# ser.close()             # close port
+# breakpoint()
 
+# ser.close()             # close port
+if __name__ == "__main__":
+    fig, ax = plt.subplots()
+    ax.plot(time, position)
+    ax.plot(time, velocity)
+    ax.set_title('Title')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.legend(('position', 'velocity'))
+    plt.show()
+    breakpoint()
