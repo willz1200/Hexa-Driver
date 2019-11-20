@@ -9,11 +9,9 @@
 
 #include "CommandDefinitions.h"
 
-//Swap these numbers if its not stopping
-#define dirA 1 //Spin ->
-#define dirB 2 //Spin <-
+Controller *Dev_LA = &LA5;
 
-unsigned long timeSince, timeSinceB;
+unsigned long timeSince;
 
 void setup() {
 	Serial.begin(115200);
@@ -22,24 +20,22 @@ void setup() {
 
 	CLI.bind(cmd_bind,cmd_total);
 	timeSince = millis();
-	timeSinceB = millis();
 }
 
 void loop() {
-	//closedSpinTest(LA0);
 	if (millis() - timeSince > 100){
 		CLI.loop();
 		timeSince = millis();
 		//Serial.println(LA5.GetEncoderRPM());
 	}
 
-	LA5.update();
+	Dev_LA->update();
 
 	if (spinRunning){
 		//LA5.closedSpinTest();
-		LA5.position();
+		Dev_LA->position();
 	} else {
-		LA5.SpinMotor(0, dirB);
+		Dev_LA->SpinMotor(0, dirB);
 	}
 
 }

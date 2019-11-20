@@ -29,7 +29,7 @@ void stepResponce(){
 }
 
 void lsFunc(){
-	Serial.println(LA5.GetEncoderPos());
+	Serial.println(Dev_LA->GetEncoderPos());
 }
 
 //Not currently working, seems to cause 12V rail to dip dramatically??? --> Issue with LA0 on my board now using LA5 :)
@@ -37,6 +37,6 @@ void spinFunc(){
 	spinRunning = CLI.readBool();
 }
 
-void gainFunc(){ LA5.setGain(CLI.readFloat()); }
-void setpointFunc(){ LA5.setPoint(CLI.readFloat()); }
-void setSampleRateFunc(){ LA5.setSampleRate(CLI.readInt()); }
+void gainFunc(){ Dev_LA->setGain(CLI.readFloat()); }
+void setpointFunc(){ Dev_LA->setPoint(CLI.readFloat()); }
+void setSampleRateFunc(){ Dev_LA->setSampleRate(CLI.readInt()); }

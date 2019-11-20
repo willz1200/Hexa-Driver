@@ -15,6 +15,7 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	timeKeep = millis();
 	timeSinceUpdate = millis();
 	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
+	togglePosVel = false;
 }
 
 void Controller::closedSpinTest(){
@@ -54,10 +55,12 @@ void Controller::setSampleRate(unsigned int rate){
 void Controller::update(){
 	if (millis() - timeSinceUpdate > sampleRate){
 		timeSinceUpdate = millis();
-		LA5.VelocityUpdate();
-		Serial.print(LA5.GetEncoderPos());
-		Serial.print(", ");
-		Serial.println(LA5.GetEncoderRPM());
+		VelocityUpdate();
+		if (togglePosVel){
+			Serial.print(GetEncoderPos());
+			Serial.print(", ");
+			Serial.println(GetEncoderRPM());	
+		}
 	}
 }
 
