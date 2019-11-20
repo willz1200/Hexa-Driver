@@ -10,6 +10,7 @@
 #include "Controller.h"
 #include "CommandLineInterface.h"
 
+extern Controller *Dev_LA;
 extern bool spinRunning;
 void ledfunc();
 void stepResponce();

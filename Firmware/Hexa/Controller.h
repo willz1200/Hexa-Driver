@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		Controller.h
  * @Brief		DC motor control systems are implemented here
- * @Date		18/11/2019 (Last Updated)
+ * @Date		20/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 
@@ -31,6 +31,7 @@ class Controller: public LinearActuator {
 		float velDesired;
 		unsigned int sampleRate;
 		unsigned long timeKeep, timeSinceUpdate;
+		bool togglePosVel;
 
 };
 
