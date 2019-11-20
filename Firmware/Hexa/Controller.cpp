@@ -62,8 +62,11 @@ void Controller::update(){
 		timeSinceUpdate = millis();
 		VelocityUpdate();
 		if (togglePosVel){
+			Serial.print("s,");
+			Serial.print(millis());
+			Serial.print(",");
 			Serial.print(GetEncoderPos());
-			Serial.print(", ");
+			Serial.print(",");
 			Serial.println(GetEncoderRPM());	
 		}
 	}
