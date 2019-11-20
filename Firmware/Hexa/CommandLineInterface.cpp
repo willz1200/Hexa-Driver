@@ -9,11 +9,16 @@
 
 CommandLineInterface::CommandLineInterface(Stream &targetSerial){ //Use Stream instead of HardwareSerial for greater support
 	refSerial = &targetSerial;
+	sdkMode = false;
 }
 
 void CommandLineInterface::bind(const cmdFormat *cmdTable, uint16_t size){
 	cmdUserBindings = cmdTable;
 	cmdUserSize = size;
+}
+
+void CommandLineInterface::setSdkMode(bool toggle){
+	sdkMode = toggle;
 }
 
 void CommandLineInterface::setup(){
@@ -27,15 +32,22 @@ void CommandLineInterface::loop(){
 			newChar = refSerial->read();
 			if (newChar >= 32 && newChar <= 126){ //Space - ~
 				if (countString < maxCharCommand){ //Store character in buffer and write to screen
-					refSerial->print(newChar);
+					if (!sdkMode){
+						refSerial->print(newChar);
+					}
 					inputBuffer[countString] = newChar;
 					countString++;
 				}
 			} else if (newChar == 13){ //Carriage return
-				if (inputBuffer[0] == 0)
+				if (inputBuffer[0] == 0 && !sdkMode) {
 					refSerial->println("");
-				else if (!userCmd()) //Run the command
-					refSerial->println(F(": command not found"));
+				} else if (!userCmd()){ //Run the command
+					if (!sdkMode){
+						refSerial->println(F(": command not found"));
+					} else {
+						refSerial->println(F("error"));
+					}
+				}
 				resetBuffer();
 			}
 		}
@@ -52,7 +64,9 @@ bool CommandLineInterface::userCmd(){
 		inputStr = inputStr.substring(0, separatorPos); //Isolate the command
 	for (uint8_t count = 0; count < cmdUserSize; count++){
 		if (inputStr == cmdUserBindings[count].term){
-			refSerial->println("");
+			if (!sdkMode){
+				refSerial->println("");
+			}
 			cmdUserBindings[count].func();
 			//if (paramError == true)
 				//refSerial->println(F("Parameter Error")); //E: Invalid operation <param>

@@ -20,6 +20,8 @@ class CommandLineInterface {
 		void setup();
 		void loop();
 
+		void setSdkMode(bool toggle);
+
 		void bind(const cmdFormat *cmdTable, uint16_t size);		//String Command			For example: "help"
 
 		//Parameter to Value
@@ -48,6 +50,7 @@ class CommandLineInterface {
 		int countString = 0;
 		char inputBuffer[maxCharCommand];
 		char newChar;
+		bool sdkMode;
 };
 
 extern CommandLineInterface CLI;

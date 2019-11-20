@@ -52,7 +52,7 @@ void Controller::setSampleRate(unsigned int rate){
 	sampleRate = rate;
 }
 
-	//Toggle position and velocity streaming
+//Toggle position and velocity streaming
 void Controller::streamPosVel(bool toggle){
 	togglePosVel = toggle;
 }

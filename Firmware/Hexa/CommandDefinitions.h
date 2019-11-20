@@ -20,9 +20,10 @@ void gainFunc();
 void setpointFunc();
 void setSampleRateFunc();
 void togPosVelFunc();
+void togSDKmodeFunc();
 
 //Commands cannot contain spaces or `
-#define cmd_total 8
+#define cmd_total 9
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
 	{ "step", stepResponce },
@@ -31,7 +32,8 @@ const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "g", gainFunc },
 	{ "s", setpointFunc },
 	{ "t", setSampleRateFunc },
-	{ "v", togPosVelFunc }
+	{ "v", togPosVelFunc },
+	{ "z", togSDKmodeFunc }
 };
 
 #endif
