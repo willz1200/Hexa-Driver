@@ -2,7 +2,7 @@
  * @File		PinDefinitionsRev1_00.h
  * @Brief		Pin definitions for revision 1.00 of the hexa driver PCB,
  *				based on the STM32F103CBT6 MCU.
- * @Date		17/11/2019 (Last Updated)
+ * @Date		20/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #ifndef PinDefinitionsRev1_00_h
@@ -91,5 +91,8 @@ const laFormat LinearActuatorsAvailable[6] PROGMEM = {
 #define ExpIO_7 32	//Button				(Pin 8)
 #define ExpIO_8 33	//LED					(Pin 9)
 					//GND					(Pin 10)
+
+//Encoder Constants
+#define PulsesPerTurn 7
 
 #endif

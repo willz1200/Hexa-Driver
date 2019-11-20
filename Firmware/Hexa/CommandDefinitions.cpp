@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		CommandDefinitions.cpp
  * @Brief		Put your custom commands in here
- * @Date		18/11/2019 (Last Updated)
+ * @Date		20/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -18,7 +18,9 @@ void stepResponce(){
 	int motor = CLI.readInt();
 	int input = CLI.readInt();
 	if ( motor == 0 ){
-		LA0.SpinMotor( input , 2); //Start Spinning Motor
+		LA0.SpinMotor(input , 2); //Start Spinning Motor
+	} else if ( motor == 5 ){
+		LA5.SpinMotor(input , 2); //Start Spinning Motor
 	} else {
 		// CLI.sendError("motor not found")
 		// CLI.sendMessage("some message")

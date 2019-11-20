@@ -2,7 +2,7 @@
  * @File		LinearActuator.cpp
  * @Brief		Linear actuator class, used to drive the motor H-Bridge and track
  *				encoder steps.
- * @Date		17/11/2019 (Last Updated)
+ * @Date		20/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -23,6 +23,9 @@ LinearActuator::LinearActuator(const byte _LinearActuatorID)
 	SpinMotor(0, 0);
 
 	motorDirection = false;
+	velocityTime = millis();
+	velocityLastPos = 0;
+	rpm = 0;
 
 	//Attach each encoder interrupt to its Glue routine (MAX of 6)
 	switch (LinearActuatorID){
@@ -69,8 +72,21 @@ void LinearActuator::EncoderInterruptHandler(){
 	}
 }
 
+//BUG - pulseDelta only correct for one direction, other direction causes overflow.
+void LinearActuator::VelocityUpdate(){
+	int pulseDelta = virtualPosition - velocityLastPos;
+	//60000 milliseconds in 1 minute, used for rpm.
+	rpm = (pulseDelta * (60000 / (millis() - velocityTime))) / PulsesPerTurn;
+	velocityLastPos = virtualPosition;
+	velocityTime = millis();
+}
+
 int LinearActuator::GetEncoderPos(){
 	return virtualPosition;
+}
+
+int LinearActuator::GetEncoderRPM(){
+	return rpm;
 }
 
 void LinearActuator::ResetEncoderPos(){

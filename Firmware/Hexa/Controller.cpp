@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		Controller.cpp
  * @Brief		DC motor control systems are implemented here 
- * @Date		18/11/2019 (Last Updated)
+ * @Date		20/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -67,14 +67,14 @@ void Controller::position(){
 	}
 
 	//Limit print speed
-	if (millis() - timeKeep > 100){
+/*	if (millis() - timeKeep > 100){
 		Serial.print(GetEncoderPos());
 		Serial.print(" ");
 		Serial.print(velDesired);
 		Serial.print(" ");
 		Serial.println(dirSet);
 		timeKeep = millis();
-	}
+	}*/
 
     SpinMotor(abs(velDesired), dirSet);
 
