@@ -72,11 +72,21 @@ void LinearActuator::EncoderInterruptHandler(){
 	}
 }
 
-//BUG - pulseDelta only correct for one direction, other direction causes overflow.
 void LinearActuator::VelocityUpdate(){
-	int pulseDelta = virtualPosition - velocityLastPos;
+	int8_t dir;
+	int pulseDelta;
+	if (virtualPosition > velocityLastPos){
+		pulseDelta = virtualPosition - velocityLastPos;
+		dir = 1;
+	} else {
+		pulseDelta = velocityLastPos - virtualPosition;
+		dir = -1;
+	}
+	
 	//60000 milliseconds in 1 minute, used for rpm.
 	rpm = (pulseDelta * (60000 / (millis() - velocityTime))) / PulsesPerTurn;
+	//rpm = rpm / GearReduction; //Include Gear Reduction Ratio
+	rpm = dir * rpm;
 	velocityLastPos = virtualPosition;
 	velocityTime = millis();
 }
@@ -85,7 +95,7 @@ int LinearActuator::GetEncoderPos(){
 	return virtualPosition;
 }
 
-int LinearActuator::GetEncoderRPM(){
+float LinearActuator::GetEncoderRPM(){
 	return rpm;
 }
 

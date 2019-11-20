@@ -30,14 +30,14 @@ class LinearActuator {
 		bool motorDirection;
 		unsigned long velocityTime;
 		int velocityLastPos;
-		int rpm;
+		float rpm;
 		
 	public:
 		LinearActuator(const byte _LinearActuatorID);
 		void EncoderInterruptHandler();
 		void VelocityUpdate();
 		int GetEncoderPos();
-		int GetEncoderRPM();
+		float GetEncoderRPM();
 		void ResetEncoderPos();
 		void SpinMotor(unsigned char dutyCycle, unsigned char direction);
 		bool getMotorDir();
