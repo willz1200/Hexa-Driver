@@ -12,6 +12,8 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	posGain = 0.5;
 	pos_Setpoint = 800.0;
 	velDesired = 0.0;
+	velGain = 0.5;
+	velIntGain = 0.2;
 	timeKeep = millis();
 	timeSinceUpdate = millis();
 	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
@@ -40,8 +42,16 @@ void Controller::closedSpinTest(){
 	//Serial.print(", ");
 }
 
-void Controller::setGain(float gain){
+void Controller::setPosGain(float gain){
 	posGain = gain;
+}
+
+void Controller::setVelGain(float gain){
+	velGain = gain;
+}
+
+void Controller::setVelIntGain(float gain){
+	velIntGain = gain;
 }
 
 void Controller::setPoint(float setpoint){
@@ -75,17 +85,50 @@ void Controller::update(){
 //The position controller is a P loop with a single proportional gain.
 void Controller::position(){
 
-	//Proportional error calc
-	float posError;
-	posError = pos_Setpoint - GetEncoderPos();
+	//Position error calc
+	float posError = pos_Setpoint - GetEncoderPos();
+
+	//Position proportional calc
 	velDesired += posGain * posError;
 
-	//Limit the velocity
+	//---
+
+	/*** Velocity PI controller not yet working correctly
+
+	//Velocity error calc
+	float velError = velDesired - GetEncoderRPM();
+
+	//Velocity proportional calc
+	outDesired += velGain * velError;
+	
+	//Velocity integral calc
+	outDesired += velIntGain * velError * GetEncoderRPM();
+
+	//Limit the ouput velocity to 75/255 duty
     float vel_Limit = 75.0;
-    if (velDesired > vel_Limit) velDesired = vel_Limit;
-    if (velDesired < -vel_Limit) velDesired = -vel_Limit;
+    if (outDesired > vel_Limit) outDesired = vel_Limit;
+    if (outDesired < -vel_Limit) outDesired = -vel_Limit;
 
     //Set motor direction
+	uint8_t dirSet = 0;
+	if (outDesired < 0){
+		dirSet = 1;
+	} else {
+		dirSet = 2;
+	}
+
+	SpinMotor(abs(velDesired), dirSet);
+
+	*/
+
+	//Temp to skip velocity PI stage
+
+	//Limit the ouput velocity to 75/255 duty
+	float vel_Limit = 75.0;
+	if (velDesired > vel_Limit) velDesired = vel_Limit;
+	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
+
+	//Set motor direction
 	uint8_t dirSet = 0;
 	if (velDesired < 0){
 		dirSet = 1;
@@ -94,16 +137,19 @@ void Controller::position(){
 	}
 
 	//Limit print speed
-/*	if (millis() - timeKeep > 100){
+	if (millis() - timeKeep > 100){
 		Serial.print(GetEncoderPos());
 		Serial.print(" ");
 		Serial.print(velDesired);
 		Serial.print(" ");
+		Serial.print(outDesired);
+		Serial.print(" ");
 		Serial.println(dirSet);
 		timeKeep = millis();
-	}*/
+	}
 
-    SpinMotor(abs(velDesired), dirSet);
+	SpinMotor(abs(velDesired), dirSet);
+
 
 }
 

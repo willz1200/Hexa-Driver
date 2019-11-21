@@ -16,20 +16,24 @@ void ledfunc();
 void stepResponce();
 void lsFunc();
 void spinFunc();
-void gainFunc();
+void posGainFunc();
+void velGainFunc();
+void velIntGainFunc();
 void setpointFunc();
 void setSampleRateFunc();
 void togPosVelFunc();
 void togSDKmodeFunc();
 
 //Commands cannot contain spaces or `
-#define cmd_total 9
+#define cmd_total 11
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
 	{ "step", stepResponce },
 	{ "ls", lsFunc },
 	{ "r", spinFunc },
-	{ "g", gainFunc },
+	{ "pp", posGainFunc },
+	{ "vp", velGainFunc },
+	{ "vi", velIntGainFunc },
 	{ "s", setpointFunc },
 	{ "t", setSampleRateFunc },
 	{ "v", togPosVelFunc },

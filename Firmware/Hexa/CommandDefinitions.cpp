@@ -13,7 +13,6 @@ void ledfunc(){
 	analogWrite(33, CLI.readInt());
 }
 
-
 void stepResponce(){
 	int motor = CLI.readInt();
 	int input = CLI.readInt();
@@ -25,7 +24,6 @@ void stepResponce(){
 		// CLI.sendError("motor not found")
 		// CLI.sendMessage("some message")
 	}
-	
 }
 
 void lsFunc(){
@@ -37,9 +35,10 @@ void spinFunc(){
 	spinRunning = CLI.readBool();
 }
 
-void gainFunc(){ Dev_LA->setGain(CLI.readFloat()); }
+void posGainFunc(){ Dev_LA->setPosGain(CLI.readFloat()); }
+void velGainFunc(){ Dev_LA->setVelGain(CLI.readFloat()); }
+void velIntGainFunc(){ Dev_LA->setVelIntGain(CLI.readFloat()); }
 void setpointFunc(){ Dev_LA->setPoint(CLI.readFloat()); }
 void setSampleRateFunc(){ Dev_LA->setSampleRate(CLI.readInt()); }
 void togPosVelFunc(){ Dev_LA->streamPosVel(CLI.readBool()); }
-
 void togSDKmodeFunc(){ CLI.setSdkMode(CLI.readBool()); }

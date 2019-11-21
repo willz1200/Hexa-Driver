@@ -2,7 +2,7 @@ import serial
 import time
 import matplotlib.pyplot as plt
 
-ser = serial.Serial('COM5')
+ser = serial.Serial('COM11')
 ser.baudrate = 115200
 old_input = None
 ser.write(b'z 1\r') #Sets to sdk mode. So it dosn't echo all commands.

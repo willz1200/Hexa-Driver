@@ -20,7 +20,9 @@ class Controller: public LinearActuator {
 		//using LinearActuator::GetEncoderPos;
 		Controller(const byte _LinearActuatorID);
 		void closedSpinTest();
-		void setGain(float gain);
+		void setPosGain(float gain);
+		void setVelGain(float gain);
+		void setVelIntGain(float gain);
 		void setPoint(float setpoint);
 		void setSampleRate(unsigned int rate);
 		void streamPosVel(bool toggle);
@@ -30,6 +32,9 @@ class Controller: public LinearActuator {
 		float posGain;
 		float pos_Setpoint;
 		float velDesired;
+		float velGain;
+		float velIntGain;
+		float outDesired;
 		unsigned int sampleRate;
 		unsigned long timeKeep, timeSinceUpdate;
 		bool togglePosVel;
