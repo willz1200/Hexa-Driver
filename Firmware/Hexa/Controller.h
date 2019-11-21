@@ -38,6 +38,7 @@ class Controller: public LinearActuator {
 		unsigned int sampleRate;
 		unsigned long timeKeep, timeSinceUpdate;
 		bool togglePosVel;
+		bool togglePIdebug;
 
 };
 

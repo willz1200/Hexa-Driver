@@ -18,6 +18,7 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	timeSinceUpdate = millis();
 	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
 	togglePosVel = false;
+	togglePIdebug = false;
 }
 
 void Controller::closedSpinTest(){
@@ -136,16 +137,18 @@ void Controller::position(){
 		dirSet = 2;
 	}
 
-	//Limit print speed
-	if (millis() - timeKeep > 100){
-		Serial.print(GetEncoderPos());
-		Serial.print(" ");
-		Serial.print(velDesired);
-		Serial.print(" ");
-		Serial.print(outDesired);
-		Serial.print(" ");
-		Serial.println(dirSet);
-		timeKeep = millis();
+	if (togglePIdebug){
+		//Limit print speed
+		if (millis() - timeKeep > 100){
+			Serial.print(GetEncoderPos());
+			Serial.print(" ");
+			Serial.print(velDesired);
+			Serial.print(" ");
+			Serial.print(outDesired);
+			Serial.print(" ");
+			Serial.println(dirSet);
+			timeKeep = millis();
+		}
 	}
 
 	SpinMotor(abs(velDesired), dirSet);
