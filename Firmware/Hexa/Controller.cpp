@@ -19,6 +19,18 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
 	togglePosVel = false;
 	togglePIdebug = false;
+
+	//Run time controll vars - Sweep mode
+	dirA_runTime = 1000;
+	dirB_runTime = 1000;
+	duty_runTime = 75;
+
+	//Run time controll vars - Single mode
+	durationSingle_runTime = 500;
+	flagSingle_runTime = false;
+
+	sweepMS_runTime = millis();
+	singleMS_runTime = millis();
 }
 
 void Controller::closedSpinTest(){
@@ -124,7 +136,7 @@ void Controller::position(){
 
 	//Temp to skip velocity PI stage
 
-	//Limit the ouput velocity to 75/255 duty
+	//Limit the ouput velocity to 75 duty, Duty cycle can be 0-255
 	float vel_Limit = 75.0;
 	if (velDesired > vel_Limit) velDesired = vel_Limit;
 	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
@@ -154,6 +166,41 @@ void Controller::position(){
 	SpinMotor(abs(velDesired), dirSet);
 
 
+}
+
+//Simple controller to switch motor direction based on a time delay
+void Controller::runTimeSweep(){
+	if (getMotorDir() == true){
+		if (millis() - sweepMS_runTime > dirA_runTime){
+			SpinMotor(duty_runTime, 2);
+			sweepMS_runTime = millis();
+			//Serial.println(GetEncoderPos());
+		}
+
+	} else if(getMotorDir() == false) {
+		if (millis() - sweepMS_runTime > dirB_runTime){
+			SpinMotor(duty_runTime, 1);
+			sweepMS_runTime = millis();
+			//Serial.println(GetEncoderPos());
+		}
+
+	}
+}
+
+void Controller::runTimeSingleFire(uint16_t duration, uint8_t dir, uint8_t duty){
+	durationSingle_runTime = duration;
+	flagSingle_runTime = true; //Raise a single shot flag
+	sweepMS_runTime = millis();
+	SpinMotor(duty, dir);
+}
+
+void Controller::runTimeSingleUpdate(){
+	if (flagSingle_runTime){ //Check if single command is currently running motor
+		if (millis() - sweepMS_runTime > durationSingle_runTime){
+			SpinMotor(0, dirB); //Stop motor
+			flagSingle_runTime = false; //drop flag
+		}
+	}
 }
 
 //Instantiate 6 Linear Actuator Objects and Allocate Their IO

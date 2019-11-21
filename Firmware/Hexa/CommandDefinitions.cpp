@@ -7,7 +7,7 @@
 #include <Arduino.h>
 #include "CommandDefinitions.h"
 
-bool spinRunning = 0;
+uint8_t spinRunning = 0;
 
 void ledfunc(){
 	analogWrite(33, CLI.readInt());
@@ -32,7 +32,11 @@ void lsFunc(){
 
 //Not currently working, seems to cause 12V rail to dip dramatically??? --> Issue with LA0 on my board now using LA5 :)
 void spinFunc(){
-	spinRunning = CLI.readBool();
+	if (CLI.readBool()){
+		spinRunning = 1;
+	} else {
+		spinRunning = 0;
+	}
 }
 
 void posGainFunc(){ Dev_LA->setPosGain(CLI.readFloat()); }
@@ -42,3 +46,36 @@ void setpointFunc(){ Dev_LA->setPoint(CLI.readFloat()); }
 void setSampleRateFunc(){ Dev_LA->setSampleRate(CLI.readInt()); }
 void togPosVelFunc(){ Dev_LA->streamPosVel(CLI.readBool()); }
 void togSDKmodeFunc(){ CLI.setSdkMode(CLI.readBool()); }
+
+void moveSetPoint(){
+	float setPointDesired = CLI.readFloat();
+	Dev_LA->setPoint(setPointDesired);
+}
+
+void configRunTimeController(){
+	char cmd = CLI.readChar();
+	if (cmd == '0'){
+		spinRunning = 0;
+	} else if (cmd == '1'){
+		spinRunning = 2;
+	} else if (cmd == '2'){
+		spinRunning = 3;
+	} else if (cmd == 't'){
+		uint16_t rtInt = CLI.readInt();
+		Dev_LA->dirA_runTime = rtInt;
+		Dev_LA->dirB_runTime = rtInt;
+	} else if (cmd == 'a'){
+		Dev_LA->dirA_runTime = CLI.readInt();
+	} else if (cmd == 'b'){
+		Dev_LA->dirB_runTime = CLI.readInt();
+	} else if (cmd == 'v'){
+		Dev_LA->duty_runTime = CLI.readInt();
+	} else if (cmd == 's'){ //Signle shot mode
+		uint16_t duration = CLI.readInt();
+		uint8_t dir = CLI.readInt();
+		uint8_t duty = CLI.readInt();
+		Dev_LA->runTimeSingleFire(duration, dir, duty);
+	} else {
+		Serial.print(F(": sub command not found"));
+	}
+}
