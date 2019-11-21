@@ -2,7 +2,7 @@
  * @File		LinearActuator.h
  * @Brief		Linear actuator class, used to drive the motor H-Bridge and track
  *				encoder steps.
- * @Date		12/04/2019 (Last Updated)
+ * @Date		20/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #ifndef LinearActuator_h
@@ -24,29 +24,23 @@ class LinearActuator {
 
 	private:
 		const byte LinearActuatorID;
-		const unsigned char MotorPWM;
-		const unsigned char MotorDIR;
-		const unsigned char EncoderINT;
-		const unsigned char EncoderPHA;
-		const bool EncoderFlip;
+		const laFormat *LA;
 
 		volatile int virtualPosition; //Updated by the ISR through a glue routine
 		bool motorDirection;
+		unsigned long velocityTime;
+		int velocityLastPos;
+		float rpm;
 		
 	public:
-		LinearActuator(const byte _LinearActuatorID, const unsigned char _MotorPWM, const unsigned char _MotorDIR, const unsigned char _EncoderINT, const unsigned char _EncoderPHA, const bool _EncoderFlip);
+		LinearActuator(const byte _LinearActuatorID);
 		void EncoderInterruptHandler();
+		void VelocityUpdate();
 		int GetEncoderPos();
+		float GetEncoderRPM();
 		void ResetEncoderPos();
 		void SpinMotor(unsigned char dutyCycle, unsigned char direction);
 		bool getMotorDir();
 };
-
-extern LinearActuator LA0;
-extern LinearActuator LA1;
-extern LinearActuator LA2;
-extern LinearActuator LA3;
-extern LinearActuator LA4;
-extern LinearActuator LA5;
 
 #endif
