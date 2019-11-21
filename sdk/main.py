@@ -1,8 +1,8 @@
 # *******************************************************************************
-# * @File		main.py
-# * @Brief		SDK for controlling the Hexa Driver and graphing data.
-# * @Date		20/11/2019 (Last Updated)
-# * @Author(s)	Russell Grim
+# * @File       main.py
+# * @Brief      SDK for controlling the Hexa Driver and graphing data.
+# * @Date       20/11/2019 (Last Updated)
+# * @Author(s)  Russell Grim
 # *******************************************************************************
 
 import serial
