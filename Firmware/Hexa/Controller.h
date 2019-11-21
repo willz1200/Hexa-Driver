@@ -28,6 +28,13 @@ class Controller: public LinearActuator {
 		void streamPosVel(bool toggle);
 		void update();
 		void position();
+
+		//Time based controller
+		void runTimeSweep();
+		void runTimeSingleFire(uint16_t duration, uint8_t dir, uint8_t duty);
+		void runTimeSingleUpdate();
+		uint16_t dirA_runTime, dirB_runTime, durationSingle_runTime;
+		uint8_t duty_runTime;
 	private:
 		float posGain;
 		float pos_Setpoint;
@@ -36,10 +43,11 @@ class Controller: public LinearActuator {
 		float velIntGain;
 		float outDesired;
 		unsigned int sampleRate;
-		unsigned long timeKeep, timeSinceUpdate;
+		unsigned long timeKeep, timeSinceUpdate, sweepMS_runTime, singleMS_runTime; //Time keeping vars
 		bool togglePosVel;
 		bool togglePIdebug;
 
+		bool flagSingle_runTime;
 };
 
 extern Controller LA0;

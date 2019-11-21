@@ -26,10 +26,13 @@ void loop() {
 		//Serial.println(LA5.GetEncoderRPM());
 	}
 
-	Dev_LA->update();
-
-	if (spinRunning){
+	if (spinRunning == 1){
+		Dev_LA->update();
 		Dev_LA->position();
+	} else if(spinRunning == 2){
+		Dev_LA->runTimeSweep();
+	} else if(spinRunning == 3){
+		Dev_LA->runTimeSingleUpdate();
 	} else {
 		Dev_LA->SpinMotor(0, dirB);
 	}
