@@ -42,3 +42,8 @@ void setpointFunc(){ Dev_LA->setPoint(CLI.readFloat()); }
 void setSampleRateFunc(){ Dev_LA->setSampleRate(CLI.readInt()); }
 void togPosVelFunc(){ Dev_LA->streamPosVel(CLI.readBool()); }
 void togSDKmodeFunc(){ CLI.setSdkMode(CLI.readBool()); }
+
+void moveSetPoint(){
+	float setPointDesired = CLI.readFloat();
+	Dev_LA->setPoint(setPointDesired);
+}

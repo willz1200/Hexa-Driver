@@ -23,9 +23,10 @@ void setpointFunc();
 void setSampleRateFunc();
 void togPosVelFunc();
 void togSDKmodeFunc();
+void moveSetPoint();
 
 //Commands cannot contain spaces or `
-#define cmd_total 11
+#define cmd_total 12
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
 	{ "step", stepResponce },
@@ -37,7 +38,8 @@ const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "s", setpointFunc },
 	{ "t", setSampleRateFunc },
 	{ "v", togPosVelFunc },
-	{ "z", togSDKmodeFunc }
+	{ "z", togSDKmodeFunc },
+	{ "mv", moveSetPoint }
 };
 
 #endif

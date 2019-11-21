@@ -9,15 +9,12 @@
 
 #include "CommandDefinitions.h"
 
-Controller *Dev_LA = &LA5;
+Controller *Dev_LA = &LA0;
 
 unsigned long timeSince;
 
 void setup() {
 	Serial.begin(115200);
-
-	//Duty cycle can be 0-255
-
 	CLI.bind(cmd_bind,cmd_total);
 	timeSince = millis();
 }
@@ -32,7 +29,6 @@ void loop() {
 	Dev_LA->update();
 
 	if (spinRunning){
-		//LA5.closedSpinTest();
 		Dev_LA->position();
 	} else {
 		Dev_LA->SpinMotor(0, dirB);

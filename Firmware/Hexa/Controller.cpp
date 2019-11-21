@@ -124,7 +124,7 @@ void Controller::position(){
 
 	//Temp to skip velocity PI stage
 
-	//Limit the ouput velocity to 75/255 duty
+	//Limit the ouput velocity to 75 duty, Duty cycle can be 0-255
 	float vel_Limit = 75.0;
 	if (velDesired > vel_Limit) velDesired = vel_Limit;
 	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
