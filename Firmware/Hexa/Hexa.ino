@@ -26,8 +26,9 @@ void loop() {
 		//Serial.println(LA5.GetEncoderRPM());
 	}
 
+	Dev_LA->update();
+
 	if (spinRunning == 1){
-		Dev_LA->update();
 		Dev_LA->position();
 	} else if(spinRunning == 2){
 		Dev_LA->runTimeSweep();
