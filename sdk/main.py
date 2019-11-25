@@ -5,7 +5,7 @@
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
-import serial
+import serial, serial.tools.list_ports
 import time
 import sys
 import numpy as np
@@ -17,15 +17,25 @@ from PyQt4.QtGui import QFileDialog
 class HexaSDK(QtGui.QMainWindow):
 
     def __init__(self):
-        self.ser = serial.Serial('COM11')
+        super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
+        uic.loadUi("gui.ui", self)
+
+        comPorts = serial.tools.list_ports.comports()
+
+        for port, desc, hwid in sorted(comPorts):
+            self.comPortSelect.addItem("{}: {}".format(port, desc))
+            # print("{}: {} [{}]".format(port, desc, hwid))
+
+        self.comPortSelect.currentIndexChanged.connect(self.comPortChange)
+
+        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0]
+        self.ser = serial.Serial(defaultComPort)
         self.ser.baudrate = 115200
         self.checkWait = False
 
         self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
         self.ser.write(b'v 1\r') # Enable position and velocity streaming
 
-        super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
-        uic.loadUi("gui.ui", self)
         self.velPosGraphInit(self.widget)
         # self.velPosGraphInit(self.myWidget)
 
@@ -45,6 +55,12 @@ class HexaSDK(QtGui.QMainWindow):
         self.btnTimeBasedDemo.clicked.connect(self.timeBasedDemo)
         self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
         self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
+
+    def comPortChange(self):
+        self.ser.close()
+        newComPort = str(self.comPortSelect.currentText()).split(':')[0]
+        self.ser = serial.Serial(newComPort)
+        self.ser.baudrate = 115200
 
     def selectFile(self):
         self.inoFilePath.setText(QFileDialog.getOpenFileName())
