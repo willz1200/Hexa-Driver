@@ -43,14 +43,25 @@ class HexaSDK(QtGui.QMainWindow):
         self.sendCommand.clicked.connect(self.sendCommandB)
 
         self.togPosVelStreamData.stateChanged.connect(self.togglePosVelStreamData)
-        self.togPosVelStreamData.toggle() # Start as ticked
+        # self.togPosVelStreamData.toggle() # Start as ticked
 
         self.togSDKmode.stateChanged.connect(self.toggleSDKmode)
         self.togSDKmode.toggle() # Start as ticked
 
-        entries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single']
-        self.listView_ControllerMode.addItems(entries)
+        self.checkBox_LA0_Op.stateChanged.connect(lambda: self.operationalLA(0, self.checkBox_LA0_Op))
+        self.checkBox_LA1_Op.stateChanged.connect(lambda: self.operationalLA(1, self.checkBox_LA1_Op))
+        self.checkBox_LA2_Op.stateChanged.connect(lambda: self.operationalLA(2, self.checkBox_LA2_Op))
+        self.checkBox_LA3_Op.stateChanged.connect(lambda: self.operationalLA(3, self.checkBox_LA3_Op))
+        self.checkBox_LA4_Op.stateChanged.connect(lambda: self.operationalLA(4, self.checkBox_LA4_Op))
+        self.checkBox_LA5_Op.stateChanged.connect(lambda: self.operationalLA(5, self.checkBox_LA5_Op))
+
+        ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single']
+        self.listView_ControllerMode.addItems(ControllerModeEntries)
         self.listView_ControllerMode.selectionModel().selectionChanged.connect(self.controllerMode)
+
+        LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5']
+        self.listView_WorkspaceSelect.addItems(LinearActuatorEntries)
+        self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(self.LinearActuatorWorkspace)
 
         self.btnTimeBasedDemo.clicked.connect(self.timeBasedDemo)
         self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
@@ -80,6 +91,12 @@ class HexaSDK(QtGui.QMainWindow):
             self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
         else:
             self.ser.write(b'z 0\r')
+
+    def operationalLA(self, LA_ID, CheckboxID):
+        if CheckboxID.isChecked():
+            self.ser.write(b'o {} 1\r'.format(LA_ID)) # enable the linear actuator channel
+        else:
+            self.ser.write(b'o {} 0\r'.format(LA_ID))
 
     def timeBasedDemo(self):
         self.ser.write(b'rt 2\r')
@@ -114,6 +131,21 @@ class HexaSDK(QtGui.QMainWindow):
         elif controllerRow == 3:
             self.ser.write(b'rt 2\r')
             self.ser.write(b'rt s 500 1 75\r')
+
+    def LinearActuatorWorkspace(self):
+        workspaceRow = self.listView_WorkspaceSelect.currentRow()
+        if workspaceRow == 0:
+            self.ser.write(b'w 0\r')
+        elif workspaceRow == 1:
+            self.ser.write(b'w 1\r')
+        elif workspaceRow == 2:
+            self.ser.write(b'w 2\r')
+        elif workspaceRow == 3:
+            self.ser.write(b'w 3\r')
+        elif workspaceRow == 4:
+            self.ser.write(b'w 4\r')
+        elif workspaceRow == 5:
+            self.ser.write(b'w 5\r')
 
     def taskTimer(self):
         if (self.checkWait):

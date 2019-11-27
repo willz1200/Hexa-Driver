@@ -207,6 +207,107 @@
      </rect>
     </property>
    </widget>
+   <widget class="QListWidget" name="listView_WorkspaceSelect">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>550</y>
+      <width>256</width>
+      <height>192</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>530</y>
+      <width>251</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Linear Actuator - Current Workspace</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_LA0_Op">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>290</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LA0 Operational</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_LA1_Op">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>310</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LA1 Operational</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_LA2_Op">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>330</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LA2 Operational</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_LA3_Op">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>350</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LA3 Operational</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_LA4_Op">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>370</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LA4 Operational</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_LA5_Op">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>390</y>
+      <width>161</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>LA5 Operational</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
