@@ -3,7 +3,7 @@
  * @Brief		Arduino file that uses Hexa class to spin up motor between a
  *				start/end point. Also Implements super janky deceleration code
  *				to help stop overshoot, current test speed is 75/255 duty.
- * @Date		20/11/2019 (Last Updated)
+ * @Date		27/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 
@@ -28,14 +28,14 @@ void loop() {
 
 	Dev_LA->update();
 
-	if (spinRunning == 1){
-		Dev_LA->position();
-	} else if(spinRunning == 2){
-		Dev_LA->runTimeSweep();
-	} else if(spinRunning == 3){
-		Dev_LA->runTimeSingleUpdate();
-	} else {
-		Dev_LA->SpinMotor(0, dirB);
-	}
+	// if (spinRunning == 1){
+	// 	Dev_LA->position();
+	// } else if(spinRunning == 2){
+	// 	Dev_LA->runTimeSweep();
+	// } else if(spinRunning == 3){
+	// 	Dev_LA->runTimeSingleUpdate();
+	// } else {
+	// 	Dev_LA->SpinMotor(0, dirB);
+	// }
 
 }
