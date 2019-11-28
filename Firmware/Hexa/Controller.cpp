@@ -9,6 +9,7 @@
 
 //Controller::Controller(const laFormat *_LA) : LinearActuator(_LA){}
 Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearActuatorID){
+	controllerMode = 0;
 	posGain = 0.5;
 	pos_Setpoint = 800.0;
 	velDesired = 0.0;
@@ -81,17 +82,33 @@ void Controller::streamPosVel(bool toggle){
 }
 
 void Controller::update(){
-	if (millis() - timeSinceUpdate > sampleRate){
-		timeSinceUpdate = millis();
-		VelocityUpdate();
-		if (togglePosVel){
-			Serial.print("s,");
-			Serial.print(millis());
-			Serial.print(",");
-			Serial.print(GetEncoderPos());
-			Serial.print(",");
-			Serial.println(GetEncoderRPM());	
+	if (enableLA == true){
+		//Controller mode selection
+		if (controllerMode == 1){
+			position();
+		} else if(controllerMode == 2){
+			runTimeSweep();
+		} else if(controllerMode == 3){
+			runTimeSingleUpdate();
+		} else {
+			SpinMotor(0, dirB);
 		}
+
+		//Velocity sampling
+		if (millis() - timeSinceUpdate > sampleRate){
+			timeSinceUpdate = millis();
+			VelocityUpdate();
+			if (togglePosVel){
+				Serial.print("s,");
+				Serial.print(millis());
+				Serial.print(",");
+				Serial.print(GetEncoderPos());
+				Serial.print(",");
+				Serial.println(GetEncoderRPM());	
+			}
+		}
+	} else {
+		SpinMotor(0, dirB);
 	}
 }
 
@@ -201,6 +218,23 @@ void Controller::runTimeSingleUpdate(){
 			flagSingle_runTime = false; //drop flag
 		}
 	}
+}
+
+Controller* idToInstance(uint8_t LA_ID){
+	if (LA_ID == 0){
+		return &LA0;
+	} else if (LA_ID == 1){
+		return &LA1;
+	} else if (LA_ID == 2){
+		return &LA2;
+	} else if (LA_ID == 3){
+		return &LA3;
+	} else if (LA_ID == 4){
+		return &LA4;
+	} else if (LA_ID == 5){
+		return &LA5;
+	}
+	//return LA0.getInstance(LA_ID);
 }
 
 //Instantiate 6 Linear Actuator Objects and Allocate Their IO

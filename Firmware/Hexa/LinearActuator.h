@@ -2,7 +2,7 @@
  * @File		LinearActuator.h
  * @Brief		Linear actuator class, used to drive the motor H-Bridge and track
  *				encoder steps.
- * @Date		20/11/2019 (Last Updated)
+ * @Date		27/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #ifndef LinearActuator_h
@@ -39,8 +39,10 @@ class LinearActuator {
 		int GetEncoderPos();
 		float GetEncoderRPM();
 		void ResetEncoderPos();
+		LinearActuator* getInstance(uint8_t instanceID);
 		void SpinMotor(unsigned char dutyCycle, unsigned char direction);
 		bool getMotorDir();
+		bool enableLA;
 };
 
 #endif

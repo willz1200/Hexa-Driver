@@ -35,6 +35,7 @@ class Controller: public LinearActuator {
 		void runTimeSingleUpdate();
 		uint16_t dirA_runTime, dirB_runTime, durationSingle_runTime;
 		uint8_t duty_runTime;
+		uint8_t controllerMode;
 	private:
 		float posGain;
 		float pos_Setpoint;
@@ -49,6 +50,8 @@ class Controller: public LinearActuator {
 
 		bool flagSingle_runTime;
 };
+
+Controller* idToInstance(uint8_t LA_ID);
 
 extern Controller LA0;
 extern Controller LA1;

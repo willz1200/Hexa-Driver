@@ -2,7 +2,7 @@
  * @File		LinearActuator.cpp
  * @Brief		Linear actuator class, used to drive the motor H-Bridge and track
  *				encoder steps.
- * @Date		20/11/2019 (Last Updated)
+ * @Date		27/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -23,6 +23,7 @@ LinearActuator::LinearActuator(const byte _LinearActuatorID)
 	SpinMotor(0, 0);
 
 	motorDirection = false;
+	enableLA = false;
 	velocityTime = millis();
 	velocityLastPos = 0;
 	rpm = 0;
@@ -133,6 +134,10 @@ void LinearActuator::HandleGlueRoutine_4(){
 void LinearActuator::HandleGlueRoutine_5(){
 	if (instances[5] != NULL)
 		instances[5]->EncoderInterruptHandler();
+}
+
+LinearActuator* LinearActuator::getInstance(uint8_t instanceID){
+	return instances[instanceID];
 }
 
 //Motor Functions
