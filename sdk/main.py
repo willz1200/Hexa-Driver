@@ -19,6 +19,7 @@ class HexaSDK(QtGui.QMainWindow):
     def __init__(self):
         super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
         uic.loadUi("gui.ui", self)
+        self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
 
         comPorts = serial.tools.list_ports.comports()
 
