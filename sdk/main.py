@@ -5,13 +5,17 @@
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
+# pip3.8 install pyserial pyqtgraph PyQt5
+# Install patched version of pyqtgraph for python3.8 straight from git
+# pip3.8 install git+https://github.com/pyqtgraph/pyqtgraph.git@684882455773f410e07c0dd16977e5696edaf6ce#egg=pyqtgraph
+
 import serial, serial.tools.list_ports
 import time
 import sys
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
-from PyQt4.QtGui import QFileDialog
+from PyQt5.QtGui import QFileDialog
 # import matplotlib.pyplot as plt
 
 class HexaSDK(QtGui.QMainWindow):
