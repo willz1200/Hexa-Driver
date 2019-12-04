@@ -249,7 +249,7 @@ void Controller::stepResponse(){
 		SpinMotor(stepResponseSpeed, dirB); //Stop motor
 	}
 	
-
+	//...
 	// Stream data
 }
 
