@@ -222,24 +222,33 @@ void Controller::runTimeSingleUpdate(){
 	}
 }
 
-void Controller::stepResponseSetup( float input ){
-	;
+void Controller::stepResponseSetup( unsigned int Speed ){
+	
 
 	// chainges some class variable
-
+	stepResponseSpeed = Speed;
 	// chaing controlerMode to 4
-
+	controllerMode = 4;
+	stepStartTime = millis();
+	togglePosVel = true;
 }
 
 
 void Controller::stepResponse(){
-	;
+	
 
-	// get start time 
-
-	// start step if 2 secconds
-
+	// get current time 
+	stepCurrentTime = millis() - stepStartTime;
+	
 	// stop step if 12 secconds
+	if (stepCurrentTime > 12000){
+		SpinMotor( 0 , dirB ); //Start motor
+		togglePosVel = false;
+	} else if (stepCurrentTime > 2000){
+		// start step if 2 secconds
+		SpinMotor(stepResponseSpeed, dirB); //Stop motor
+	}
+	
 
 	// Stream data
 }

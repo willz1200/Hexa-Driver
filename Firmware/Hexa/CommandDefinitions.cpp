@@ -23,7 +23,7 @@ void stepResponse(){
 	// read the motor
 	// Dev_LA->stepResponceSetup 
 
-	Dev_LA->stepResponseSetup( CLI.readFloat() );
+	Dev_LA->stepResponseSetup( CLI.readInt() );
 }
 
 void lsFunc(){
