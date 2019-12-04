@@ -1,9 +1,13 @@
 # *******************************************************************************
 # * @File       main.py
 # * @Brief      SDK for controlling the Hexa Driver and graphing data.
-# * @Date       24/11/2019 (Last Updated)
+# * @Date       02/12/2019 (Last Updated)
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
+
+# pip3.8 install pyserial pyqtgraph PyQt5
+# Install patched version of pyqtgraph for python3.8 straight from git
+# pip3.8 install git+https://github.com/pyqtgraph/pyqtgraph.git@684882455773f410e07c0dd16977e5696edaf6ce#egg=pyqtgraph
 
 import serial, serial.tools.list_ports
 import time
@@ -11,7 +15,7 @@ import sys
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
-from PyQt4.QtGui import QFileDialog
+from PyQt5.QtGui import QFileDialog
 # import matplotlib.pyplot as plt
 
 class HexaSDK(QtGui.QMainWindow):
@@ -19,11 +23,14 @@ class HexaSDK(QtGui.QMainWindow):
     def __init__(self):
         super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
         uic.loadUi("gui.ui", self)
+        self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
+        print (sys.version)
 
         comPorts = serial.tools.list_ports.comports()
 
         for port, desc, hwid in sorted(comPorts):
             self.comPortSelect.addItem("{}: {}".format(port, desc))
+            #self.comPortSelect.addItem(b'%b: %b' % port, desc)
             # print("{}: {} [{}]".format(port, desc, hwid))
 
         self.comPortSelect.currentIndexChanged.connect(self.comPortChange)
@@ -74,10 +81,11 @@ class HexaSDK(QtGui.QMainWindow):
         self.ser.baudrate = 115200
 
     def selectFile(self):
-        self.inoFilePath.setText(QFileDialog.getOpenFileName())
+        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa', "Arduino Sketch File (*.ino)")
+        self.inoFilePath.setText(filename)
 
     def sendCommandB(self):
-        self.ser.write(str(self.enterCommand.text()) + "\r")
+        self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
         self.enterCommand.setText("")
 
     def togglePosVelStreamData(self):
@@ -94,9 +102,9 @@ class HexaSDK(QtGui.QMainWindow):
 
     def operationalLA(self, LA_ID, CheckboxID):
         if CheckboxID.isChecked():
-            self.ser.write(b'o {} 1\r'.format(LA_ID)) # enable the linear actuator channel
+            self.ser.write( ("o {} 1\r").format(LA_ID).encode() ) # enable the linear actuator channel
         else:
-            self.ser.write(b'o {} 0\r'.format(LA_ID))
+            self.ser.write( ("o {} 0\r").format(LA_ID).encode() )
 
     def timeBasedDemo(self):
         self.ser.write(b'rt 2\r')
