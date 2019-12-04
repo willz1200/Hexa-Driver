@@ -90,6 +90,8 @@ void Controller::update(){
 			runTimeSweep();
 		} else if(controllerMode == 3){
 			runTimeSingleUpdate();
+		} else if(controllerMode == 4){
+			stepResponse();
 		} else {
 			SpinMotor(0, dirB);
 		}
@@ -105,7 +107,7 @@ void Controller::update(){
 				Serial.print(GetEncoderPos());
 				Serial.print(",");
 				Serial.println(GetEncoderRPM());	
-			}
+			} 
 		}
 	} else {
 		SpinMotor(0, dirB);
@@ -218,6 +220,37 @@ void Controller::runTimeSingleUpdate(){
 			flagSingle_runTime = false; //drop flag
 		}
 	}
+}
+
+void Controller::stepResponseSetup( unsigned char Speed ){
+	
+
+	// chainges some class variable
+	stepResponseSpeed = Speed;
+	// chaing controlerMode to 4
+	controllerMode = 4;
+	stepStartTime = millis();
+	togglePosVel = true;
+}
+
+
+void Controller::stepResponse(){
+	
+
+	// get current time 
+	stepCurrentTime = millis() - stepStartTime;
+	
+	// stop step if 12 secconds
+	if (stepCurrentTime > 12000){
+		SpinMotor( 0 , dirB ); //Start motor
+		togglePosVel = false;
+	} else if (stepCurrentTime > 2000){
+		// start step if 2 secconds
+		SpinMotor(stepResponseSpeed, dirB); //Stop motor
+	}
+	
+	//...
+	// Stream data
 }
 
 Controller* idToInstance(uint8_t LA_ID){
