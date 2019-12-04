@@ -28,7 +28,7 @@ class Controller: public LinearActuator {
 		void streamPosVel(bool toggle);
 		void update();
 		void position();
-		void stepResponseSetup( unsigned int Speed );
+		void stepResponseSetup( unsigned char Speed );
 		void stepResponse();
 
 		//Time based controller
@@ -47,7 +47,7 @@ class Controller: public LinearActuator {
 		float outDesired;
 		float stepStartTime;
 		float stepCurrentTime;
-		unsigned int stepResponseSpeed;
+		unsigned char stepResponseSpeed;
 		unsigned int sampleRate;
 		unsigned long timeKeep, timeSinceUpdate, sweepMS_runTime, singleMS_runTime; //Time keeping vars
 		bool togglePosVel;

@@ -222,7 +222,7 @@ void Controller::runTimeSingleUpdate(){
 	}
 }
 
-void Controller::stepResponseSetup( unsigned int Speed ){
+void Controller::stepResponseSetup( unsigned char Speed ){
 	
 
 	// chainges some class variable
