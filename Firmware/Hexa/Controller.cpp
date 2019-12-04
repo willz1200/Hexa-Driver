@@ -90,6 +90,8 @@ void Controller::update(){
 			runTimeSweep();
 		} else if(controllerMode == 3){
 			runTimeSingleUpdate();
+		} else if(controllerMode == 4){
+			stepResponse();
 		} else {
 			SpinMotor(0, dirB);
 		}
@@ -105,7 +107,7 @@ void Controller::update(){
 				Serial.print(GetEncoderPos());
 				Serial.print(",");
 				Serial.println(GetEncoderRPM());	
-			}
+			} 
 		}
 	} else {
 		SpinMotor(0, dirB);
@@ -220,6 +222,28 @@ void Controller::runTimeSingleUpdate(){
 	}
 }
 
+void Controller::stepResponseSetup( float input ){
+	;
+
+	// chainges some class variable
+
+	// chaing controlerMode to 4
+
+}
+
+
+void Controller::stepResponse(){
+	;
+
+	// get start time 
+
+	// start step if 2 secconds
+
+	// stop step if 12 secconds
+
+	// Stream data
+}
+
 Controller* idToInstance(uint8_t LA_ID){
 	if (LA_ID == 0){
 		return &LA0;
@@ -235,18 +259,6 @@ Controller* idToInstance(uint8_t LA_ID){
 		return &LA5;
 	}
 	//return LA0.getInstance(LA_ID);
-}
-
-void Controller::stepResponse( float input ){
-	;
-
-	// get start time 
-
-	// start step if 2 secconds
-
-	// stop step if 12 secconds
-
-	// Stream data
 }
 
 //Instantiate 6 Linear Actuator Objects and Allocate Their IO
