@@ -237,6 +237,18 @@ Controller* idToInstance(uint8_t LA_ID){
 	//return LA0.getInstance(LA_ID);
 }
 
+void Controller::stepResponse( float input ){
+	;
+
+	// get start time 
+
+	// start step if 2 secconds
+
+	// stop step if 12 secconds
+
+	// Stream data
+}
+
 //Instantiate 6 Linear Actuator Objects and Allocate Their IO
 Controller LA0(0);
 Controller LA1(1);

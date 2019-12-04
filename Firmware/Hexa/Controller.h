@@ -28,6 +28,7 @@ class Controller: public LinearActuator {
 		void streamPosVel(bool toggle);
 		void update();
 		void position();
+		void stepResponse( float input );
 
 		//Time based controller
 		void runTimeSweep();
