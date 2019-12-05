@@ -14,167 +14,200 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="13" column="0">
-     <widget class="QCheckBox" name="checkBox_LA3_Op">
-      <property name="text">
-       <string>LA3 Operational</string>
+   <layout class="QGridLayout" name="gridLayout_4">
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
       </property>
+      <widget class="QWidget" name="tab_workspace">
+       <attribute name="title">
+        <string>Workspace</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="15" column="0">
+           <widget class="QCheckBox" name="togSDKmode">
+            <property name="text">
+             <string>SDK Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="0">
+           <widget class="QCheckBox" name="togPosVelStreamData">
+            <property name="text">
+             <string>Stream Position &amp; Velocity Data</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QTextEdit" name="historyCommand">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="checkBox_LA0_Op">
+            <property name="text">
+             <string>LA0 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QCheckBox" name="checkBox_LA1_Op">
+            <property name="text">
+             <string>LA1 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="checkBox_LA3_Op">
+            <property name="text">
+             <string>LA3 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QCheckBox" name="checkBox_LA2_Op">
+            <property name="text">
+             <string>LA2 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0">
+           <widget class="QCheckBox" name="checkBox_LA4_Op">
+            <property name="text">
+             <string>LA4 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QListWidget" name="listView_WorkspaceSelect"/>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLineEdit" name="enterCommand"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="sendCommand">
+              <property name="text">
+               <string>Send</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Linear Actuator - Current Workspace</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QListWidget" name="listView_ControllerMode"/>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Controller Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="16" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLineEdit" name="inoFilePath"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="inoLaunchPathDialog">
+              <property name="text">
+               <string>Select &quot;.ino&quot; Path</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="2" rowspan="5">
+           <widget class="PlotWidget" name="widget" native="true"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QComboBox" name="comPortSelect"/>
+          </item>
+          <item row="0" column="2">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>5000</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="6" column="2" rowspan="11">
+           <widget class="PlotWidget" name="myWidget" native="true"/>
+          </item>
+          <item row="6" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QPushButton" name="btnTimeBasedDemo">
+              <property name="text">
+               <string>Time Based Demo</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnTimeBasedOpen">
+              <property name="text">
+               <string>Time Based Open</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnTimeBasedClosed">
+              <property name="text">
+               <string>Time Based Closed</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="12" column="0">
+           <widget class="QCheckBox" name="checkBox_LA5_Op">
+            <property name="text">
+             <string>LA5 Operational</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_collective">
+       <attribute name="title">
+        <string>Collective</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_firmware">
+       <attribute name="title">
+        <string>Firmware</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_modelling">
+       <attribute name="title">
+        <string>Modelling</string>
+       </attribute>
+      </widget>
      </widget>
-    </item>
-    <item row="11" column="0">
-     <widget class="QCheckBox" name="checkBox_LA1_Op">
-      <property name="text">
-       <string>LA1 Operational</string>
-      </property>
-     </widget>
-    </item>
-    <item row="10" column="0">
-     <widget class="QCheckBox" name="checkBox_LA0_Op">
-      <property name="text">
-       <string>LA0 Operational</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Controller Mode</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="0">
-     <widget class="QCheckBox" name="checkBox_LA2_Op">
-      <property name="text">
-       <string>LA2 Operational</string>
-      </property>
-     </widget>
-    </item>
-    <item row="16" column="0">
-     <widget class="QCheckBox" name="togPosVelStreamData">
-      <property name="text">
-       <string>Stream Position &amp; Velocity Data</string>
-      </property>
-     </widget>
-    </item>
-    <item row="15" column="0">
-     <widget class="QCheckBox" name="checkBox_LA5_Op">
-      <property name="text">
-       <string>LA5 Operational</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0" rowspan="4">
-     <widget class="QListWidget" name="listView_WorkspaceSelect"/>
-    </item>
-    <item row="14" column="0">
-     <widget class="QCheckBox" name="checkBox_LA4_Op">
-      <property name="text">
-       <string>LA4 Operational</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0" colspan="2">
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <item>
-       <widget class="QLineEdit" name="enterCommand"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="sendCommand">
-        <property name="text">
-         <string>Send</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="17" column="0">
-     <widget class="QCheckBox" name="togSDKmode">
-      <property name="text">
-       <string>SDK Mode</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>5000</width>
-        <height>10</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Linear Actuator - Current Workspace</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0" colspan="2">
-     <widget class="QTextEdit" name="historyCommand">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1" rowspan="4">
-     <widget class="QListWidget" name="listView_ControllerMode"/>
-    </item>
-    <item row="9" column="0" colspan="2">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QPushButton" name="btnTimeBasedDemo">
-        <property name="text">
-         <string>Time Based Demo</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnTimeBasedOpen">
-        <property name="text">
-         <string>Time Based Open</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnTimeBasedClosed">
-        <property name="text">
-         <string>Time Based Closed</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="18" column="0" colspan="2">
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QLineEdit" name="inoFilePath"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="inoLaunchPathDialog">
-        <property name="text">
-         <string>Select &quot;.ino&quot; Path</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="10" column="2" rowspan="9">
-     <widget class="PlotWidget" name="myWidget" native="true"/>
-    </item>
-    <item row="1" column="2" rowspan="9">
-     <widget class="PlotWidget" name="widget" native="true"/>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QComboBox" name="comPortSelect"/>
     </item>
    </layout>
   </widget>
@@ -184,7 +217,7 @@
      <x>0</x>
      <y>0</y>
      <width>1329</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menugg">
