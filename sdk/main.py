@@ -46,7 +46,12 @@ class HexaSDK(QtGui.QMainWindow):
         self.velPosGraphInit(self.widget)
         # self.velPosGraphInit(self.myWidget)
 
+        self.txt_compilerLog.append("Here is the compiler log")
+
+        self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
+        self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
         self.inoLaunchPathDialog.clicked.connect(self.selectFile)
+        
         self.sendCommand.clicked.connect(self.sendCommandB)
 
         self.togPosVelStreamData.stateChanged.connect(self.togglePosVelStreamData)
@@ -83,6 +88,12 @@ class HexaSDK(QtGui.QMainWindow):
     def selectFile(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa', "Arduino Sketch File (*.ino)")
         self.inoFilePath.setText(filename)
+
+    def firmwareCompileOnly(self):
+        self.txt_compilerLog.append("This could be compiler info in the future")
+
+    def firmwareCompileAndUpload(self):
+        self.txt_compilerLog.append("<span style=\"color: rgb(235, 100, 52);\" >This could be a compiler error message in the future</span>")
 
     def sendCommandB(self):
         self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
