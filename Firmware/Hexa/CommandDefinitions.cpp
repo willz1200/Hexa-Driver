@@ -13,17 +13,17 @@ void ledfunc(){
 	analogWrite(33, CLI.readInt());
 }
 
-void stepResponce(){
-	int motor = CLI.readInt();
-	int input = CLI.readInt();
-	if ( motor == 0 ){
-		LA0.SpinMotor(input , 2); //Start Spinning Motor
-	} else if ( motor == 5 ){
-		LA5.SpinMotor(input , 2); //Start Spinning Motor
-	} else {
-		// CLI.sendError("motor not found")
-		// CLI.sendMessage("some message")
-	}
+void stepResponse(){
+	/*
+		Runs a step responce for the motor currently in the workspace. 
+		INPUT: one float that represents the PWM input sent to the function
+		OUTPUT: None
+	*/
+	// CLI.read float for input 
+	// read the motor
+	// Dev_LA->stepResponceSetup 
+
+	Dev_LA->stepResponseSetup( CLI.readInt() );
 }
 
 void lsFunc(){

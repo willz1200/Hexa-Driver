@@ -143,6 +143,13 @@ LinearActuator* LinearActuator::getInstance(uint8_t instanceID){
 //Motor Functions
 
 void LinearActuator::SpinMotor(unsigned char dutyCycle, unsigned char direction){
+	// static unsigned char logChange;
+
+	// if (logChange != dutyCycle){
+	// 	logChange = dutyCycle;
+	// 	Serial.println(dutyCycle);
+	// }
+	
 	switch(direction){
 		case 0: //Off
 			digitalWrite(LA->MotorPWM, LOW);
@@ -161,6 +168,8 @@ void LinearActuator::SpinMotor(unsigned char dutyCycle, unsigned char direction)
 			motorDirection = false;
 			break;
 	}
+
+	
 }
 
 bool LinearActuator::getMotorDir(){

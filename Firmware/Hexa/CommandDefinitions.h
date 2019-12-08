@@ -13,7 +13,7 @@
 extern Controller *Dev_LA;
 //extern uint8_t spinRunning;
 void ledfunc();
-void stepResponce();
+void stepResponse();
 void lsFunc();
 void spinFunc();
 void posGainFunc();
@@ -32,7 +32,7 @@ void operationalLA();
 #define cmd_total 15
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
-	{ "step", stepResponce },
+	{ "step", stepResponse },
 	{ "ls", lsFunc },
 	{ "r", spinFunc },
 	{ "pp", posGainFunc },
