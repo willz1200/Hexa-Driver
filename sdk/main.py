@@ -74,6 +74,15 @@ class HexaSDK(QtGui.QMainWindow):
         self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
         self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
 
+
+
+
+
+
+    # ----------------------------------------------------------------
+    # ------------------------- SDK Commands -------------------------
+    # ----------------------------------------------------------------
+
     def comPortChange(self):
         self.ser.close()
         newComPort = str(self.comPortSelect.currentText()).split(':')[0]
@@ -154,6 +163,12 @@ class HexaSDK(QtGui.QMainWindow):
             self.ser.write(b'w 4\r')
         elif workspaceRow == 5:
             self.ser.write(b'w 5\r')
+
+
+
+    # ----------------------------------------------------------------
+    # ------------------------- GUI Commands -------------------------
+    # ----------------------------------------------------------------
 
     def taskTimer(self):
         if (self.checkWait):
