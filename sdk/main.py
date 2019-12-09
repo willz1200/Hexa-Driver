@@ -1,7 +1,7 @@
 # *******************************************************************************
 # * @File       main.py
 # * @Brief      SDK for controlling the Hexa Driver and graphing data.
-# * @Date       02/12/2019 (Last Updated)
+# * @Date       09/12/2019 (Last Updated)
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
@@ -12,10 +12,12 @@
 import serial, serial.tools.list_ports
 import time
 import sys
+import os
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
+import HexaProg
 # import matplotlib.pyplot as plt
 
 class HexaSDK(QtGui.QMainWindow):
@@ -47,6 +49,8 @@ class HexaSDK(QtGui.QMainWindow):
         # self.velPosGraphInit(self.myWidget)
 
         self.txt_compilerLog.append("Here is the compiler log")
+        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino')))
+
 
         self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
         self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
@@ -86,14 +90,14 @@ class HexaSDK(QtGui.QMainWindow):
         self.ser.baudrate = 115200
 
     def selectFile(self):
-        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa', "Arduino Sketch File (*.ino)")
+        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
         self.inoFilePath.setText(filename)
 
     def firmwareCompileOnly(self):
-        self.txt_compilerLog.append("This could be compiler info in the future")
+        HexaProg.compile(self.ser, self.txt_compilerLog, self.inoFilePath.text())
 
     def firmwareCompileAndUpload(self):
-        self.txt_compilerLog.append("<span style=\"color: rgb(235, 100, 52);\" >This could be a compiler error message in the future</span>")
+        HexaProg.compileAndUpload(self.ser, self.txt_compilerLog, self.inoFilePath.text())
 
     def sendCommandB(self):
         self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
@@ -167,6 +171,7 @@ class HexaSDK(QtGui.QMainWindow):
             self.ser.write(b'w 5\r')
 
     def taskTimer(self):
+        HexaProg.procLoop(self.ser, self.txt_compilerLog)
         if (self.checkWait):
             print("Test")
 
@@ -202,27 +207,29 @@ class HexaSDK(QtGui.QMainWindow):
         timer.start(1)
 
     def velPosGraphUpdate(self):
-        if (self.ser.inWaiting()):
-            line = self.ser.readline()   # read a '\n' terminated line)
-            line = line.decode('utf-8')
-            line = line.replace("\r\n","")
-            self.historyCommand.append(line) # add text to command box
-            line = line.split(',')
-            if (line[0] == 's'):
-                self.data[self.ptr] = float(line[2])#np.random.normal()
-                self.dataB[self.ptr] = float(line[3])#np.random.normal()
-                self.ptr += 1
-                if self.ptr >= self.data.shape[0]:
-                    tmp = self.data
-                    tmpB = self.dataB
-                    self.data = np.empty(self.data.shape[0] * 2)
-                    self.dataB = np.empty(self.dataB.shape[0] * 2)
-                    self.data[:tmp.shape[0]] = tmp
-                    self.dataB[:tmpB.shape[0]] = tmpB
-                self.curve.setData(self.data[:self.ptr])
-                self.curve.setPos(-self.ptr, 0)
-                self.curveB.setData(self.dataB[:self.ptr])
-                self.curveB.setPos(-self.ptr, 0)
+        if (HexaProg.getProgMode() == False):
+            if (self.ser.inWaiting()):
+                line = self.ser.readline()   # read a '\n' terminated line)
+                #line = b's,0,0,0\r'
+                line = line.decode('utf-8')
+                line = line.replace("\r\n","")
+                self.historyCommand.append(line) # add text to command box
+                line = line.split(',')
+                if (line[0] == 's'):
+                    self.data[self.ptr] = float(line[2])#np.random.normal()
+                    self.dataB[self.ptr] = float(line[3])#np.random.normal()
+                    self.ptr += 1
+                    if self.ptr >= self.data.shape[0]:
+                        tmp = self.data
+                        tmpB = self.dataB
+                        self.data = np.empty(self.data.shape[0] * 2)
+                        self.dataB = np.empty(self.dataB.shape[0] * 2)
+                        self.data[:tmp.shape[0]] = tmp
+                        self.dataB[:tmpB.shape[0]] = tmpB
+                    self.curve.setData(self.data[:self.ptr])
+                    self.curve.setPos(-self.ptr, 0)
+                    self.curveB.setData(self.dataB[:self.ptr])
+                    self.curveB.setPos(-self.ptr, 0)
 
 if __name__ == '__main__':
     if QtGui.QApplication.instance() is None:
