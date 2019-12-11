@@ -26,6 +26,7 @@ def procWrapper(serialPort, uploadMode, logBox, inoPath):
     except:
         print("Couldn't close the serial port")
     
+    # Somthing to do with multithreading
     if (uploadMode == True):
         proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--port", serialPort.port, "--upload", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:

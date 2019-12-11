@@ -20,50 +20,64 @@ from PyQt5.QtGui import QFileDialog
 import HexaProg
 # import matplotlib.pyplot as plt
 
-class HexaSDK(QtGui.QMainWindow):
+class HexaSDK(QtGui.QMainWindow):  
+
 
     def __init__(self):
         super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
-        uic.loadUi("gui.ui", self)
+        uic.loadUi("gui.ui", self) # Loads all the GUI elements.
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
 
-        comPorts = serial.tools.list_ports.comports()
 
+        comPorts = serial.tools.list_ports.comports() #Gets all available 
+        # Adds all the available com ports to a drop down menue in the gui.
         for port, desc, hwid in sorted(comPorts):
             self.comPortSelect.addItem("{}: {}".format(port, desc))
             #self.comPortSelect.addItem(b'%b: %b' % port, desc)
             # print("{}: {} [{}]".format(port, desc, hwid))
 
-        self.comPortSelect.currentIndexChanged.connect(self.comPortChange)
+        # when you select a com port from the dropdown menue it runs it throught the comportchange function.
+        self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
 
-        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0]
+        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
+        
+        #Sets up the serial system. 
         self.ser = serial.Serial(defaultComPort)
         self.ser.baudrate = 115200
         self.checkWait = False
 
+        # Configure the firmware to be SDK mode.
         self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
         self.ser.write(b'v 1\r') # Enable position and velocity streaming
 
+        # Set up graph on the workspace tab.
         self.velPosGraphInit(self.widget)
         # self.velPosGraphInit(self.myWidget)
 
+        # ------------------ Compiler tab code ------------------
+        #sets up the compiler log. 
         self.txt_compilerLog.append("Here is the compiler log")
-        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino')))
-
+        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
         self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
         self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
         self.inoLaunchPathDialog.clicked.connect(self.selectFile)
         
+        # ------------------ Workspace tab code ------------------
+        # Taking what ever is in the text box and seding it to the serial port. 
         self.sendCommand.clicked.connect(self.sendCommandB)
 
+        # When the tick box associated with turning on and off the data streaming is pressed you run "togglePosVelStreamData" function.
         self.togPosVelStreamData.stateChanged.connect(self.togglePosVelStreamData)
         # self.togPosVelStreamData.toggle() # Start as ticked
 
+        # when the tickbox, togSDKmode is selected it the "toggleSDKmode" function is called. 
         self.togSDKmode.stateChanged.connect(self.toggleSDKmode)
-        self.togSDKmode.toggle() # Start as ticked
+        self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked. 
 
+        # enable/disable control loop for a given linear actuator. 
+        # The lambda function means you can pass in the data as well as the function. 
         self.checkBox_LA0_Op.stateChanged.connect(lambda: self.operationalLA(0, self.checkBox_LA0_Op))
         self.checkBox_LA1_Op.stateChanged.connect(lambda: self.operationalLA(1, self.checkBox_LA1_Op))
         self.checkBox_LA2_Op.stateChanged.connect(lambda: self.operationalLA(2, self.checkBox_LA2_Op))
@@ -71,14 +85,18 @@ class HexaSDK(QtGui.QMainWindow):
         self.checkBox_LA4_Op.stateChanged.connect(lambda: self.operationalLA(4, self.checkBox_LA4_Op))
         self.checkBox_LA5_Op.stateChanged.connect(lambda: self.operationalLA(5, self.checkBox_LA5_Op))
 
-        ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single']
+        # Set the current controler mode for the linear actuator in your workspace
+        ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options
         self.listView_ControllerMode.addItems(ControllerModeEntries)
         self.listView_ControllerMode.selectionModel().selectionChanged.connect(self.controllerMode)
 
-        LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5']
-        self.listView_WorkspaceSelect.addItems(LinearActuatorEntries)
-        self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(self.LinearActuatorWorkspace)
+        # set up the workspces. 
+        # note ".selectionModel()" is a pyqt thing for styling. 
+        LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5'] #options.
+        self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box. 
+        self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(self.LinearActuatorWorkspace) # when you select one of the option run the function. 
 
+        # Some demo buttons. when clicked run function. 
         self.btnTimeBasedDemo.clicked.connect(self.timeBasedDemo)
         self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
         self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
@@ -88,16 +106,12 @@ class HexaSDK(QtGui.QMainWindow):
 
 
 
-    # ----------------------------------------------------------------
-    # ------------------------- SDK Commands -------------------------
-    # ----------------------------------------------------------------
 
-    def comPortChange(self):
-        self.ser.close()
-        newComPort = str(self.comPortSelect.currentText()).split(':')[0]
-        self.ser = serial.Serial(newComPort)
-        self.ser.baudrate = 115200
 
+    # ----------------------------------------------------------------
+    # -------------- Arduino Compiler Commands ---------------------
+    # ----------------------------------------------------------------
+    #  
     def selectFile(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
         self.inoFilePath.setText(filename)
@@ -107,8 +121,21 @@ class HexaSDK(QtGui.QMainWindow):
 
     def firmwareCompileAndUpload(self):
         HexaProg.compileAndUpload(self.ser, self.txt_compilerLog, self.inoFilePath.text())
+    
+    
+    
+
+
+    
+    # ----------------------------------------------------------------
+    # ------------------------- SDK Commands -------------------------
+    # ----------------------------------------------------------------
 
     def sendCommandB(self):
+        '''
+        Pullls the string out of the text box and sends it down the serial port. 
+        This function is called when the button next to the text box is pressed. 
+        '''
         self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
         self.enterCommand.setText("")
 
@@ -181,22 +208,49 @@ class HexaSDK(QtGui.QMainWindow):
 
 
 
+
+
+
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
+    def comPortChange(self):
+        self.ser.close()
+        newComPort = str(self.comPortSelect.currentText()).split(':')[0]
+        self.ser = serial.Serial(newComPort)
+        self.ser.baudrate = 115200
 
     def taskTimer(self):
+        '''
+        Programing interface thread poling for compiler log outputs. 
+
+        INPUTS: n/a
+        OUTPUTS: n/a
+        '''
         HexaProg.procLoop(self.ser, self.txt_compilerLog)
         if (self.checkWait):
             print("Test")
 
     def keyPressEvent(self, event):
+        '''
+        Track if the enter key/ carrage return key has been pressed and linked 
+        to the send commmand function.
+
+        INPUT: Event: pulls the key data.
+        OUTPUT: n/a
+        '''
         #super(myGUI, self).keyPressEvent(event)
         if (event.key() == QtCore.Qt.Key_Enter) or (event.key() == QtCore.Qt.Key_Return):
             self.sendCommandB()
         event.accept()
 
     def velPosGraphInit(self, graph):
+        '''
+        Sets up the graph on the workspace tab. Labeling, binds timers for updating 
+
+        INPUT: Graph, widget configured to a plot widgit. 
+        OUTPUT: n/a
+        '''
         # self.myWidget = pg.PlotWidget()
         graph.setLabel('left', 'Encoder Counts', units='')
         graph.setLabel('bottom', 'Time', units='s')
@@ -213,15 +267,24 @@ class HexaSDK(QtGui.QMainWindow):
         self.dataB = np.empty(500)
         self.ptr = 0
 
+        # real time grapphing timer
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.velPosGraphUpdate)
         timer.start(5)
 
+        #firmware compiling timer 
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.taskTimer)
         timer.start(1)
 
     def velPosGraphUpdate(self):
+        '''
+        Realtime data entery for the plot widget on the worksace tab. REads in the 
+        Data from the serial port and plots anything with an s. 
+
+        INPUT: n/a
+        OUTPUT: n/a 
+        '''
         if (HexaProg.getProgMode() == False):
             if (self.ser.inWaiting()):
                 line = self.ser.readline()   # read a '\n' terminated line)
@@ -246,6 +309,13 @@ class HexaSDK(QtGui.QMainWindow):
                     self.curveB.setData(self.dataB[:self.ptr])
                     self.curveB.setPos(-self.ptr, 0)
 
+
+
+
+
+    # ----------------------------------------------------------------
+    # ------------------------- MAIN -------------------------
+    # ----------------------------------------------------------------
 if __name__ == '__main__':
     if QtGui.QApplication.instance() is None:
         app = QtGui.QApplication(sys.argv)
