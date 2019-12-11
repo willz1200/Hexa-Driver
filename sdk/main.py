@@ -20,11 +20,11 @@ from PyQt5.QtGui import QFileDialog
 import HexaProg
 # import matplotlib.pyplot as plt
 
-class HexaSDK(QtGui.QMainWindow):  
+class HexaGUI(QtGui.QMainWindow):  
 
 
     def __init__(self):
-        super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
+        super(HexaGUI, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
         uic.loadUi("gui.ui", self) # Loads all the GUI elements.
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
@@ -327,9 +327,9 @@ if __name__ == '__main__':
     if QtGui.QApplication.instance() is None:
         app = QtGui.QApplication(sys.argv)
 
-    ObjHexaSDK = HexaSDK()
-    ObjHexaSDK.show()
-    # ObjHexaSDK.start()
-    self = ObjHexaSDK
+    ObjHexaGUI = HexaGUI()
+    ObjHexaGUI.show()
+    # ObjHexaGUI.start()
+    self = ObjHexaGUI
     exitCode = app.exec_() # Will block until application is closed
     sys.exit(exitCode)
