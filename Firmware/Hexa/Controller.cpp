@@ -19,7 +19,7 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	timeSinceUpdate = millis();
 	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
 	togglePosVel = false;
-	togglePIdebug = false;
+	togglePIdebug = true;
 
 	//Run time controll vars - Sweep mode
 	dirA_runTime = 1000;
@@ -123,8 +123,8 @@ void Controller::position(){
 	//Position proportional calc
 	velDesired += posGain * posError;
 
-	//Limit the ouput velocity to 75 duty, Duty cycle can be 0-255
-	float vel_Limit = 75.0;
+	//Limit the ouput velocity to 20258 RPM
+	uint16_t vel_Limit = 20258; //
 	if (velDesired > vel_Limit) velDesired = vel_Limit;
 	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
 
@@ -142,9 +142,9 @@ void Controller::position(){
 	outDesired += velIntGain * velError * GetEncoderRPM();
 
 	//Limit the ouput velocity to 75/255 duty
-    // float vel_Limit = 75.0;
-    // if (outDesired > vel_Limit) outDesired = vel_Limit;
-    // if (outDesired < -vel_Limit) outDesired = -vel_Limit;
+    uint8_t duty_Limit = 75;
+    if (outDesired > duty_Limit) outDesired = duty_Limit;
+    if (outDesired < -duty_Limit) outDesired = -duty_Limit;
 
     //Set motor direction
 	// uint8_t dirSet = 0;
