@@ -123,9 +123,14 @@ void Controller::position(){
 	//Position proportional calc
 	velDesired += posGain * posError;
 
+	//Limit the ouput velocity to 75 duty, Duty cycle can be 0-255
+	float vel_Limit = 75.0;
+	if (velDesired > vel_Limit) velDesired = vel_Limit;
+	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
+
 	//---
 
-	/*** Velocity PI controller not yet working correctly
+	// Velocity PI controller not yet working correctly
 
 	//Velocity error calc
 	float velError = velDesired - GetEncoderRPM();
@@ -137,32 +142,26 @@ void Controller::position(){
 	outDesired += velIntGain * velError * GetEncoderRPM();
 
 	//Limit the ouput velocity to 75/255 duty
-    float vel_Limit = 75.0;
-    if (outDesired > vel_Limit) outDesired = vel_Limit;
-    if (outDesired < -vel_Limit) outDesired = -vel_Limit;
+    // float vel_Limit = 75.0;
+    // if (outDesired > vel_Limit) outDesired = vel_Limit;
+    // if (outDesired < -vel_Limit) outDesired = -vel_Limit;
 
     //Set motor direction
-	uint8_t dirSet = 0;
-	if (outDesired < 0){
-		dirSet = 1;
-	} else {
-		dirSet = 2;
-	}
+	// uint8_t dirSet = 0;
+	// if (outDesired < 0){
+	// 	dirSet = 1;
+	// } else {
+	// 	dirSet = 2;
+	// }
 
-	SpinMotor(abs(velDesired), dirSet);
-
-	*/
+	// SpinMotor(abs(velDesired), dirSet);
 
 	//Temp to skip velocity PI stage
 
-	//Limit the ouput velocity to 75 duty, Duty cycle can be 0-255
-	float vel_Limit = 75.0;
-	if (velDesired > vel_Limit) velDesired = vel_Limit;
-	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
 
 	//Set motor direction
 	uint8_t dirSet = 0;
-	if (velDesired < 0){
+	if (outDesired < 0){
 		dirSet = 1;
 	} else {
 		dirSet = 2;
@@ -182,7 +181,7 @@ void Controller::position(){
 		}
 	}
 
-	SpinMotor(abs(velDesired), dirSet);
+	SpinMotor(abs(outDesired), dirSet);
 
 
 }
