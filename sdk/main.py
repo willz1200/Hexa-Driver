@@ -29,23 +29,10 @@ class HexaSDK(QtGui.QMainWindow):
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
 
-
-        comPorts = serial.tools.list_ports.comports() #Gets all available 
-        # Adds all the available com ports to a drop down menue in the gui.
-        for port, desc, hwid in sorted(comPorts):
-            self.comPortSelect.addItem("{}: {}".format(port, desc))
-            #self.comPortSelect.addItem(b'%b: %b' % port, desc)
-            # print("{}: {} [{}]".format(port, desc, hwid))
+        self.sdk_set_up() #Set up the sdk
 
         # when you select a com port from the dropdown menue it runs it throught the comportchange function.
         self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
-
-        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
-        
-        #Sets up the serial system. 
-        self.ser = serial.Serial(defaultComPort)
-        self.ser.baudrate = 115200
-        self.checkWait = False
 
         # Configure the firmware to be SDK mode.
         self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
@@ -130,6 +117,26 @@ class HexaSDK(QtGui.QMainWindow):
     # ----------------------------------------------------------------
     # ------------------------- SDK Commands -------------------------
     # ----------------------------------------------------------------
+
+    def sdk_set_up(self):
+        '''
+        Looks for available ports, gives you the op
+        '''
+        # ------------------ Serial set up code ------------------
+        comPorts = serial.tools.list_ports.comports() #Gets all available 
+        # Adds all the available com ports to a drop down menue in the gui.
+        for port, desc, hwid in sorted(comPorts):
+            self.comPortSelect.addItem("{}: {}".format(port, desc))
+            #self.comPortSelect.addItem(b'%b: %b' % port, desc)
+            # print("{}: {} [{}]".format(port, desc, hwid))
+      
+
+        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
+        
+        #Sets up the serial system. 
+        self.ser = serial.Serial(defaultComPort)
+        self.ser.baudrate = 115200
+        self.checkWait = False
 
     def sendCommandB(self):
         '''
@@ -216,7 +223,7 @@ class HexaSDK(QtGui.QMainWindow):
     # ----------------------------------------------------------------
     def comPortChange(self):
         self.ser.close()
-        newComPort = str(self.comPortSelect.currentText()).split(':')[0]
+        newComPort = str(self.comPortSelect.currentText()).split(':')[0] #Selected com port 
         self.ser = serial.Serial(newComPort)
         self.ser.baudrate = 115200
 
