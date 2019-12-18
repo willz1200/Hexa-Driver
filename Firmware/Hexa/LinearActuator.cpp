@@ -27,6 +27,7 @@ LinearActuator::LinearActuator(const byte _LinearActuatorID)
 	velocityTime = millis();
 	velocityLastPos = 0;
 	rpm = 0;
+	filteredRpm = 0;
 
 	//Attach each encoder interrupt to its Glue routine (MAX of 6)
 	switch (LinearActuatorID){
@@ -88,6 +89,10 @@ void LinearActuator::VelocityUpdate(){
 	rpm = (pulseDelta * (60000 / (millis() - velocityTime))) / PulsesPerTurn;
 	//rpm = rpm / GearReduction; //Include Gear Reduction Ratio
 	rpm = dir * rpm;
+
+	// Use Exponential Kalman filter to reduce noise on speed data
+	filteredRpm += 0.01 * (rpm - filteredRpm); // 0.01 is a tuning constant
+
 	velocityLastPos = virtualPosition;
 	velocityTime = millis();
 }
@@ -97,7 +102,7 @@ int LinearActuator::GetEncoderPos(){
 }
 
 float LinearActuator::GetEncoderRPM(){
-	return rpm;
+	return filteredRpm;
 }
 
 void LinearActuator::ResetEncoderPos(){

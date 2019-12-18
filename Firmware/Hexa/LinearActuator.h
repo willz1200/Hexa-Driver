@@ -30,7 +30,7 @@ class LinearActuator {
 		bool motorDirection;
 		unsigned long velocityTime;
 		int velocityLastPos;
-		float rpm;
+		float rpm, filteredRpm;
 		
 	public:
 		LinearActuator(const byte _LinearActuatorID);

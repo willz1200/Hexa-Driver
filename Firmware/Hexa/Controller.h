@@ -47,9 +47,11 @@ class Controller: public LinearActuator {
 		float outDesired;
 		float stepStartTime;
 		float stepCurrentTime;
+		float velTotalError;
 		unsigned char stepResponseSpeed;
 		unsigned int sampleRate;
-		unsigned long timeKeep, timeSinceUpdate, sweepMS_runTime, singleMS_runTime; //Time keeping vars
+		unsigned int sampleRateB;
+		unsigned long timeKeep, timeSinceUpdate, timeSinceUpdateB, sweepMS_runTime, singleMS_runTime; //Time keeping vars
 		bool togglePosVel;
 		bool togglePIdebug;
 

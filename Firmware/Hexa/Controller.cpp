@@ -10,16 +10,19 @@
 //Controller::Controller(const laFormat *_LA) : LinearActuator(_LA){}
 Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearActuatorID){
 	controllerMode = 0;
-	posGain = 0.5;
+	posGain = 0.05;
 	pos_Setpoint = 800.0;
 	velDesired = 0.0;
-	velGain = 0.5;
-	velIntGain = 0.2;
+	velGain = 80;
+	velIntGain = 0.005;
 	timeKeep = millis();
 	timeSinceUpdate = millis();
-	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
+	timeSinceUpdateB = millis();
+	sampleRate = 5; //Set default sample rate to 10 ms = 100 Hz
+	sampleRateB = 10; //Set default sample rate to 10 ms = 100 Hz
 	togglePosVel = false;
 	togglePIdebug = true;
+	velTotalError = 0;
 
 	//Run time controll vars - Sweep mode
 	dirA_runTime = 1000;
@@ -94,12 +97,18 @@ void Controller::update(){
 			stepResponse();
 		} else {
 			SpinMotor(0, dirB);
+			velTotalError = 0; //Reset accumulated error
 		}
 
 		//Velocity sampling
 		if (millis() - timeSinceUpdate > sampleRate){
 			timeSinceUpdate = millis();
 			VelocityUpdate();
+		}
+
+		//Real time graphing
+		if (millis() - timeSinceUpdateB > sampleRateB){
+			timeSinceUpdateB = millis();
 			if (togglePosVel){
 				Serial.print("s,");
 				Serial.print(millis());
@@ -117,6 +126,8 @@ void Controller::update(){
 //The position controller is a P loop with a single proportional gain.
 void Controller::position(){
 
+	/*
+
 	//Position error calc
 	float posError = pos_Setpoint - GetEncoderPos();
 
@@ -124,27 +135,38 @@ void Controller::position(){
 	velDesired += posGain * posError;
 
 	//Limit the ouput velocity to 20258 RPM
-	uint16_t vel_Limit = 20258; //
+	uint16_t vel_Limit = 5000; //
 	if (velDesired > vel_Limit) velDesired = vel_Limit;
 	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
+
+	*/
 
 	//---
 
 	// Velocity PI controller not yet working correctly
+	velDesired = pos_Setpoint;
+	// Velocity error calc
+	float velError = velDesired - GetEncoderRPM();//-
 
-	//Velocity error calc
-	float velError = velDesired - GetEncoderRPM();
+	// Accumulate the error
+	velTotalError += velError;
+
+
+	float controlVariable = (velGain * velError) + (velIntGain * velTotalError);
 
 	//Velocity proportional calc
-	outDesired += velGain * velError;
+	//outDesired += velGain * velError;
 	
 	//Velocity integral calc
-	outDesired += velIntGain * velError * GetEncoderRPM();
+	//outDesired += velIntGain * velTotalError;//velError * GetEncoderRPM();
+
+	//Velocity derivative calc
+	//outDesired += velDerGain * (error-lastError)
 
 	//Limit the ouput velocity to 75/255 duty
-    uint8_t duty_Limit = 75;
-    if (outDesired > duty_Limit) outDesired = duty_Limit;
-    if (outDesired < -duty_Limit) outDesired = -duty_Limit;
+    uint8_t duty_Limit = 150;
+    if (controlVariable > duty_Limit) controlVariable = duty_Limit;
+    if (controlVariable < -duty_Limit) controlVariable = -duty_Limit;
 
     //Set motor direction
 	// uint8_t dirSet = 0;
@@ -161,7 +183,7 @@ void Controller::position(){
 
 	//Set motor direction
 	uint8_t dirSet = 0;
-	if (outDesired < 0){
+	if (controlVariable < 0){
 		dirSet = 1;
 	} else {
 		dirSet = 2;
@@ -169,19 +191,24 @@ void Controller::position(){
 
 	if (togglePIdebug){
 		//Limit print speed
-		if (millis() - timeKeep > 100){
-			Serial.print(GetEncoderPos());
-			Serial.print(" ");
+		if (millis() - timeKeep > 50){
+			Serial.print("p,");
+			Serial.print(0); //posError //velTotalError
+			Serial.print(",");
+			Serial.print(velError);
+			Serial.print(",");
+			Serial.print(0); //GetEncoderPos()
+			Serial.print(",");
 			Serial.print(velDesired);
-			Serial.print(" ");
-			Serial.print(outDesired);
-			Serial.print(" ");
-			Serial.println(dirSet);
+			Serial.print(",");
+			Serial.print(controlVariable);
+			Serial.print(",");
+			Serial.println(GetEncoderRPM());
 			timeKeep = millis();
 		}
 	}
 
-	SpinMotor(abs(outDesired), dirSet);
+	SpinMotor(abs(controlVariable), dirSet);
 
 
 }
