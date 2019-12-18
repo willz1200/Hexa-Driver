@@ -45,7 +45,7 @@ class HexaSDK(QtGui.QMainWindow):
         self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
         self.ser.write(b'v 1\r') # Enable position and velocity streaming
 
-        self.velPosGraphInit(self.widget)
+        self.velPosGraphInit(self.widget, self.myWidget)
         # self.velPosGraphInit(self.myWidget)
 
         self.txt_compilerLog.append("Here is the compiler log")
@@ -196,8 +196,10 @@ class HexaSDK(QtGui.QMainWindow):
             self.sendCommandB()
         event.accept()
 
-    def velPosGraphInit(self, graph):
+    def velPosGraphInit(self, graph, graphB):
         # self.myWidget = pg.PlotWidget()
+
+        # Setup for top graph
         graph.setLabel('left', 'Encoder Counts', units='')
         graph.setLabel('bottom', 'Time', units='s')
         graph.addLegend()
@@ -207,15 +209,42 @@ class HexaSDK(QtGui.QMainWindow):
         graph.setRange(xRange=[-500, 0])
         graph.setLimits(xMax=0)
 
+        # Vars for top graph
         self.curve = graph.plot(pen='g', name='Position')
         self.curveB = graph.plot(pen='r', name='Velocity')
         self.data = np.empty(500)
         self.dataB = np.empty(500)
         self.ptr = 0
 
+        # Setup for bottom graph
+        graphB.setLabel('left', 'Encoder Counts', units='')
+        graphB.setLabel('bottom', 'Time', units='s')
+        graphB.addLegend()
+        # Use automatic downsampling and clipping to reduce the drawing load
+        graphB.setDownsampling(mode='peak')
+        graphB.setClipToView(True)
+        graphB.setRange(xRange=[-500, 0])
+        graphB.setLimits(xMax=0)
+
+        # Vars for bottom graph
+        self.posErrorCurve = graphB.plot(pen='r', name='Accumulate Velocity Error')
+        self.velErrorCurve = graphB.plot(pen='g', name='Velocity Error')
+        self.EncoderPosCurve = graphB.plot(pen='b', name='Encoder Position')
+        self.velDesiredCurve = graphB.plot(pen='c', name='Desired Velocity')
+        self.outDesiredCurve = graphB.plot(pen='m', name='Desired Duty Cycle')
+        self.EncoderRPMCurve = graphB.plot(pen='y', name='Encoder Velocity')
+
+        self.posError = np.empty(500)
+        self.velError = np.empty(500)
+        self.EncoderPos = np.empty(500)
+        self.velDesired = np.empty(500)
+        self.outDesired = np.empty(500)
+        self.EncoderRPM = np.empty(500)
+        self.ptrB = 0
+
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.velPosGraphUpdate)
-        timer.start(5)
+        timer.start(1)
 
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.taskTimer)
@@ -224,12 +253,11 @@ class HexaSDK(QtGui.QMainWindow):
     def velPosGraphUpdate(self):
         if (HexaProg.getProgMode() == False):
             if (self.ser.inWaiting()):
-                line = self.ser.readline()   # read a '\n' terminated line)
-                #line = b's,0,0,0\r'
-                line = line.decode('utf-8')
-                line = line.replace("\r\n","")
-                self.historyCommand.append(line) # add text to command box
-                line = line.split(',')
+                lineRaw = self.ser.readline()   # read a '\n' terminated line)
+                #lineRaw = b's,0,0,0\r'
+                lineRaw = lineRaw.decode('utf-8')
+                lineRaw = lineRaw.replace("\r\n","")
+                line = lineRaw.split(',')
                 if (line[0] == 's'):
                     self.data[self.ptr] = float(line[2])#np.random.normal()
                     self.dataB[self.ptr] = float(line[3])#np.random.normal()
@@ -245,6 +273,61 @@ class HexaSDK(QtGui.QMainWindow):
                     self.curve.setPos(-self.ptr, 0)
                     self.curveB.setData(self.dataB[:self.ptr])
                     self.curveB.setPos(-self.ptr, 0)
+                elif (line[0] == 'p'):
+
+                    self.posError[self.ptrB] = float(line[1])
+                    self.velError[self.ptrB] = float(line[2])
+                    self.EncoderPos[self.ptrB] = float(line[3])
+                    self.velDesired[self.ptrB] = float(line[4])
+                    self.outDesired[self.ptrB] = float(line[5])
+                    self.EncoderRPM[self.ptrB] = float(line[6])
+                    self.ptrB += 1
+
+                    if self.ptrB >= self.posError.shape[0]:
+                        tmpPosError = self.posError
+                        tmpVelError = self.velError
+                        tmpEncoderPos = self.EncoderPos
+                        tmpVelDesired = self.velDesired
+                        tmpOutDesired = self.outDesired
+                        tmpEncoderRPM = self.EncoderRPM
+
+                        self.posError = np.empty(self.posError.shape[0] * 2)
+                        self.velError = np.empty(self.velError.shape[0] * 2)
+                        self.EncoderPos = np.empty(self.EncoderPos.shape[0] * 2)
+                        self.velDesired = np.empty(self.velDesired.shape[0] * 2)
+                        self.outDesired = np.empty(self.outDesired.shape[0] * 2)
+                        self.EncoderRPM = np.empty(self.EncoderRPM.shape[0] * 2)
+
+                        self.posError[:tmpPosError.shape[0]] = tmpPosError
+                        self.velError[:tmpVelError.shape[0]] = tmpVelError
+                        self.EncoderPos[:tmpEncoderPos.shape[0]] = tmpEncoderPos
+                        self.velDesired[:tmpVelDesired.shape[0]] = tmpVelDesired
+                        self.outDesired[:tmpOutDesired.shape[0]] = tmpOutDesired
+                        self.EncoderRPM[:tmpEncoderRPM.shape[0]] = tmpEncoderRPM
+
+                    self.posErrorCurve.setData(self.posError[:self.ptrB])
+                    self.posErrorCurve.setPos(-self.ptrB, 0)
+
+                    self.velErrorCurve.setData(self.velError[:self.ptrB])
+                    self.velErrorCurve.setPos(-self.ptrB, 0)
+
+                    self.EncoderPosCurve.setData(self.EncoderPos[:self.ptrB])
+                    self.EncoderPosCurve.setPos(-self.ptrB, 0)
+
+                    self.velDesiredCurve.setData(self.velDesired[:self.ptrB])
+                    self.velDesiredCurve.setPos(-self.ptrB, 0)
+
+                    self.outDesiredCurve.setData(self.outDesired[:self.ptrB])
+                    self.outDesiredCurve.setPos(-self.ptrB, 0)
+
+                    self.EncoderRPMCurve.setData(self.EncoderRPM[:self.ptrB])
+                    self.EncoderRPMCurve.setPos(-self.ptrB, 0)
+
+                    #self.historyCommand.append(lineRaw) # add text to command box
+
+                else:
+                    # Dont print anything prefixed 's' to the text box
+                    self.historyCommand.append(lineRaw) # add text to command box
 
 if __name__ == '__main__':
     if QtGui.QApplication.instance() is None:
