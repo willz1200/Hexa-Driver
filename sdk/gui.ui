@@ -27,20 +27,6 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QGridLayout" name="grid_workspace">
-          <item row="13" column="0">
-           <widget class="QCheckBox" name="togPosVelStreamData">
-            <property name="text">
-             <string>Stream Position &amp; Velocity Data</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0">
-           <widget class="QCheckBox" name="checkBox_LA0_Op">
-            <property name="text">
-             <string>LA0 Operational</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0" colspan="2">
            <widget class="QTextEdit" name="historyCommand">
             <property name="enabled">
@@ -58,10 +44,24 @@
             </property>
            </widget>
           </item>
-          <item row="10" column="0">
-           <widget class="QCheckBox" name="checkBox_LA3_Op">
+          <item row="13" column="0">
+           <widget class="QCheckBox" name="togPosVelStreamData">
             <property name="text">
-             <string>LA3 Operational</string>
+             <string>Stream Position &amp; Velocity Data</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="checkBox_LA0_Op">
+            <property name="text">
+             <string>LA0 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QCheckBox" name="checkBox_LA2_Op">
+            <property name="text">
+             <string>LA2 Operational</string>
             </property>
            </widget>
           </item>
@@ -72,13 +72,20 @@
             </property>
            </widget>
           </item>
+          <item row="10" column="0">
+           <widget class="QCheckBox" name="checkBox_LA3_Op">
+            <property name="text">
+             <string>LA3 Operational</string>
+            </property>
+           </widget>
+          </item>
           <item row="5" column="0">
            <widget class="QListWidget" name="listView_WorkspaceSelect"/>
           </item>
-          <item row="9" column="0">
-           <widget class="QCheckBox" name="checkBox_LA2_Op">
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>LA2 Operational</string>
+             <string>Linear Actuator - Current Workspace</string>
             </property>
            </widget>
           </item>
@@ -96,18 +103,11 @@
             </item>
            </layout>
           </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Linear Actuator - Current Workspace</string>
-            </property>
-           </widget>
+          <item row="1" column="0">
+           <widget class="QComboBox" name="comPortSelect"/>
           </item>
           <item row="5" column="1">
            <widget class="QListWidget" name="listView_ControllerMode"/>
-          </item>
-          <item row="1" column="2" rowspan="5">
-           <widget class="PlotWidget" name="widget" native="true"/>
           </item>
           <item row="4" column="1">
            <widget class="QLabel" name="label">
@@ -116,21 +116,12 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="12" column="0">
+           <widget class="QCheckBox" name="checkBox_LA5_Op">
+            <property name="text">
+             <string>LA5 Operational</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>5000</width>
-              <height>10</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0">
-           <widget class="QComboBox" name="comPortSelect"/>
+           </widget>
           </item>
           <item row="6" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout">
@@ -157,13 +148,6 @@
             </item>
            </layout>
           </item>
-          <item row="12" column="0">
-           <widget class="QCheckBox" name="checkBox_LA5_Op">
-            <property name="text">
-             <string>LA5 Operational</string>
-            </property>
-           </widget>
-          </item>
           <item row="14" column="0">
            <widget class="QCheckBox" name="togSDKmode">
             <property name="text">
@@ -171,8 +155,28 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="2" rowspan="9">
-           <widget class="PlotWidget" name="myWidget" native="true"/>
+          <item row="0" column="2" colspan="2">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>5000</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="2" rowspan="14" colspan="2">
+           <layout class="QVBoxLayout" name="vertGraphLayout">
+            <item>
+             <widget class="PlotWidget" name="widget" native="true"/>
+            </item>
+            <item>
+             <widget class="PlotWidget" name="myWidget" native="true"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
