@@ -12,6 +12,8 @@ class HexaSDK():
         self.isLAOn = [0,0,0,0,0,0]
         self.isStreamingData = False
 
+        self.isEchoCommandsOn = True
+
         self.set_up()
 
     def set_up(self):
@@ -49,9 +51,8 @@ class HexaSDK():
         OUTPUT: n/a 
         '''
         self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
-        print (command)
-        
-        
+        if self.isEchoCommandsOn:
+            print (command)
 
     def togglePosVelStreamData(self):
         '''
