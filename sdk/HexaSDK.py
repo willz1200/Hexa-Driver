@@ -1,26 +1,29 @@
 import serial, serial.tools.list_ports
 import time
 
+
 class HexaSDK():  
-    
-    # ----------------------------------------------------------------
-    # ------------------------- SDK Commands -------------------------
-    # ----------------------------------------------------------------
+    def __init__(self):
+        self.checkWait = None
+        self.ser = None
+        
+        self.isSdkModeOn = False 
+        self.isLedOn = False
+        self.isLAOn = [0,0,0,0,0,0]
+        self.isStreamingData = False
+
+        self.set_up()
 
     def set_up(self):
         '''
         Looks for available ports, gives you the op
         '''
-        
-      
         comPortsData = serial.tools.list_ports.comports() #Gets all available 
         comPorts = []
         # Adds all the available com ports to a drop down menue in the gui.
         for port, desc, hwid in sorted(comPortsData):
             comPorts.append(port)
-            # self.comPortSelect.addItem("{}: {}".format(port, desc))
-            #self.comPortSelect.addItem(b'%b: %b' % port, desc)
-            # print("{}: {} [{}]".format(port, desc, hwid))
+
         
         defaultComPort = comPorts[0]
         
@@ -34,82 +37,217 @@ class HexaSDK():
         self.ser = serial.Serial(newComPort)
         self.ser.baudrate = 115200
 
-    def sendCommandB(self):
+    # ----------------------------------------------------------------
+    # ------------------------- Sending messages ---------------------
+    # ----------------------------------------------------------------
+
+    def sendCommand(self , command ):
         '''
-        Pullls the string out of the text box and sends it down the serial port. 
-        This function is called when the button next to the text box is pressed. 
+        sends a string down the serial port.
+
+        INPUT: string
+        OUTPUT: n/a 
         '''
-        self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
-        self.enterCommand.setText("")
+        self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
+        print (command)
+        
+        
 
     def togglePosVelStreamData(self):
-        if self.togPosVelStreamData.isChecked():
-            self.ser.write(b'v 1\r') # Enable position and velocity streaming
-        else:
-            self.ser.write(b'v 0\r') # Disable position and velocity streaming
+        '''
+        Tells the firmware to start streaming data.
+        position and velocity streaming
+        '''
+        if self.isStreamingData:
+            self.sendCommand('v 0') # Turn off streaming
+            self.isStreamingData = False
+            
+        elif not self.isStreamingData:
+            self.sendCommand('v 1') # Turn on streaming
+            self.isStreamingData = True
 
     def toggleSDKmode(self):
-        if self.togSDKmode.isChecked():
-            self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
-        else:
-            self.ser.write(b'z 0\r')
+        '''
+        The SDK mode stops the firmware echoing everything you are saying.
+        '''
+        if self.isSdkModeOn:
+            self.sendCommand('z 0') # Turn sdk mode off
+            self.isSdkModeOn = False
+        elif not self.isSdkModeOn:
+            self.sendCommand('z 1') # Turn sdk mode on
+            self.isSdkModeOn = True
+    
+    def flashLed(self):
+        '''
+        Turns the LED on for a seccond then turns it off.
+        '''
+        self.toggleLed()
+        time.sleep(1)
+        self.toggleLed()
 
-    def operationalLA(self, LA_ID, CheckboxID):
-        if CheckboxID.isChecked():
-            self.ser.write( ("o {} 1\r").format(LA_ID).encode() ) # enable the linear actuator channel
-        else:
-            self.ser.write( ("o {} 0\r").format(LA_ID).encode() )
+    def toggleLed(self):
+        '''
+        Toggles the led on and off
+        '''
+        if self.isLedOn:
+            self.sendCommand('led 0') # trun led off
+            self.isLedOn = False
+        elif not self.isLedOn:
+            self.sendCommand('led 1') # turn led on
+            self.isLedOn = True
+
+    def toggleAllLinearActuators( self , LAList ):
+        '''
+        Enable or disable a channel. If you only have one linear actuator plugged in
+        You don't want the firmware to be doing a bunch of other things for the other
+        ones. This command turns on a linear actuator. 
+
+        INPUT:
+            LAList: is a list, ev [0,0,0,0,0,1] corresponcding to which LA you want to turn on.
+        OUTPUT: n/a
+        '''
+        # breakpoint()
+        for i in range(len(LAList)):
+            if self.isLAOn[i] != LAList[i]:
+                self.setLinearActuator( i , LAList[i] )
+                self.isLAOn[i] = LAList[i]
+                
+    
+    def setLinearActuator(self, LA_id , state):
+        '''
+        sets a linear actuator on or off 
+
+        INPUT: 
+            LA_id: int 0 to 5
+            state: 1 or 0 depending if you want to turn the LA on or off
+        OUTPUT: n/a
+        '''
+        command = "o %d %d" %(LA_id , state )
+        # print (command)
+        self.sendCommand(command) #  turn LA i to LAList[i]       
+
+    def setControllerMode(self , controlerMode):
+        '''
+        Sets the controler mode. 
+        INPUT: string
+        '''
+        if controlerMode == 'off':
+            self.sendCommand('r 0') # off
+        elif controlerMode == 'PID':
+            self.sendCommand('r 1') # PID
+        elif controlerMode == 'time based sweep':
+            self.sendCommand('rt 1') # Time based sweep
+        elif controlerMode == 'time based single':
+            self.sendCommand('rt 2') # time based single
+
+    def setLinearActuatorWorkspace(self, LA):
+        '''
+        There is a pointer in the firmware that lets you eaisily acess the 
+        LA in your workspace. This lets you set that. 
+        '''
+        if LA == 0:
+            self.sendCommand('w 0')
+        elif LA == 1:
+            self.sendCommand('w 1')
+        elif LA == 2:
+            self.sendCommand('w 2')
+        elif LA == 3:
+            self.sendCommand('w 3')
+        elif LA == 4:
+            self.sendCommand('w 4')
+        elif LA == 5:
+            self.sendCommand('w 5')
 
     def timeBasedDemo(self):
-        self.ser.write(b'rt 2\r')
-        self.ser.write(b'rt s 500 1 75\r')
-        time.sleep(0.500)
-        self.ser.write(b'rt s 1000 2 75\r')
+        '''
+        runs the motor back and forward at 75pwm back and forward.
+
+        Single mode: runs in one direction for a set time.
+        '''
+        self.setControllerMode('time based single') # sets to single mode
+        self.sendCommand('rt s 500 1 75') # 500secconds direction1 duty75
+        time.sleep(0.500) 
+        self.sendCommand('rt s 1000 2 75') # 1000sec dir2 duty75
         time.sleep(1)
-        self.ser.write(b'rt s 750 1 75\r')
+        self.sendCommand('rt s 750 1 75') # 750sec dir1 duty75
         time.sleep(0.75)
-        self.ser.write(b'rt 0\r')
+        self.setControllerMode('off') # turns off controller.
 
     def timeBasedOpen(self):
-        self.ser.write(b'rt 2\r')
-        self.ser.write(b'rt s 500 1 75\r')
+        self.setControllerMode('time based single')
+        self.sendCommand('rt s 500 1 75')
         time.sleep(0.500)
-        self.ser.write(b'rt 0\r')
+        self.setControllerMode('off')
 
     def timeBasedClosed(self):
-        self.ser.write(b'rt 2\r')
-        self.ser.write(b'rt s 500 2 75\r')
+        self.sendCommand('rt 2')
+        self.sendCommand('rt s 500 2 75')
         time.sleep(0.500)
-        self.ser.write(b'rt 0\r')
+        self.setControllerMode('off')
 
-    def controllerMode(self , controllerRow):
-        # controllerRow = self.listView_ControllerMode.currentRow()
-        if controllerRow == 0:
-            self.ser.write(b'r 0\r')
-        elif controllerRow == 1:
-            self.ser.write(b'r 1\r')
-        elif controllerRow == 2:
-            self.ser.write(b'rt 1\r')
-        elif controllerRow == 3:
-            self.ser.write(b'rt 2\r')
-            self.ser.write(b'rt s 500 1 75\r')
+    def stepResponce(self, pwmInput):
+        '''
+        sends an input value to the firmware then listents for 
 
-    def LinearActuatorWorkspace(self, workspaceRow):
-        # workspaceRow = self.listView_WorkspaceSelect.currentRow()
-        if workspaceRow == 0:
-            self.ser.write(b'w 0\r')
-        elif workspaceRow == 1:
-            self.ser.write(b'w 1\r')
-        elif workspaceRow == 2:
-            self.ser.write(b'w 2\r')
-        elif workspaceRow == 3:
-            self.ser.write(b'w 3\r')
-        elif workspaceRow == 4:
-            self.ser.write(b'w 4\r')
-        elif workspaceRow == 5:
-            self.ser.write(b'w 5\r')
+        INPUT: pwm signal 0-255 
+        OUTPUT: 
+        '''
+        pass
+        # send input value to initiate step responce
+        # self.ser.write(b'step 100\r')
+
+        # listen for data
+
+        # listen for "im finished" signal
+
+        # save data to file
+
+    def runPIDControler(self):
+        '''
+        sends a value of Kp , Ki & Kd down the serial port , then  
+        '''
+
+        # update Kp , Ki & Kd
+
+        # start step responce
+
+    def exitCode(self):
+        '''
+        Its hard to kill things if you are just using the SDK. For example if 
+        the motor is trying to break itsself it would be nice to be able to turn 
+        the motor/controler off. 
+        This function should run when you close the program.
+        '''
+        pass
+    # ----------------------------------------------------------------
+    # ------------------------- Reciving messages ---------------------
+    # ----------------------------------------------------------------
+    def readSerialPort():
+        '''
+        Discussion about threading, ques ect...
+        How does this interface with the GUI?
+        '''        
+        if (self.ser.inWaiting()):
+                line = self.ser.readline()   # read a '\n' terminated line)
+                #line = b's,0,0,0\r'
+                line = line.decode('utf-8')
+                line = line.replace("\r\n","")
 
 if __name__ == '__main__':
     HEXA_SDK = HexaSDK()
-    HEXA_SDK.set_up()
+    HEXA_SDK.toggleSDKmode()
     HEXA_SDK.timeBasedDemo()
+    # HEXA_SDK.timeBasedOpen()
+    # HEXA_SDK.timeBasedClosed()
+    # HEXA_SDK.setControllerMode('PID')
+    # HEXA_SDK.setControllerMode('time based sweep')
+    # HEXA_SDK.setControllerMode('time based single')
+    # HEXA_SDK.setControllerMode('off')
+    # HEXA_SDK.setLinearActuatorWorkspace(0)
+    # HEXA_SDK.flashLed()
+    # HEXA_SDK.sendCommand('led 1')
+    # HEXA_SDK.stepResponce(100)
+    # HEXA_SDK.runPIDControler()
+    # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,1])
+    # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,0])
+

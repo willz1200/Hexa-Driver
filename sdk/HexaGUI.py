@@ -157,8 +157,9 @@ class HexaGUI(QtGui.QMainWindow):
         Pullls the string out of the text box and sends it down the serial port. 
         This function is called when the button next to the text box is pressed. 
         '''
+        # self.HexaSDK.sendCommand( self.enterCommand.text() )
         self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
-        self.enterCommand.setText("")
+        self.enterCommand.setText("")# clears the text box
 
     def togglePosVelStreamData(self):
         if self.togPosVelStreamData.isChecked():
@@ -304,7 +305,7 @@ class HexaGUI(QtGui.QMainWindow):
         INPUT: n/a
         OUTPUT: n/a 
         '''
-        if (HexaProg.getProgMode() == False):
+        if (HexaProg.getProgMode() == False): # makes sure we are not using the serial port for programing.
             if (self.ser.inWaiting()):
                 line = self.ser.readline()   # read a '\n' terminated line)
                 #line = b's,0,0,0\r'
