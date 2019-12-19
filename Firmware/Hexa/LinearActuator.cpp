@@ -102,6 +102,10 @@ int LinearActuator::GetEncoderPos(){
 }
 
 float LinearActuator::GetEncoderRPM(){
+	return rpm;
+}
+
+float LinearActuator::GetEncoderFilteredRPM(){
 	return filteredRpm;
 }
 

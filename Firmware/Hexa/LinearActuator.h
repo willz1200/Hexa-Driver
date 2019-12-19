@@ -38,6 +38,7 @@ class LinearActuator {
 		void VelocityUpdate();
 		int GetEncoderPos();
 		float GetEncoderRPM();
+		float GetEncoderFilteredRPM();
 		void ResetEncoderPos();
 		LinearActuator* getInstance(uint8_t instanceID);
 		void SpinMotor(unsigned char dutyCycle, unsigned char direction);

@@ -13,8 +13,8 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	posGain = 0.05;
 	pos_Setpoint = 800.0;
 	velDesired = 0.0;
-	velGain = 80;
-	velIntGain = 0.005;
+	velGain = 0.05;
+	velIntGain = 0.00001;
 	timeKeep = millis();
 	timeSinceUpdate = millis();
 	timeSinceUpdateB = millis();
@@ -146,7 +146,7 @@ void Controller::position(){
 	// Velocity PI controller not yet working correctly
 	velDesired = pos_Setpoint;
 	// Velocity error calc
-	float velError = velDesired - GetEncoderRPM();//-
+	float velError = velDesired - GetEncoderRPM();//-GetEncoderFilteredRPM
 
 	// Accumulate the error
 	velTotalError += velError;
@@ -193,7 +193,7 @@ void Controller::position(){
 		//Limit print speed
 		if (millis() - timeKeep > 50){
 			Serial.print("p,");
-			Serial.print(0); //posError //velTotalError
+			Serial.print(GetEncoderFilteredRPM()); //posError //velTotalError
 			Serial.print(",");
 			Serial.print(velError);
 			Serial.print(",");

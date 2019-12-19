@@ -27,13 +27,10 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QGridLayout" name="grid_workspace">
-          <item row="2" column="0" colspan="2">
-           <widget class="QTextEdit" name="historyCommand">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
+          <item row="14" column="1">
+           <widget class="QLabel" name="lbl_duty">
+            <property name="text">
+             <string>Duty:</string>
             </property>
            </widget>
           </item>
@@ -51,13 +48,6 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
-           <widget class="QCheckBox" name="checkBox_LA0_Op">
-            <property name="text">
-             <string>LA0 Operational</string>
-            </property>
-           </widget>
-          </item>
           <item row="9" column="0">
            <widget class="QCheckBox" name="checkBox_LA2_Op">
             <property name="text">
@@ -69,6 +59,13 @@
            <widget class="QCheckBox" name="checkBox_LA4_Op">
             <property name="text">
              <string>LA4 Operational</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QCheckBox" name="checkBox_LA0_Op">
+            <property name="text">
+             <string>LA0 Operational</string>
             </property>
            </widget>
           </item>
@@ -89,33 +86,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" colspan="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLineEdit" name="enterCommand"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="sendCommand">
-              <property name="text">
-               <string>Send</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <widget class="QComboBox" name="comPortSelect"/>
-          </item>
-          <item row="5" column="1">
-           <widget class="QListWidget" name="listView_ControllerMode"/>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Controller Mode</string>
-            </property>
-           </widget>
-          </item>
           <item row="12" column="0">
            <widget class="QCheckBox" name="checkBox_LA5_Op">
             <property name="text">
@@ -123,7 +93,47 @@
             </property>
            </widget>
           </item>
-          <item row="6" column="0" colspan="2">
+          <item row="1" column="0">
+           <widget class="QComboBox" name="comPortSelect"/>
+          </item>
+          <item row="14" column="0">
+           <widget class="QCheckBox" name="togSDKmode">
+            <property name="text">
+             <string>SDK Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3" colspan="2">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>5000</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="3" rowspan="14" colspan="2">
+           <layout class="QVBoxLayout" name="vertGraphLayout">
+            <item>
+             <widget class="PlotWidget" name="widget" native="true"/>
+            </item>
+            <item>
+             <widget class="PlotWidget" name="myWidget" native="true"/>
+            </item>
+           </layout>
+          </item>
+          <item row="14" column="2">
+           <widget class="QLabel" name="lbl_dutyValue">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="3">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QPushButton" name="btnTimeBasedDemo">
@@ -148,35 +158,103 @@
             </item>
            </layout>
           </item>
-          <item row="14" column="0">
-           <widget class="QCheckBox" name="togSDKmode">
+          <item row="5" column="1" colspan="2">
+           <widget class="QListWidget" name="listView_ControllerMode"/>
+          </item>
+          <item row="4" column="1" colspan="2">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>SDK Mode</string>
+             <string>Controller Mode</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="2" colspan="2">
-           <spacer name="horizontalSpacer">
+          <item row="3" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLineEdit" name="enterCommand"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="sendCommand">
+              <property name="text">
+               <string>Send</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0" colspan="3">
+           <widget class="QTextEdit" name="historyCommand">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
+           <widget class="QLabel" name="lbl_posKp">
+            <property name="text">
+             <string>Pos Kp:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="1">
+           <widget class="QLabel" name="lbl_velKp">
+            <property name="text">
+             <string>Vel Kp:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="1">
+           <widget class="QLabel" name="lbl_velKi">
+            <property name="text">
+             <string>Vel Ki:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="2">
+           <spacer name="horizontalSpacer_2">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>5000</width>
-              <height>10</height>
+              <width>1000</width>
+              <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
-          <item row="1" column="2" rowspan="14" colspan="2">
-           <layout class="QVBoxLayout" name="vertGraphLayout">
-            <item>
-             <widget class="PlotWidget" name="widget" native="true"/>
-            </item>
-            <item>
-             <widget class="PlotWidget" name="myWidget" native="true"/>
-            </item>
-           </layout>
+          <item row="11" column="2">
+           <widget class="QDoubleSpinBox" name="spinBox_posKp">
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="12" column="2">
+           <widget class="QDoubleSpinBox" name="spinBox_velKp">
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="13" column="2">
+           <widget class="QDoubleSpinBox" name="spinBox_velKi">
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

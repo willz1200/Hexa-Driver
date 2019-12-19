@@ -84,13 +84,31 @@ class HexaSDK(QtGui.QMainWindow):
         self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
 
 
+        # self.spinBox_posKp.setStepType(0)
+        # self.spinBox_posKp.setSingleStep(0.001)
+        self.spinBox_posKp.setValue(0.05)
+        self.spinBox_velKp.setValue(0.05)
+        self.spinBox_velKi.setValue(0.00001)
 
-
+        #K value spin box binding
+        self.spinBox_posKp.valueChanged.connect(lambda: self.setControllerTuningParameters("posKp", self.spinBox_posKp.value()))
+        self.spinBox_velKp.valueChanged.connect(lambda: self.setControllerTuningParameters("velKp", self.spinBox_velKp.value()))
+        self.spinBox_velKi.valueChanged.connect(lambda: self.setControllerTuningParameters("velKi", self.spinBox_velKi.value()))
 
 
     # ----------------------------------------------------------------
     # ------------------------- SDK Commands -------------------------
     # ----------------------------------------------------------------
+
+    def setControllerTuningParameters(self, tuningParam, value):
+        if (tuningParam == "posKp"):
+            self.ser.write( ("pp {}\r").format(value).encode() )
+            #print(self.spinBox_posKp.value())
+        elif (tuningParam == "velKp"):
+            self.ser.write( ("vp {}\r").format(value).encode() )
+        elif (tuningParam == "velKi"):
+            self.ser.write( ("vi {}\r").format(value).encode() )
+        #print(value)
 
     def comPortChange(self):
         self.ser.close()
@@ -178,8 +196,6 @@ class HexaSDK(QtGui.QMainWindow):
             self.ser.write(b'w 4\r')
         elif workspaceRow == 5:
             self.ser.write(b'w 5\r')
-
-
 
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
@@ -282,6 +298,8 @@ class HexaSDK(QtGui.QMainWindow):
                     self.outDesired[self.ptrB] = float(line[5])
                     self.EncoderRPM[self.ptrB] = float(line[6])
                     self.ptrB += 1
+
+                    self.lbl_dutyValue.setText(line[5]) # write duty cycle in label
 
                     if self.ptrB >= self.posError.shape[0]:
                         tmpPosError = self.posError
