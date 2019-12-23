@@ -17,7 +17,7 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
-import HexaProg
+import HexaProg, HexaSerial
 # import matplotlib.pyplot as plt
 
 class HexaSDK(QtGui.QMainWindow):  
@@ -47,9 +47,15 @@ class HexaSDK(QtGui.QMainWindow):
         self.ser.baudrate = 115200
         self.checkWait = False
 
+        # Configure communication layer
+        HexaSerial.init(self.ser)
+        HexaSerial.start()
+
         # Configure the firmware to be SDK mode.
-        self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
-        self.ser.write(b'v 1\r') # Enable position and velocity streaming
+        HexaSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
+        HexaSerial.write("v 1") # Enable position and velocity streaming
+        #self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
+        #self.ser.write(b'v 1\r') # Enable position and velocity streaming
 
         # Set up graph on the workspace tab.
         self.velPosGraphInit(self.widget)
@@ -136,79 +142,105 @@ class HexaSDK(QtGui.QMainWindow):
         Pullls the string out of the text box and sends it down the serial port. 
         This function is called when the button next to the text box is pressed. 
         '''
-        self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
+
+        HexaSerial.write(str(self.enterCommand.text()))
+        #self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
         self.enterCommand.setText("")
 
     def togglePosVelStreamData(self):
         if self.togPosVelStreamData.isChecked():
-            self.ser.write(b'v 1\r') # Enable position and velocity streaming
+            HexaSerial.write("v 1") # Enable position and velocity streaming
+            #self.ser.write(b'v 1\r') # Enable position and velocity streaming
         else:
-            self.ser.write(b'v 0\r') # Disable position and velocity streaming
+            HexaSerial.write("v 0") # Disable position and velocity streaming
+            #self.ser.write(b'v 0\r') # Disable position and velocity streaming
 
     def toggleSDKmode(self):
         if self.togSDKmode.isChecked():
-            self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
+            HexaSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
+            #self.ser.write(b'z 1\r') # Sets to sdk mode. So it dosn't echo all commands.
         else:
-            self.ser.write(b'z 0\r')
+            HexaSerial.write("z 0") 
+            #self.ser.write(b'z 0\r')
 
     def operationalLA(self, LA_ID, CheckboxID):
         if CheckboxID.isChecked():
-            self.ser.write( ("o {} 1\r").format(LA_ID).encode() ) # enable the linear actuator channel
+            HexaSerial.write(("o {} 1\r").format(LA_ID)) # enable the linear actuator channel
+            #self.ser.write( ("o {} 1\r").format(LA_ID).encode() ) # enable the linear actuator channel
         else:
-            self.ser.write( ("o {} 0\r").format(LA_ID).encode() )
+            HexaSerial.write(("o {} 0\r").format(LA_ID))
+            #self.ser.write( ("o {} 0\r").format(LA_ID).encode() )
 
     def timeBasedDemo(self):
-        self.ser.write(b'rt 2\r')
-        self.ser.write(b'rt s 500 1 75\r')
+        HexaSerial.write("rt 2")
+        HexaSerial.write("rt s 500 1 75")
+        #self.ser.write(b'rt 2\r')
+        #self.ser.write(b'rt s 500 1 75\r')
         time.sleep(0.500)
-        self.ser.write(b'rt s 1000 2 75\r')
+        HexaSerial.write("rt s 1000 2 75")
+        #self.ser.write(b'rt s 1000 2 75\r')
         time.sleep(1)
-        self.ser.write(b'rt s 750 1 75\r')
+        HexaSerial.write("rt s 750 1 75")
+        #self.ser.write(b'rt s 750 1 75\r')
         time.sleep(0.75)
-        self.ser.write(b'rt 0\r')
+        HexaSerial.write("rt 0")
+        #self.ser.write(b'rt 0\r')
 
     def timeBasedOpen(self):
-        self.ser.write(b'rt 2\r')
-        self.ser.write(b'rt s 500 1 75\r')
+        HexaSerial.write("rt 2")
+        HexaSerial.write("rt s 500 1 75")
+        #self.ser.write(b'rt 2\r')
+        #self.ser.write(b'rt s 500 1 75\r')
         time.sleep(0.500)
-        self.ser.write(b'rt 0\r')
+        HexaSerial.write("rt 0")
+        #self.ser.write(b'rt 0\r')
 
     def timeBasedClosed(self):
-        self.ser.write(b'rt 2\r')
-        self.ser.write(b'rt s 500 2 75\r')
+        HexaSerial.write("rt 2")
+        HexaSerial.write("rt s 500 2 75")
+        #self.ser.write(b'rt 2\r')
+        #self.ser.write(b'rt s 500 2 75\r')
         time.sleep(0.500)
-        self.ser.write(b'rt 0\r')
+        HexaSerial.write("rt 0")
+        #self.ser.write(b'rt 0\r')
 
     def controllerMode(self):
         controllerRow = self.listView_ControllerMode.currentRow()
         if controllerRow == 0:
-            self.ser.write(b'r 0\r')
+            HexaSerial.write("r 0")
+            #self.ser.write(b'r 0\r')
         elif controllerRow == 1:
-            self.ser.write(b'r 1\r')
+            HexaSerial.write("r 1")
+            #self.ser.write(b'r 1\r')
         elif controllerRow == 2:
-            self.ser.write(b'rt 1\r')
+            HexaSerial.write("rt 1")
+            #self.ser.write(b'rt 1\r')
         elif controllerRow == 3:
-            self.ser.write(b'rt 2\r')
-            self.ser.write(b'rt s 500 1 75\r')
+            HexaSerial.write("rt 2")
+            HexaSerial.write("rt s 500 1 75")
+            #self.ser.write(b'rt 2\r')
+            #self.ser.write(b'rt s 500 1 75\r')
 
     def LinearActuatorWorkspace(self):
         workspaceRow = self.listView_WorkspaceSelect.currentRow()
         if workspaceRow == 0:
-            self.ser.write(b'w 0\r')
+            HexaSerial.write("w 0")
+            #self.ser.write(b'w 0\r')
         elif workspaceRow == 1:
-            self.ser.write(b'w 1\r')
+            HexaSerial.write("w 1")
+            #self.ser.write(b'w 1\r')
         elif workspaceRow == 2:
-            self.ser.write(b'w 2\r')
+            HexaSerial.write("w 2")
+            #self.ser.write(b'w 2\r')
         elif workspaceRow == 3:
-            self.ser.write(b'w 3\r')
+            HexaSerial.write("w 3")
+            #self.ser.write(b'w 3\r')
         elif workspaceRow == 4:
-            self.ser.write(b'w 4\r')
+            HexaSerial.write("w 4")
+            #self.ser.write(b'w 4\r')
         elif workspaceRow == 5:
-            self.ser.write(b'w 5\r')
-
-
-
-
+            HexaSerial.write("w 5")
+            #self.ser.write(b'w 5\r')
 
 
     # ----------------------------------------------------------------
@@ -286,28 +318,33 @@ class HexaSDK(QtGui.QMainWindow):
         OUTPUT: n/a 
         '''
         if (HexaProg.getProgMode() == False):
-            if (self.ser.inWaiting()):
-                line = self.ser.readline()   # read a '\n' terminated line)
+            #if (self.ser.inWaiting()):
+                #line = self.ser.readline()   # read a '\n' terminated line)
                 #line = b's,0,0,0\r'
-                line = line.decode('utf-8')
-                line = line.replace("\r\n","")
-                self.historyCommand.append(line) # add text to command box
-                line = line.split(',')
-                if (line[0] == 's'):
-                    self.data[self.ptr] = float(line[2])#np.random.normal()
-                    self.dataB[self.ptr] = float(line[3])#np.random.normal()
-                    self.ptr += 1
-                    if self.ptr >= self.data.shape[0]:
-                        tmp = self.data
-                        tmpB = self.dataB
-                        self.data = np.empty(self.data.shape[0] * 2)
-                        self.dataB = np.empty(self.dataB.shape[0] * 2)
-                        self.data[:tmp.shape[0]] = tmp
-                        self.dataB[:tmpB.shape[0]] = tmpB
-                    self.curve.setData(self.data[:self.ptr])
-                    self.curve.setPos(-self.ptr, 0)
-                    self.curveB.setData(self.dataB[:self.ptr])
-                    self.curveB.setPos(-self.ptr, 0)
+                #line = line.decode('utf-8')
+                #line = line.replace("\r\n","")
+
+                line = HexaSerial.readLine(HexaSerial.qGraphA)
+                if (line != None):
+                    line = line.replace("\r\n","")
+                    print (HexaSerial.debugSize())
+                    self.historyCommand.append(line) # add text to command box
+                    line = line.split(',')
+                    if (line[0] == 's'):
+                        self.data[self.ptr] = float(line[2])#np.random.normal()
+                        self.dataB[self.ptr] = float(line[3])#np.random.normal()
+                        self.ptr += 1
+                        if self.ptr >= self.data.shape[0]:
+                            tmp = self.data
+                            tmpB = self.dataB
+                            self.data = np.empty(self.data.shape[0] * 2)
+                            self.dataB = np.empty(self.dataB.shape[0] * 2)
+                            self.data[:tmp.shape[0]] = tmp
+                            self.dataB[:tmpB.shape[0]] = tmpB
+                        self.curve.setData(self.data[:self.ptr])
+                        self.curve.setPos(-self.ptr, 0)
+                        self.curveB.setData(self.dataB[:self.ptr])
+                        self.curveB.setPos(-self.ptr, 0)
 
 
 

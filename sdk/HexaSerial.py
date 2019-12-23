@@ -10,8 +10,8 @@ from queue import Queue, Empty
 import time
 import serial
 
-ser = serial.Serial("COM11")
-ser.baudrate = 115200
+#ser = serial.Serial("COM11")
+#ser.baudrate = 115200
 
 # Multiple queue to sort incoming data
 qGraphA = Queue()
@@ -60,40 +60,46 @@ def unqueue_outgoingData():
         except Empty:
             pass # The queue is empty, do nothing
         else:
-            lineOut = lineOut.decode('ascii')
+            #lineOut = lineOut.decode('ascii')
             ser.write( ("{}\r").format(lineOut).encode() )
 
-def sendData(data):
+def write(data):
     qOutgoing.put(data)
 
-def getData(queue):
+def readLine(queue):
     try:
         lineTest = queue.get_nowait()
     except Empty:
         pass # The queue is empty, do nothing
     else:
-        lineTest = lineTest.decode('ascii')
+        #lineTest = lineTest.decode('ascii')
         return lineTest
 
+def debugSize():
+    return "{}, {}, {}".format( qGraphA.qsize(), qGraphB.qsize(), qMisc.qsize() )
 
-tIncoming = Thread(target=enqueue_incomingData)
-tIncoming.daemon = True
-tIncoming.start()
+def init(serialPort):
+    global ser
+    ser = serialPort
 
-tOutgoing = Thread(target=unqueue_outgoingData)
-tOutgoing.daemon = True
-tOutgoing.start()
+def start():
+    tIncoming = Thread(target=enqueue_incomingData)
+    tIncoming.daemon = True
+    tIncoming.start()
 
-sendData("z 0") # SDK mode off
-sendData("v 1") # Stream data on
+    tOutgoing = Thread(target=unqueue_outgoingData)
+    tOutgoing.daemon = True
+    tOutgoing.start()
 
-while(1):
-    time.sleep(2)
-    print ( "{}, {}, {}".format( qGraphA.qsize(), qGraphB.qsize(), qMisc.qsize() ) )
+# write("z 0") # SDK mode off
+# write("v 1") # Stream data on
+
+# while(1):
+#     time.sleep(2)
+#     print ( "{}, {}, {}".format( qGraphA.qsize(), qGraphB.qsize(), qMisc.qsize() ) )
     
-    sendData("led 150")
+#     write("led 150")
 
-    myData = getData(qMisc)
-    if (myData != None):
-        print(myData)
-  
+#     myData = readLine(qMisc)
+#     if (myData != None):
+#         print(myData)
