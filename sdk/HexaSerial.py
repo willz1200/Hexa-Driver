@@ -9,165 +9,155 @@ from threading import Thread
 import threading
 from queue import Queue, Empty
 import time
-import serial
+import serial, serial.tools.list_ports
 
-# Multiple queue to sort incoming data
-qGraphA = Queue()
-qGraphB = Queue()
-qMisc = Queue()
+# Create Serial Management Unit Class
+class SMU():
 
-# Single queue to hold outgoing data
-qOutgoing = Queue()
+    def __init__(self):
+        # Multiple queue to sort incoming data
+        self.qGraphA = Queue()
+        self.qGraphB = Queue()
+        self.qMisc = Queue()
 
-serialIncomingRate = 0
-serialIncomingRateFiltered = 0
+        # Single queue to hold outgoing data
+        self.qOutgoing = Queue()
 
-serialOutgoingRate = 0
-serialOutgoingRateFiltered = 0
+        self.serialIncomingRate = 0
+        self.serialIncomingRateFiltered = 0
 
-# Create an array of dictionaries for directing incoming data into the correct queue
-dataIdentifiers = [
-    # Link line identifiers to correct queues below
-    { 'id':'s', 'queue':qGraphA },
-    { 'id':'p', 'queue':qGraphB },
+        self.serialOutgoingRate = 0
+        self.serialOutgoingRateFiltered = 0
 
-    # Make sure DEFAULT_QUEUE is always the last item in this list
-    { 'id':'DEFAULT_QUEUE', 'queue':qMisc }
-]
+        # Create an array of dictionaries for directing incoming data into the correct queue
+        self.dataIdentifiers = [
+            # Link line identifiers to correct queues below
+            { 'id':'s', 'queue':self.qGraphA },
+            { 'id':'p', 'queue':self.qGraphB },
 
-def scanForPorts():
-    comPorts = serial.tools.list_ports.comports() #Gets all available
-    portList = []
-    # store all the available com ports into an array.
-    for port, desc, hwid in sorted(comPorts):
-        portList.append("{}: {}".format(port, desc))
+            # Make sure DEFAULT_QUEUE is always the last item in this list
+            { 'id':'DEFAULT_QUEUE', 'queue':self.qMisc }
+        ]
 
-    if len(portList) > 0:
-        initPort(portList[0])
-        return portList
-    else:
-        print("No COM ports available")
+    def scanForPorts(self):
+        comPorts = serial.tools.list_ports.comports() #Gets all available
+        portList = []
+        # store all the available com ports into an array.
+        for port, desc, hwid in sorted(comPorts):
+            portList.append("{}: {}".format(port, desc))
 
-def initPort(defaultComPort):
-    global ser
-    print("Using port: {}".format(defaultComPort))
-
-    defaultComPort = defaultComPort.split(':')[0] # Use first COM port by default
-    ser = serial.Serial(defaultComPort)
-    ser.baudrate = 115200
-
-def comPortChange(newComPort):
-    global ser
-
-    ser.close()
-    newComPort = newComPort.split(':')[0]
-    #newComPort = str(self.comPortSelect.currentText()).split(':')[0]
-    ser = serial.Serial(newComPort)
-    ser.baudrate = 115200
-
-def enqueue_incomingData():
-    global ser, serInLength, serialIncomingRate
-
-    while(1):
-        serInLength = ser.inWaiting()
-        if (serInLength):
-            rawLine = ser.readline()   # read a '\n' terminated line)
-            serialIncomingRate += len(rawLine) # track data rate
-            #print (rawLine)
-            rawLine = rawLine.decode('utf-8')
-            rawLine = rawLine.replace("\r\n","")
-            splitLine = rawLine.split(',')
-
-            # if (splitLine[0] == 's'):
-            #     qGraphA.put(rawLine)
-            # elif (splitLine[0] == 'p'):
-            #     qGraphB.put(rawLine)
-            # else:
-            #     qMisc.put(rawLine)
-
-            queueFound = False
-
-            for i in dataIdentifiers: 
-                if (i['id'] == splitLine[0]):
-                    queueFound = True
-                    i['queue'].put_nowait(rawLine)
-                    #print (debugSize())
-                    break
-                elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
-                    i['queue'].put_nowait(rawLine)
+        if len(portList) > 0:
+            self.initPort(portList[0])
+            return portList
         else:
-            pass
-            #print("Sleeping a bit")
-            #time.sleep(0.0001) # Add delay in thread to create some blocking, prevent GIL
+            print("No COM ports available")
 
-def unqueue_outgoingData():
-    global ser, serialOutgoingRate
+    def initPort(self, defaultComPort):
+        print("Using port: {}".format(defaultComPort))
 
-    while (1):
-        lineOut = qOutgoing.get() # Blocks until data is available in the queue
-        serialOutgoingRate += len(lineOut) + 1 # track data rate (+ 1 for the carriage return)
-        ser.write( ("{}\r").format(lineOut).encode() )
+        defaultComPort = defaultComPort.split(':')[0] # Use first COM port by default
+        self.ser = serial.Serial(defaultComPort)
+        self.ser.baudrate = 115200
 
-def write(data):
-    #qOutgoing.put(data)
-    qOutgoing.put_nowait(data)
+    def comPortChange(self, newComPort):
+        self.ser.close()
+        newComPort = newComPort.split(':')[0]
+        #newComPort = str(self.comPortSelect.currentText()).split(':')[0]
+        self.ser = serial.Serial(newComPort)
+        self.ser.baudrate = 115200
 
-def readLine(queue):
-    try:
-        lineTest = queue.get_nowait()
-    except Empty:
-        pass # The queue is empty, do nothing
-    else:
-        #lineTest = lineTest.decode('ascii')
-        return lineTest
+    def enqueue_incomingData(self):
+        while True:
+            self.serInLength = self.ser.inWaiting()
+            if (self.serInLength):
+                rawLine = self.ser.readline()   # read a '\n' terminated line)
+                self.serialIncomingRate += len(rawLine) # track data rate
+                #print (rawLine)
+                rawLine = rawLine.decode('utf-8')
+                rawLine = rawLine.replace("\r\n","")
+                splitLine = rawLine.split(',')
 
-def debugSize():
-    return "{}, {}, {}".format( qGraphA.qsize(), qGraphB.qsize(), qMisc.qsize() )
+                # if (splitLine[0] == 's'):
+                #     qGraphA.put(rawLine)
+                # elif (splitLine[0] == 'p'):
+                #     qGraphB.put(rawLine)
+                # else:
+                #     qMisc.put(rawLine)
 
-def debugLength():
-    global serInLength
-    return (serInLength)
+                queueFound = False
 
-def init(serialPort):
-    global ser
-    ser = serialPort
+                for i in self.dataIdentifiers: 
+                    if (i['id'] == splitLine[0]):
+                        queueFound = True
+                        i['queue'].put_nowait(rawLine)
+                        #print (debugSize())
+                        break
+                    elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
+                        i['queue'].put_nowait(rawLine)
+            else:
+                pass
+                #print("Sleeping a bit")
+                #time.sleep(0.0001) # Add delay in thread to create some blocking, prevent GIL
 
-def getIncomingDataRate():
-    global serialIncomingRateFiltered
-    return serialIncomingRateFiltered
+    def unqueue_outgoingData(self):
+        while True:
+            lineOut = self.qOutgoing.get() # Blocks until data is available in the queue
+            self.serialOutgoingRate += len(lineOut) + 1 # track data rate (+ 1 for the carriage return)
+            self.ser.write( ("{}\r").format(lineOut).encode() )
 
-def getOutgoingDataRate():
-    global serialOutgoingRateFiltered
-    return serialOutgoingRateFiltered
+    def write(self, data):
+        #qOutgoing.put(data)
+        self.qOutgoing.put_nowait(data)
 
-def calcDataRate():
-    global serialIncomingRate, serialIncomingRateFiltered
-    global serialOutgoingRate, serialOutgoingRateFiltered
+    def readLine(self, queue):
+        try:
+            lineTest = queue.get_nowait()
+        except Empty:
+            pass # The queue is empty, do nothing
+        else:
+            #lineTest = lineTest.decode('ascii')
+            return lineTest
 
-    while True:
-        time.sleep(1)
-        serialIncomingRateFiltered = serialIncomingRate
-        serialOutgoingRateFiltered = serialOutgoingRate
-        #print ("{} / 11,520 Bytes per second".format(serialRate))
-        serialIncomingRate = 0
-        serialOutgoingRate = 0
+    def debugSize(self):
+        return "{}, {}, {}".format( self.qGraphA.qsize(), self.qGraphB.qsize(), self.qMisc.qsize() )
 
-def startIn():
-    tIncoming = Thread(target=enqueue_incomingData)
-    tIncoming.setDaemon(True) #.daemon = True
-    tIncoming.setName("incoming")
-    tIncoming.start()
+    def debugLength(self):
+        return (self.serInLength)
 
-def startOut():
-    tOutgoing = Thread(target=unqueue_outgoingData)
-    tOutgoing.setDaemon(True) #.daemon = True
-    tOutgoing.setName("outgoing")
-    tOutgoing.start()
+    def init(self, serialPort):
+        self.ser = serialPort
 
-    tDataRate = Thread(target=calcDataRate)
-    tDataRate.setDaemon(True) #.daemon = True
-    tDataRate.setName("dataRate")
-    tDataRate.start()
+    def getIncomingDataRate(self):
+        return self.serialIncomingRateFiltered
+
+    def getOutgoingDataRate(self):
+        return self.serialOutgoingRateFiltered
+
+    def calcDataRate(self):
+        while True:
+            time.sleep(1)
+            self.serialIncomingRateFiltered = self.serialIncomingRate
+            self.serialOutgoingRateFiltered = self.serialOutgoingRate
+            #print ("{} / 11,520 Bytes per second".format(serialRate))
+            self.serialIncomingRate = 0
+            self.serialOutgoingRate = 0
+
+    def startIn(self):
+        tIncoming = Thread(target=self.enqueue_incomingData)
+        tIncoming.setDaemon(True) #.daemon = True
+        tIncoming.setName("incoming")
+        tIncoming.start()
+
+    def startOut(self):
+        tOutgoing = Thread(target=self.unqueue_outgoingData)
+        tOutgoing.setDaemon(True) #.daemon = True
+        tOutgoing.setName("outgoing")
+        tOutgoing.start()
+
+        tDataRate = Thread(target=self.calcDataRate)
+        tDataRate.setDaemon(True) #.daemon = True
+        tDataRate.setName("dataRate")
+        tDataRate.start()
     #print (threading.enumerate())
     #print (threading.stack_size())
 
