@@ -28,8 +28,9 @@ class HexaSDK(QtGui.QMainWindow):
         uic.loadUi("gui.ui", self) # Loads all the GUI elements.
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
+        self.configGUI()
 
-
+    def configGUI(self):
         comPorts = serial.tools.list_ports.comports() #Gets all available 
         # Adds all the available com ports to a drop down menue in the gui.
         for port, desc, hwid in sorted(comPorts):
@@ -43,13 +44,13 @@ class HexaSDK(QtGui.QMainWindow):
         defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
         
         #Sets up the serial system. 
-        self.ser = serial.Serial(defaultComPort)
-        self.ser.baudrate = 115200
+        # self.ser = serial.Serial(defaultComPort)
+        # self.ser.baudrate = 115200
         self.checkWait = False
 
         # Configure communication layer
-        HexaSerial.init(self.ser)
-        HexaSerial.start()
+        # HexaSerial.init(self.ser)
+        # HexaSerial.start()
 
         # Configure the firmware to be SDK mode.
         HexaSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
@@ -106,9 +107,6 @@ class HexaSDK(QtGui.QMainWindow):
         self.btnTimeBasedDemo.clicked.connect(self.timeBasedDemo)
         self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
         self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
-
-
-
 
 
 
@@ -302,12 +300,12 @@ class HexaSDK(QtGui.QMainWindow):
         # real time grapphing timer
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.velPosGraphUpdate)
-        timer.start(5)
+        timer.start(2)
 
         #firmware compiling timer 
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.taskTimer)
-        timer.start(1)
+        #timer.start(1) # Currently broken due to ser moving
 
     def velPosGraphUpdate(self):
         '''
@@ -326,8 +324,8 @@ class HexaSDK(QtGui.QMainWindow):
 
                 line = HexaSerial.readLine(HexaSerial.qGraphA)
                 if (line != None):
-                    line = line.replace("\r\n","")
-                    print (HexaSerial.debugSize())
+                    #print (HexaSerial.debugSize())
+                    #print (HexaSerial.debugLength())
                     self.historyCommand.append(line) # add text to command box
                     line = line.split(',')
                     if (line[0] == 's'):
@@ -354,6 +352,13 @@ class HexaSDK(QtGui.QMainWindow):
     # ------------------------- MAIN -------------------------
     # ----------------------------------------------------------------
 if __name__ == '__main__':
+
+    ser = serial.Serial("COM11")
+    ser.baudrate = 115200
+    HexaSerial.init(ser)
+    HexaSerial.startIn()
+    HexaSerial.startOut()
+
     if QtGui.QApplication.instance() is None:
         app = QtGui.QApplication(sys.argv)
 

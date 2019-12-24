@@ -6,6 +6,7 @@
 # *******************************************************************************
 
 from threading import Thread
+import threading
 from queue import Queue, Empty
 import time
 import serial
@@ -32,39 +33,60 @@ dataIdentifiers = [
 ]
 
 def enqueue_incomingData():
-    global ser
+    global ser, serInLength
 
     while(1):
-        if (ser.inWaiting()):
+        time.sleep(0.0001) # Add delay in thread prevent GIL
+        serInLength = ser.inWaiting()
+        if (serInLength):
             rawLine = ser.readline()   # read a '\n' terminated line)
+            #print (rawLine)
             rawLine = rawLine.decode('utf-8')
             rawLine = rawLine.replace("\r\n","")
             splitLine = rawLine.split(',')
+
+            # if (splitLine[0] == 's'):
+            #     qGraphA.put(rawLine)
+            # elif (splitLine[0] == 'p'):
+            #     qGraphB.put(rawLine)
+            # else:
+            #     qMisc.put(rawLine)
 
             queueFound = False
 
             for i in dataIdentifiers: 
                 if (i['id'] == splitLine[0]):
                     queueFound = True
-                    i['queue'].put(rawLine)
+                    i['queue'].put_nowait(rawLine)
+                    #print (debugSize())
                     break
                 elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
-                    i['queue'].put(rawLine)
+                    i['queue'].put_nowait(rawLine)
 
 def unqueue_outgoingData():
     global ser
 
-    while(1):
-        try:
-            lineOut = qOutgoing.get_nowait() # Remove and return an item from the queue
-        except Empty:
-            pass # The queue is empty, do nothing
-        else:
-            #lineOut = lineOut.decode('ascii')
+    while (1):
+        time.sleep(0.05) # Add delay in thread prevent GIL
+        if (qOutgoing.qsize()):
+            lineOut = qOutgoing.get_nowait()
             ser.write( ("{}\r").format(lineOut).encode() )
 
+
+    # while(1):
+    #     try:
+    #         #pass
+    #         lineOut = qOutgoing.get_nowait() # Remove and return an item from the queue
+    #     except Empty:
+    #         pass # The queue is empty, do nothing
+    #     else:
+    #         pass
+    #         #lineOut = lineOut.decode('ascii')
+    #         ser.write( ("{}\r").format(lineOut).encode() )
+
 def write(data):
-    qOutgoing.put(data)
+    #qOutgoing.put(data)
+    qOutgoing.put_nowait(data)
 
 def readLine(queue):
     try:
@@ -78,18 +100,28 @@ def readLine(queue):
 def debugSize():
     return "{}, {}, {}".format( qGraphA.qsize(), qGraphB.qsize(), qMisc.qsize() )
 
+def debugLength():
+    global serInLength
+    return (serInLength)
+
 def init(serialPort):
     global ser
     ser = serialPort
 
-def start():
+def startIn():
     tIncoming = Thread(target=enqueue_incomingData)
-    tIncoming.daemon = True
+    tIncoming.setDaemon(True) #.daemon = True
+    tIncoming.setName("incoming")
     tIncoming.start()
 
+def startOut():
     tOutgoing = Thread(target=unqueue_outgoingData)
-    tOutgoing.daemon = True
+    tOutgoing.setDaemon(True) #.daemon = True
+    tOutgoing.setName("outgoing")
     tOutgoing.start()
+
+    #print (threading.enumerate())
+    #print (threading.stack_size())
 
 # write("z 0") # SDK mode off
 # write("v 1") # Stream data on
