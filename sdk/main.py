@@ -31,17 +31,24 @@ class HexaSDK(QtGui.QMainWindow):
         self.configGUI()
 
     def configGUI(self):
-        comPorts = serial.tools.list_ports.comports() #Gets all available 
+        #comPorts = serial.tools.list_ports.comports() #Gets all available 
         # Adds all the available com ports to a drop down menue in the gui.
-        for port, desc, hwid in sorted(comPorts):
-            self.comPortSelect.addItem("{}: {}".format(port, desc))
+        for portInfo in HexaSerial.scanForPorts():
+            self.comPortSelect.addItem(portInfo)
+
+        HexaSerial.startIn()
+        HexaSerial.startOut()
+
+        #HexaSerial.initPort()
+        #for port, desc, hwid in sorted(comPorts):
+            #self.comPortSelect.addItem("{}: {}".format(port, desc))
             #self.comPortSelect.addItem(b'%b: %b' % port, desc)
             # print("{}: {} [{}]".format(port, desc, hwid))
 
         # when you select a com port from the dropdown menue it runs it throught the comportchange function.
-        self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
+        #self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
 
-        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
+        #defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
         
         #Sets up the serial system. 
         # self.ser = serial.Serial(defaultComPort)
@@ -245,10 +252,12 @@ class HexaSDK(QtGui.QMainWindow):
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
     def comPortChange(self):
-        self.ser.close()
-        newComPort = str(self.comPortSelect.currentText()).split(':')[0]
-        self.ser = serial.Serial(newComPort)
-        self.ser.baudrate = 115200
+        pass
+        #HexaSerial.comPortChange()
+        #self.ser.close()
+        #newComPort = str(self.comPortSelect.currentText()).split(':')[0]
+        #self.ser = serial.Serial(newComPort)
+        #self.ser.baudrate = 115200
 
     def taskTimer(self):
         '''
@@ -344,6 +353,12 @@ class HexaSDK(QtGui.QMainWindow):
                         self.curveB.setData(self.dataB[:self.ptr])
                         self.curveB.setPos(-self.ptr, 0)
 
+                miscLine = HexaSerial.readLine(HexaSerial.qMisc) # Pull data from misc queue
+                if (miscLine != None):
+                    self.historyCommand.append(miscLine) # Place in command history
+
+                self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HexaSerial.getIncomingDataRate(), HexaSerial.getOutgoingDataRate()))
+
 
 
 
@@ -353,11 +368,10 @@ class HexaSDK(QtGui.QMainWindow):
     # ----------------------------------------------------------------
 if __name__ == '__main__':
 
-    ser = serial.Serial("COM11")
-    ser.baudrate = 115200
-    HexaSerial.init(ser)
-    HexaSerial.startIn()
-    HexaSerial.startOut()
+    #ser = serial.Serial("COM3")
+    #ser.baudrate = 115200
+    #HexaSerial.init(ser)
+    #HexaSerial.scanForPorts()
 
     if QtGui.QApplication.instance() is None:
         app = QtGui.QApplication(sys.argv)

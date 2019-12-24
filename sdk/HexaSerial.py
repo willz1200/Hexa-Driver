@@ -11,9 +11,6 @@ from queue import Queue, Empty
 import time
 import serial
 
-#ser = serial.Serial("COM11")
-#ser.baudrate = 115200
-
 # Multiple queue to sort incoming data
 qGraphA = Queue()
 qGraphB = Queue()
@@ -21,6 +18,12 @@ qMisc = Queue()
 
 # Single queue to hold outgoing data
 qOutgoing = Queue()
+
+serialIncomingRate = 0
+serialIncomingRateFiltered = 0
+
+serialOutgoingRate = 0
+serialOutgoingRateFiltered = 0
 
 # Create an array of dictionaries for directing incoming data into the correct queue
 dataIdentifiers = [
@@ -32,14 +35,44 @@ dataIdentifiers = [
     { 'id':'DEFAULT_QUEUE', 'queue':qMisc }
 ]
 
+def scanForPorts():
+    comPorts = serial.tools.list_ports.comports() #Gets all available
+    portList = []
+    # store all the available com ports into an array.
+    for port, desc, hwid in sorted(comPorts):
+        portList.append("{}: {}".format(port, desc))
+
+    if len(portList) > 0:
+        initPort(portList[0])
+        return portList
+    else:
+        print("No COM ports available")
+
+def initPort(defaultComPort):
+    global ser
+    print("Using port: {}".format(defaultComPort))
+
+    defaultComPort = defaultComPort.split(':')[0] # Use first COM port by default
+    ser = serial.Serial(defaultComPort)
+    ser.baudrate = 115200
+
+def comPortChange(newComPort):
+    global ser
+
+    ser.close()
+    newComPort = newComPort.split(':')[0]
+    #newComPort = str(self.comPortSelect.currentText()).split(':')[0]
+    ser = serial.Serial(newComPort)
+    ser.baudrate = 115200
+
 def enqueue_incomingData():
-    global ser, serInLength
+    global ser, serInLength, serialIncomingRate
 
     while(1):
-        time.sleep(0.0001) # Add delay in thread prevent GIL
         serInLength = ser.inWaiting()
         if (serInLength):
             rawLine = ser.readline()   # read a '\n' terminated line)
+            serialIncomingRate += len(rawLine) # track data rate
             #print (rawLine)
             rawLine = rawLine.decode('utf-8')
             rawLine = rawLine.replace("\r\n","")
@@ -62,27 +95,18 @@ def enqueue_incomingData():
                     break
                 elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
                     i['queue'].put_nowait(rawLine)
+        else:
+            pass
+            #print("Sleeping a bit")
+            #time.sleep(0.0001) # Add delay in thread to create some blocking, prevent GIL
 
 def unqueue_outgoingData():
-    global ser
+    global ser, serialOutgoingRate
 
     while (1):
-        time.sleep(0.05) # Add delay in thread prevent GIL
-        if (qOutgoing.qsize()):
-            lineOut = qOutgoing.get_nowait()
-            ser.write( ("{}\r").format(lineOut).encode() )
-
-
-    # while(1):
-    #     try:
-    #         #pass
-    #         lineOut = qOutgoing.get_nowait() # Remove and return an item from the queue
-    #     except Empty:
-    #         pass # The queue is empty, do nothing
-    #     else:
-    #         pass
-    #         #lineOut = lineOut.decode('ascii')
-    #         ser.write( ("{}\r").format(lineOut).encode() )
+        lineOut = qOutgoing.get() # Blocks until data is available in the queue
+        serialOutgoingRate += len(lineOut) + 1 # track data rate (+ 1 for the carriage return)
+        ser.write( ("{}\r").format(lineOut).encode() )
 
 def write(data):
     #qOutgoing.put(data)
@@ -108,6 +132,26 @@ def init(serialPort):
     global ser
     ser = serialPort
 
+def getIncomingDataRate():
+    global serialIncomingRateFiltered
+    return serialIncomingRateFiltered
+
+def getOutgoingDataRate():
+    global serialOutgoingRateFiltered
+    return serialOutgoingRateFiltered
+
+def calcDataRate():
+    global serialIncomingRate, serialIncomingRateFiltered
+    global serialOutgoingRate, serialOutgoingRateFiltered
+
+    while True:
+        time.sleep(1)
+        serialIncomingRateFiltered = serialIncomingRate
+        serialOutgoingRateFiltered = serialOutgoingRate
+        #print ("{} / 11,520 Bytes per second".format(serialRate))
+        serialIncomingRate = 0
+        serialOutgoingRate = 0
+
 def startIn():
     tIncoming = Thread(target=enqueue_incomingData)
     tIncoming.setDaemon(True) #.daemon = True
@@ -120,6 +164,10 @@ def startOut():
     tOutgoing.setName("outgoing")
     tOutgoing.start()
 
+    tDataRate = Thread(target=calcDataRate)
+    tDataRate.setDaemon(True) #.daemon = True
+    tDataRate.setName("dataRate")
+    tDataRate.start()
     #print (threading.enumerate())
     #print (threading.stack_size())
 
