@@ -20,7 +20,7 @@ from PyQt5.QtGui import QFileDialog
 import HexaProg, HexaSerial
 # import matplotlib.pyplot as plt
 
-hxSerial = HexaSerial.SMU() # Create Hexa serial interface
+hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
 
 class HexaSDK(QtGui.QMainWindow):  
 
@@ -39,8 +39,10 @@ class HexaSDK(QtGui.QMainWindow):
         for portInfo in hxSerial.scanForPorts():
             self.comPortSelect.addItem(portInfo)
 
-        hxSerial.startIn()
-        hxSerial.startOut()
+        if len(hxSerial.portList) > 0:
+            hxSerial.initPort(0)
+            hxSerial.startIn()
+            hxSerial.startOut()
 
         #HexaSerial.initPort()
         #for port, desc, hwid in sorted(comPorts):
@@ -49,7 +51,7 @@ class HexaSDK(QtGui.QMainWindow):
             # print("{}: {} [{}]".format(port, desc, hwid))
 
         # when you select a com port from the dropdown menue it runs it throught the comportchange function.
-        #self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
+        self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
 
         #defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
         
@@ -255,12 +257,9 @@ class HexaSDK(QtGui.QMainWindow):
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
     def comPortChange(self):
-        pass
-        #HexaSerial.comPortChange()
-        #self.ser.close()
-        #newComPort = str(self.comPortSelect.currentText()).split(':')[0]
-        #self.ser = serial.Serial(newComPort)
-        #self.ser.baudrate = 115200
+        hxSerial.ser.close()
+        comIndex = self.comPortSelect.currentIndex()
+        hxSerial.initPort(comIndex)
 
     def taskTimer(self):
         '''

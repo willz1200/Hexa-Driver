@@ -29,6 +29,8 @@ class SMU():
         self.serialOutgoingRate = 0
         self.serialOutgoingRateFiltered = 0
 
+        self.ser = serial.Serial() # Create the serial port object
+
         # Create an array of dictionaries for directing incoming data into the correct queue
         self.dataIdentifiers = [
             # Link line identifiers to correct queues below
@@ -41,23 +43,33 @@ class SMU():
 
     def scanForPorts(self):
         comPorts = serial.tools.list_ports.comports() #Gets all available
-        portList = []
+        self.portList = []
         # store all the available com ports into an array.
         for port, desc, hwid in sorted(comPorts):
-            portList.append("{}: {}".format(port, desc))
+            self.portList.append("{}: {}".format(port, desc))
 
-        if len(portList) > 0:
-            self.initPort(portList[0])
-            return portList
+        if len(self.portList) > 0:
+            #self.initPort(portList[0])
+            return self.portList
         else:
             print("No COM ports available")
 
-    def initPort(self, defaultComPort):
-        print("Using port: {}".format(defaultComPort))
+    def initPort(self, portListIndex):
+        comPortToUse = self.portList[portListIndex]
+        print("Using port: {}".format(comPortToUse))
 
-        defaultComPort = defaultComPort.split(':')[0] # Use first COM port by default
-        self.ser = serial.Serial(defaultComPort)
+        comPortToUse = comPortToUse.split(':')[0] # Use first COM port by default
+        #self.ser = serial.Serial(comPortToUse)
+        #self.ser.baudrate = 115200
+        #self.ser.open()
+
+        self.ser.port = comPortToUse
         self.ser.baudrate = 115200
+        self.ser.parity = serial.PARITY_NONE
+        self.ser.stopbits = serial.STOPBITS_ONE
+        self.ser.bytesize = serial.EIGHTBITS
+        self.ser.open()
+
 
     def comPortChange(self, newComPort):
         self.ser.close()
@@ -68,42 +80,56 @@ class SMU():
 
     def enqueue_incomingData(self):
         while True:
-            self.serInLength = self.ser.inWaiting()
-            if (self.serInLength):
-                rawLine = self.ser.readline()   # read a '\n' terminated line)
-                self.serialIncomingRate += len(rawLine) # track data rate
-                #print (rawLine)
-                rawLine = rawLine.decode('utf-8')
-                rawLine = rawLine.replace("\r\n","")
-                splitLine = rawLine.split(',')
-
-                # if (splitLine[0] == 's'):
-                #     qGraphA.put(rawLine)
-                # elif (splitLine[0] == 'p'):
-                #     qGraphB.put(rawLine)
-                # else:
-                #     qMisc.put(rawLine)
-
-                queueFound = False
-
-                for i in self.dataIdentifiers: 
-                    if (i['id'] == splitLine[0]):
-                        queueFound = True
-                        i['queue'].put_nowait(rawLine)
-                        #print (debugSize())
-                        break
-                    elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
-                        i['queue'].put_nowait(rawLine)
+            try:
+                self.serInLength = self.ser.inWaiting()
+            except OSError as err:
+                pass # Serial port not yet available, do nothing
+                # print("OS error A: {}".format(err))
             else:
-                pass
-                #print("Sleeping a bit")
-                #time.sleep(0.0001) # Add delay in thread to create some blocking, prevent GIL
+                #self.serInLength = self.ser.inWaiting()
+                if (self.serInLength):
+                    try:
+                        rawLine = self.ser.readline()   # read a '\n' terminated line)
+                    except OSError as err:
+                        pass # Serial port not yet available, do nothing
+                        # print("OS error B: {}".format(err))
+                    else:
+                        self.serialIncomingRate += len(rawLine) # track data rate
+                        #print (rawLine)
+                        rawLine = rawLine.decode('utf-8')
+                        rawLine = rawLine.replace("\r\n","")
+                        splitLine = rawLine.split(',')
+
+                        # if (splitLine[0] == 's'):
+                        #     qGraphA.put(rawLine)
+                        # elif (splitLine[0] == 'p'):
+                        #     qGraphB.put(rawLine)
+                        # else:
+                        #     qMisc.put(rawLine)
+
+                        queueFound = False
+
+                        for i in self.dataIdentifiers: 
+                            if (i['id'] == splitLine[0]):
+                                queueFound = True
+                                i['queue'].put_nowait(rawLine)
+                                #print (debugSize())
+                                break
+                            elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
+                                i['queue'].put_nowait(rawLine)
+                else:
+                    pass
+                    #time.sleep(0.0001) # Add delay in thread to create some blocking, prevent GIL
 
     def unqueue_outgoingData(self):
         while True:
             lineOut = self.qOutgoing.get() # Blocks until data is available in the queue
             self.serialOutgoingRate += len(lineOut) + 1 # track data rate (+ 1 for the carriage return)
-            self.ser.write( ("{}\r").format(lineOut).encode() )
+            try:
+                self.ser.write( ("{}\r").format(lineOut).encode() )
+            except OSError as err:
+                pass # Serial port not yet available, do nothing
+                # print("OS error: {}".format(err))
 
     def write(self, data):
         #qOutgoing.put(data)
@@ -123,9 +149,6 @@ class SMU():
 
     def debugLength(self):
         return (self.serInLength)
-
-    def init(self, serialPort):
-        self.ser = serialPort
 
     def getIncomingDataRate(self):
         return self.serialIncomingRateFiltered
@@ -158,18 +181,3 @@ class SMU():
         tDataRate.setDaemon(True) #.daemon = True
         tDataRate.setName("dataRate")
         tDataRate.start()
-    #print (threading.enumerate())
-    #print (threading.stack_size())
-
-# write("z 0") # SDK mode off
-# write("v 1") # Stream data on
-
-# while(1):
-#     time.sleep(2)
-#     print ( "{}, {}, {}".format( qGraphA.qsize(), qGraphB.qsize(), qMisc.qsize() ) )
-    
-#     write("led 150")
-
-#     myData = readLine(qMisc)
-#     if (myData != None):
-#         print(myData)
