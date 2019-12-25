@@ -22,11 +22,10 @@ import HexaProg, HexaSerial
 
 hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
 
-class HexaSDK(QtGui.QMainWindow):  
-
+class HexaGUI(QtGui.QMainWindow):
 
     def __init__(self):
-        super(HexaSDK, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
+        super(HexaGUI, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
         uic.loadUi("gui.ui", self) # Loads all the GUI elements.
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
@@ -146,15 +145,41 @@ class HexaSDK(QtGui.QMainWindow):
     # ------------------------- SDK Commands -------------------------
     # ----------------------------------------------------------------
 
+    def sdk_set_up(self):
+        '''
+        Looks for available ports, gives you the op
+        '''
+        # ------------------ Serial set up code ------------------
+        comPorts = serial.tools.list_ports.comports() #Gets all available 
+        # Adds all the available com ports to a drop down menue in the gui.
+        for port, desc, hwid in sorted(comPorts):
+            self.comPortSelect.addItem("{}: {}".format(port, desc))
+            #self.comPortSelect.addItem(b'%b: %b' % port, desc)
+            # print("{}: {} [{}]".format(port, desc, hwid))
+      
+        defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
+        
+        #Sets up the serial system. 
+        self.ser = serial.Serial(defaultComPort)
+        self.ser.baudrate = 115200
+        self.checkWait = False
+
+    def change_com_port(newComPort):
+        self.ser.close()
+        self.ser = serial.Serial(newComPort)
+        self.ser.baudrate = 115200
+
     def sendCommandB(self):
         '''
         Pullls the string out of the text box and sends it down the serial port. 
         This function is called when the button next to the text box is pressed. 
         '''
-
         hxSerial.write(str(self.enterCommand.text()))
         #self.ser.write( (str(self.enterCommand.text()) + "\r").encode() )
         self.enterCommand.setText("")
+
+        # self.HexaSDK.sendCommand( self.enterCommand.text() )
+
 
     def togglePosVelStreamData(self):
         if self.togPosVelStreamData.isChecked():
@@ -258,9 +283,8 @@ class HexaSDK(QtGui.QMainWindow):
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
     def comPortChange(self):
-        hxSerial.ser.close()
-        comIndex = self.comPortSelect.currentIndex()
-        hxSerial.initPort(comIndex)
+        newComPort = str(self.comPortSelect.currentText()).split(':')[0] #Selected com port 
+        self.change_com_port(newComPort)
 
     def taskTimer(self):
         '''
@@ -379,9 +403,9 @@ if __name__ == '__main__':
     if QtGui.QApplication.instance() is None:
         app = QtGui.QApplication(sys.argv)
 
-    ObjHexaSDK = HexaSDK()
-    ObjHexaSDK.show()
-    # ObjHexaSDK.start()
-    self = ObjHexaSDK
+    ObjHexaGUI = HexaGUI()
+    ObjHexaGUI.show()
+    # ObjHexaGUI.start()
+    self = ObjHexaGUI
     exitCode = app.exec_() # Will block until application is closed
     sys.exit(exitCode)
