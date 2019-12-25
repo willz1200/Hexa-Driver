@@ -174,10 +174,10 @@ class HexaSDK(QtGui.QMainWindow):
 
     def operationalLA(self, LA_ID, CheckboxID):
         if CheckboxID.isChecked():
-            hxSerial.write(("o {} 1\r").format(LA_ID)) # enable the linear actuator channel
+            hxSerial.write(("o {} 1").format(LA_ID)) # enable the linear actuator channel
             #self.ser.write( ("o {} 1\r").format(LA_ID).encode() ) # enable the linear actuator channel
         else:
-            hxSerial.write(("o {} 0\r").format(LA_ID))
+            hxSerial.write(("o {} 0").format(LA_ID))
             #self.ser.write( ("o {} 0\r").format(LA_ID).encode() )
 
     def timeBasedDemo(self):

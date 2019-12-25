@@ -75,17 +75,20 @@ class SMU():
             self.eventIncoming.wait() # Block thread until eventIncoming is set
             try:
                 rawLine = self.ser.readline()   # read a '\n' terminated line (Will block until data is available to read in)
-            except OSError as err:
-                pass # Serial port not yet available, do nothing
-                # print("OS error B: {}".format(err))
-            except serial.SerialException:
+            # except OSError as err:
+            #     pass # Serial port not yet available, do nothing
+            #     # print("OS error B: {}".format(err))
+            # except Exception as err:
+            #     pass
+            except:
                 pass
+                # print("error C: {}".format(err))
             else:
                 self.serialIncomingRate += len(rawLine) # track data rate
                 rawLine = rawLine.decode('utf-8')
                 rawLine = rawLine.replace("\r\n","")
                 splitLine = rawLine.split(',')
-                
+
                 # if (splitLine[0] == 's'):
                 #     self.qGraphA.put(rawLine)
                 # elif (splitLine[0] == 'p'):
@@ -176,12 +179,24 @@ class SMU():
 
     # Event objects used to block threads
     def pause(self):
-        #self.ser.close()
+        # Block threads from executing
         self.eventIncoming.clear()
         self.eventOutgoing.clear()
 
+        if(self.ser.is_open):
+            try:
+                self.ser.close()
+            except:
+                pass
+
+
     # Event objects used to unblock threads
     def play(self):
-        #self.ser.open()
+        try:
+            self.ser.open()
+        except:
+            pass
+
+        # Set allow threads to run
         self.eventIncoming.set()
         self.eventOutgoing.set()
