@@ -1,15 +1,12 @@
 # *******************************************************************************
-# * @File       main.py
+# * @File       HexaGUI.py
 # * @Brief      SDK for controlling the Hexa Driver and graphing data.
 # * @Date       09/12/2019 (Last Updated)
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
-# pip3.8 install pyserial pyqtgraph PyQt5
-# Install patched version of pyqtgraph for python3.8 straight from git
-# pip3.8 install git+https://github.com/pyqtgraph/pyqtgraph.git@684882455773f410e07c0dd16977e5696edaf6ce#egg=pyqtgraph
+# Setup: py -m pip install -r requirements.txt
 
-#import serial, serial.tools.list_ports
 import time
 import sys
 import os
@@ -18,7 +15,6 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
 import HexaProg, HexaSerial
-# import matplotlib.pyplot as plt
 
 hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
 
@@ -101,10 +97,6 @@ class HexaGUI(QtGui.QMainWindow):
         self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
         self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
 
-
-
-
-
     # ----------------------------------------------------------------
     # -------------- Arduino Compiler Commands ---------------------
     # ----------------------------------------------------------------
@@ -119,34 +111,9 @@ class HexaGUI(QtGui.QMainWindow):
     def firmwareCompileAndUpload(self):
         HexaProg.compileAndUpload(self.ser, self.txt_compilerLog, self.inoFilePath.text())
     
-    
     # ----------------------------------------------------------------
     # ------------------------- SDK Commands -------------------------
     # ----------------------------------------------------------------
-
-    # def sdk_set_up(self):
-    #     '''
-    #     Looks for available ports, gives you the op
-    #     '''
-    #     # ------------------ Serial set up code ------------------
-    #     comPorts = serial.tools.list_ports.comports() #Gets all available 
-    #     # Adds all the available com ports to a drop down menue in the gui.
-    #     for port, desc, hwid in sorted(comPorts):
-    #         self.comPortSelect.addItem("{}: {}".format(port, desc))
-    #         #self.comPortSelect.addItem(b'%b: %b' % port, desc)
-    #         # print("{}: {} [{}]".format(port, desc, hwid))
-      
-    #     defaultComPort = str(self.comPortSelect.itemText(0)).split(':')[0] # if you havn't selected a com port in the drop down box then it set the top of the list as a defult. 
-        
-    #     #Sets up the serial system. 
-    #     self.ser = serial.Serial(defaultComPort)
-    #     self.ser.baudrate = 115200
-    #     self.checkWait = False
-
-    # def change_com_port(newComPort):
-    #     self.ser.close()
-    #     self.ser = serial.Serial(newComPort)
-    #     self.ser.baudrate = 115200
 
     def sendCommandB(self):
         '''
