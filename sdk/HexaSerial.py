@@ -32,15 +32,15 @@ class SMU():
 
         self.ser = serial.Serial() # Create the serial port object
 
-        # Create an array of dictionaries for directing incoming data into the correct dispatch queue
-        self.dispatchQueues = [
+        # Create a dictionary for directing incoming data into the correct dispatch queue
+        self.dispatchQueues = {
             # Link line identifiers to correct queues below
-            { 'id':'s', 'queue':self.qGraphA },
-            { 'id':'p', 'queue':self.qGraphB },
+            's':self.qGraphA,
+            'p':self.qGraphB,
 
-            # Make sure DEFAULT_QUEUE is always the last item in this list
-            { 'id':'DEFAULT_QUEUE', 'queue':self.qMisc }
-        ]
+            # The DEFAULT_QUEUE used when data doesn't have an identifier
+            'DEFAULT_QUEUE':self.qMisc
+        }
 
     # Create an array of com ports available
     def scanForPorts(self):
@@ -89,22 +89,14 @@ class SMU():
                 rawLine = rawLine.replace("\r\n","")
                 splitLine = rawLine.split(',')
 
-                # if (splitLine[0] == 's'):
-                #     self.qGraphA.put(rawLine)
-                # elif (splitLine[0] == 'p'):
-                #     self.qGraphB.put(rawLine)
-                # else:
-                #     self.qMisc.put(rawLine)
+                identifier = str(splitLine[0])
 
-                queueFound = False
-
-                for i in self.dispatchQueues: 
-                    if (i['id'] == splitLine[0]):
-                        queueFound = True
-                        i['queue'].put_nowait(rawLine)
-                        break
-                    elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
-                        i['queue'].put_nowait(rawLine)
+                try:
+                    targetQueue = self.dispatchQueues[identifier]
+                except KeyError: # Queue identifier not found in dispatchQueues dictionary
+                    self.dispatchQueues['DEFAULT_QUEUE'].put_nowait(rawLine) # Put in DEFAULT_QUEUE
+                else:
+                    targetQueue.put_nowait(rawLine) # Queue identifier found put into appropriate queue
 
     # Handle outgoing data, when data is available send it to the com port
     def unqueue_outgoingData(self):
@@ -197,6 +189,6 @@ class SMU():
         except:
             pass
 
-        # Set allow threads to run
+        # Unblock threads, allowing them to run
         self.eventIncoming.set()
         self.eventOutgoing.set()
