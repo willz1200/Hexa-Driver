@@ -41,8 +41,7 @@ class HexaSDK(QtGui.QMainWindow):
 
         if len(hxSerial.portList) > 0:
             hxSerial.initPort(0)
-            hxSerial.startIn()
-            hxSerial.startOut()
+            hxSerial.run()
 
         #HexaSerial.initPort()
         #for port, desc, hwid in sorted(comPorts):
@@ -223,9 +222,11 @@ class HexaSDK(QtGui.QMainWindow):
             hxSerial.write("r 1")
             #self.ser.write(b'r 1\r')
         elif controllerRow == 2:
+            #hxSerial.pause() # for debugging only
             hxSerial.write("rt 1")
             #self.ser.write(b'rt 1\r')
         elif controllerRow == 3:
+            #hxSerial.play() # for debugging only
             hxSerial.write("rt 2")
             hxSerial.write("rt s 500 1 75")
             #self.ser.write(b'rt 2\r')
@@ -311,7 +312,7 @@ class HexaSDK(QtGui.QMainWindow):
         # real time grapphing timer
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.velPosGraphUpdate)
-        timer.start(2)
+        timer.start(5)
 
         #firmware compiling timer 
         timer = pg.QtCore.QTimer(self)

@@ -14,13 +14,14 @@ import serial, serial.tools.list_ports
 # Create Serial Management Unit Class
 class SMU():
 
+    # Setup all variables used by the SMU
     def __init__(self):
-        # Multiple queue to sort incoming data
+        # Multiple queues used to sort incoming data
         self.qGraphA = Queue()
         self.qGraphB = Queue()
         self.qMisc = Queue()
 
-        # Single queue to hold outgoing data
+        # Single queue used to hold outgoing data
         self.qOutgoing = Queue()
 
         self.serialIncomingRate = 0
@@ -31,8 +32,8 @@ class SMU():
 
         self.ser = serial.Serial() # Create the serial port object
 
-        # Create an array of dictionaries for directing incoming data into the correct queue
-        self.dataIdentifiers = [
+        # Create an array of dictionaries for directing incoming data into the correct dispatch queue
+        self.dispatchQueues = [
             # Link line identifiers to correct queues below
             { 'id':'s', 'queue':self.qGraphA },
             { 'id':'p', 'queue':self.qGraphB },
@@ -41,88 +42,71 @@ class SMU():
             { 'id':'DEFAULT_QUEUE', 'queue':self.qMisc }
         ]
 
+    # Create an array of com ports available
     def scanForPorts(self):
-        comPorts = serial.tools.list_ports.comports() #Gets all available
+        comPorts = serial.tools.list_ports.comports() # Gets all available COM ports
         self.portList = []
-        # store all the available com ports into an array.
+
         for port, desc, hwid in sorted(comPorts):
-            self.portList.append("{}: {}".format(port, desc))
+            self.portList.append("{}: {}".format(port, desc)) # store all the available com ports into an array.
 
         if len(self.portList) > 0:
-            #self.initPort(portList[0])
             return self.portList
         else:
             print("No COM ports available")
 
+    # Open a COM port from position n of the portList array
     def initPort(self, portListIndex):
-        comPortToUse = self.portList[portListIndex]
+        comPortToUse = self.portList[portListIndex] # Use COM port at given index in the portList array
         print("Using port: {}".format(comPortToUse))
+        comPortToUse = comPortToUse.split(':')[0]
 
-        comPortToUse = comPortToUse.split(':')[0] # Use first COM port by default
-        #self.ser = serial.Serial(comPortToUse)
-        #self.ser.baudrate = 115200
-        #self.ser.open()
-
+        # Configure the COM port
         self.ser.port = comPortToUse
         self.ser.baudrate = 115200
         self.ser.parity = serial.PARITY_NONE
         self.ser.stopbits = serial.STOPBITS_ONE
         self.ser.bytesize = serial.EIGHTBITS
-        self.ser.open()
+        self.ser.open() # Open the COM port
 
-
-    def comPortChange(self, newComPort):
-        self.ser.close()
-        newComPort = newComPort.split(':')[0]
-        #newComPort = str(self.comPortSelect.currentText()).split(':')[0]
-        self.ser = serial.Serial(newComPort)
-        self.ser.baudrate = 115200
-
+    # Handle incoming data and load it into the appropriate dispatch queue
     def enqueue_incomingData(self):
         while True:
+            self.eventIncoming.wait() # Block thread until eventIncoming is set
             try:
-                self.serInLength = self.ser.inWaiting()
+                rawLine = self.ser.readline()   # read a '\n' terminated line (Will block until data is available to read in)
             except OSError as err:
                 pass # Serial port not yet available, do nothing
-                # print("OS error A: {}".format(err))
+                # print("OS error B: {}".format(err))
+            except serial.SerialException:
+                pass
             else:
-                #self.serInLength = self.ser.inWaiting()
-                if (self.serInLength):
-                    try:
-                        rawLine = self.ser.readline()   # read a '\n' terminated line)
-                    except OSError as err:
-                        pass # Serial port not yet available, do nothing
-                        # print("OS error B: {}".format(err))
-                    else:
-                        self.serialIncomingRate += len(rawLine) # track data rate
-                        #print (rawLine)
-                        rawLine = rawLine.decode('utf-8')
-                        rawLine = rawLine.replace("\r\n","")
-                        splitLine = rawLine.split(',')
+                self.serialIncomingRate += len(rawLine) # track data rate
+                rawLine = rawLine.decode('utf-8')
+                rawLine = rawLine.replace("\r\n","")
+                splitLine = rawLine.split(',')
+                
+                # if (splitLine[0] == 's'):
+                #     self.qGraphA.put(rawLine)
+                # elif (splitLine[0] == 'p'):
+                #     self.qGraphB.put(rawLine)
+                # else:
+                #     self.qMisc.put(rawLine)
 
-                        # if (splitLine[0] == 's'):
-                        #     qGraphA.put(rawLine)
-                        # elif (splitLine[0] == 'p'):
-                        #     qGraphB.put(rawLine)
-                        # else:
-                        #     qMisc.put(rawLine)
+                queueFound = False
 
-                        queueFound = False
+                for i in self.dispatchQueues: 
+                    if (i['id'] == splitLine[0]):
+                        queueFound = True
+                        i['queue'].put_nowait(rawLine)
+                        break
+                    elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
+                        i['queue'].put_nowait(rawLine)
 
-                        for i in self.dataIdentifiers: 
-                            if (i['id'] == splitLine[0]):
-                                queueFound = True
-                                i['queue'].put_nowait(rawLine)
-                                #print (debugSize())
-                                break
-                            elif (i['id'] == "DEFAULT_QUEUE" and queueFound == False):
-                                i['queue'].put_nowait(rawLine)
-                else:
-                    pass
-                    #time.sleep(0.0001) # Add delay in thread to create some blocking, prevent GIL
-
+    # Handle outgoing data, when data is available send it to the com port
     def unqueue_outgoingData(self):
         while True:
+            self.eventOutgoing.wait() # Block thread until eventOutgoing is set
             lineOut = self.qOutgoing.get() # Blocks until data is available in the queue
             self.serialOutgoingRate += len(lineOut) + 1 # track data rate (+ 1 for the carriage return)
             try:
@@ -131,10 +115,12 @@ class SMU():
                 pass # Serial port not yet available, do nothing
                 # print("OS error: {}".format(err))
 
+    # Put data in the outgoing queue
     def write(self, data):
         #qOutgoing.put(data)
         self.qOutgoing.put_nowait(data)
 
+    # Get data from the given dispatch queue
     def readLine(self, queue):
         try:
             lineTest = queue.get_nowait()
@@ -144,18 +130,19 @@ class SMU():
             #lineTest = lineTest.decode('ascii')
             return lineTest
 
+    # Get the current size of each queue
     def debugSize(self):
         return "{}, {}, {}".format( self.qGraphA.qsize(), self.qGraphB.qsize(), self.qMisc.qsize() )
 
-    def debugLength(self):
-        return (self.serInLength)
-
+    # Get incoming data rate
     def getIncomingDataRate(self):
         return self.serialIncomingRateFiltered
 
+    # Get outgoing data rate
     def getOutgoingDataRate(self):
         return self.serialOutgoingRateFiltered
 
+    # Calculate the current incoming and outgoing data rates each second
     def calcDataRate(self):
         while True:
             time.sleep(1)
@@ -165,19 +152,36 @@ class SMU():
             self.serialIncomingRate = 0
             self.serialOutgoingRate = 0
 
-    def startIn(self):
-        tIncoming = Thread(target=self.enqueue_incomingData)
-        tIncoming.setDaemon(True) #.daemon = True
-        tIncoming.setName("incoming")
-        tIncoming.start()
+    # Create, target & start all the threads used by the SMU (essentially setup and run all the threads)
+    def run(self):
+        self.eventIncoming = threading.Event()
+        self.eventOutgoing = threading.Event()
 
-    def startOut(self):
-        tOutgoing = Thread(target=self.unqueue_outgoingData)
-        tOutgoing.setDaemon(True) #.daemon = True
-        tOutgoing.setName("outgoing")
-        tOutgoing.start()
+        self.tIncoming = Thread(target=self.enqueue_incomingData)
+        self.tIncoming.setDaemon(True) #.daemon = True
+        self.tIncoming.setName("incoming")
+        self.tIncoming.start()
+        self.eventIncoming.set()
 
-        tDataRate = Thread(target=self.calcDataRate)
-        tDataRate.setDaemon(True) #.daemon = True
-        tDataRate.setName("dataRate")
-        tDataRate.start()
+        self.tOutgoing = Thread(target=self.unqueue_outgoingData)
+        self.tOutgoing.setDaemon(True) #.daemon = True
+        self.tOutgoing.setName("outgoing")
+        self.tOutgoing.start()
+        self.eventOutgoing.set()
+
+        self.tDataRate = Thread(target=self.calcDataRate)
+        self.tDataRate.setDaemon(True) #.daemon = True
+        self.tDataRate.setName("dataRate")
+        self.tDataRate.start()
+
+    # Event objects used to block threads
+    def pause(self):
+        #self.ser.close()
+        self.eventIncoming.clear()
+        self.eventOutgoing.clear()
+
+    # Event objects used to unblock threads
+    def play(self):
+        #self.ser.open()
+        self.eventIncoming.set()
+        self.eventOutgoing.set()
