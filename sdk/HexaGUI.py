@@ -14,9 +14,10 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
-import HexaProg, HexaSerial
+import HexaProg, HexaSDK # HexaSerial
 
-hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
+#hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
+HEXA_SDK = HexaSDK.HexaSDK()
 
 class HexaGUI(QtGui.QMainWindow):
 
@@ -31,12 +32,12 @@ class HexaGUI(QtGui.QMainWindow):
         #comPorts = serial.tools.list_ports.comports() #Gets all available 
 
         # Adds all the available com ports to a drop down menue in the gui.
-        for portInfo in hxSerial.scanForPorts():
+        for portInfo in HEXA_SDK.hxSerial.scanForPorts():
             self.comPortSelect.addItem(portInfo)
 
-        if len(hxSerial.portList) > 0:
-            hxSerial.initPort(0)
-            hxSerial.run()
+        # if len(HEXA_SDK.hxSerial.portList) > 0:
+        #     HEXA_SDK.hxSerial.initPort(0)
+        #     HEXA_SDK.hxSerial.run()
 
         # When you change the com port in the dropdown menu, the event runs the comportchange function.
         self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
@@ -44,8 +45,11 @@ class HexaGUI(QtGui.QMainWindow):
         self.checkWait = False
 
         # Configure the firmware to be SDK mode.
-        hxSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
-        hxSerial.write("v 1") # Enable position and velocity streaming
+        #hxSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
+        #hxSerial.write("v 1") # Enable position and velocity streaming
+        HEXA_SDK.toggleSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
+        HEXA_SDK.togglePosVelStreamData(True) # Enable position and velocity streaming
+
 
         # Set up graph on the workspace tab.
         self.velPosGraphInit(self.widget)
@@ -120,86 +124,94 @@ class HexaGUI(QtGui.QMainWindow):
         Pullls the string out of the text box and sends it down the serial port. 
         This function is called when the button next to the text box is pressed. 
         '''
-        hxSerial.write(str(self.enterCommand.text()))
+        cmd = str(self.enterCommand.text())
+        HEXA_SDK.sendCommand(cmd)
+        #hxSerial.write(str(self.enterCommand.text()))
         self.enterCommand.setText("")
 
     def togglePosVelStreamData(self):
-        if self.togPosVelStreamData.isChecked():
-            hxSerial.write("v 1") # Enable position and velocity streaming
-        else:
-            hxSerial.write("v 0") # Disable position and velocity streaming
+        HEXA_SDK.togglePosVelStreamData(self.togPosVelStreamData.isChecked())
+        # if :
+        #     hxSerial.write("v 1") # Enable position and velocity streaming
+        # else:
+        #     hxSerial.write("v 0") # Disable position and velocity streaming
 
     def toggleSDKmode(self):
-        if self.togSDKmode.isChecked():
-            hxSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
-        else:
-            hxSerial.write("z 0") 
+        HEXA_SDK.toggleSDKmode(self.togSDKmode.isChecked())
+        # if self.togSDKmode.isChecked():
+        #     hxSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
+        # else:
+        #     hxSerial.write("z 0") 
 
     def operationalLA(self, LA_ID, CheckboxID):
-        if CheckboxID.isChecked():
-            hxSerial.write(("o {} 1").format(LA_ID)) # enable the linear actuator channel
-        else:
-            hxSerial.write(("o {} 0").format(LA_ID))
+        HEXA_SDK.setLinearActuator(LA_ID, CheckboxID.isChecked())
+        # if CheckboxID.isChecked():
+        #     hxSerial.write(("o {} 1").format(LA_ID)) # enable the linear actuator channel
+        # else:
+        #     hxSerial.write(("o {} 0").format(LA_ID))
 
     def timeBasedDemo(self):
-        hxSerial.write("rt 2")
-        hxSerial.write("rt s 500 1 75")
-        time.sleep(0.500)
-        hxSerial.write("rt s 1000 2 75")
-        time.sleep(1)
-        hxSerial.write("rt s 750 1 75")
-        time.sleep(0.75)
-        hxSerial.write("rt 0")
+        HEXA_SDK.timeBasedDemo()
+        # hxSerial.write("rt 2")
+        # hxSerial.write("rt s 500 1 75")
+        # time.sleep(0.500)
+        # hxSerial.write("rt s 1000 2 75")
+        # time.sleep(1)
+        # hxSerial.write("rt s 750 1 75")
+        # time.sleep(0.75)
+        # hxSerial.write("rt 0")
 
     def timeBasedOpen(self):
-        hxSerial.write("rt 2")
-        hxSerial.write("rt s 500 1 75")
-        time.sleep(0.500)
-        hxSerial.write("rt 0")
+        HEXA_SDK.timeBasedOpen()
+        # hxSerial.write("rt 2")
+        # hxSerial.write("rt s 500 1 75")
+        # time.sleep(0.500)
+        # hxSerial.write("rt 0")
 
     def timeBasedClosed(self):
-        hxSerial.write("rt 2")
-        hxSerial.write("rt s 500 2 75")
-        time.sleep(0.500)
-        hxSerial.write("rt 0")
+        HEXA_SDK.timeBasedClosed()
+        # hxSerial.write("rt 2")
+        # hxSerial.write("rt s 500 2 75")
+        # time.sleep(0.500)
+        # hxSerial.write("rt 0")
 
     def controllerMode(self):
         controllerRow = self.listView_ControllerMode.currentRow()
         if controllerRow == 0:
-            hxSerial.write("r 0")
+            HEXA_SDK.setControllerMode("off")
         elif controllerRow == 1:
-            hxSerial.write("r 1")
+            HEXA_SDK.setControllerMode("PID")
         elif controllerRow == 2:
             #hxSerial.pause() # for debugging only
-            hxSerial.write("rt 1")
+            HEXA_SDK.setControllerMode("time based sweep")
         elif controllerRow == 3:
             #hxSerial.play() # for debugging only
-            hxSerial.write("rt 2")
-            hxSerial.write("rt s 500 1 75")
+            HEXA_SDK.setControllerMode("time based single")
 
     def LinearActuatorWorkspace(self):
         workspaceRow = self.listView_WorkspaceSelect.currentRow()
-        if workspaceRow == 0:
-            hxSerial.write("w 0")
-        elif workspaceRow == 1:
-            hxSerial.write("w 1")
-        elif workspaceRow == 2:
-            hxSerial.write("w 2")
-        elif workspaceRow == 3:
-            hxSerial.write("w 3")
-        elif workspaceRow == 4:
-            hxSerial.write("w 4")
-        elif workspaceRow == 5:
-            hxSerial.write("w 5")
+        HEXA_SDK.setLinearActuatorWorkspace(workspaceRow)
+        # if workspaceRow == 0:
+        #     hxSerial.write("w 0")
+        # elif workspaceRow == 1:
+        #     hxSerial.write("w 1")
+        # elif workspaceRow == 2:
+        #     hxSerial.write("w 2")
+        # elif workspaceRow == 3:
+        #     hxSerial.write("w 3")
+        # elif workspaceRow == 4:
+        #     hxSerial.write("w 4")
+        # elif workspaceRow == 5:
+        #     hxSerial.write("w 5")
 
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
 
     def comPortChange(self):
-        hxSerial.ser.close()
+        HEXA_SDK.hxSerial.ser.close()
         comIndex = self.comPortSelect.currentIndex()
-        hxSerial.initPort(comIndex)
+        HEXA_SDK.hxSerial.initPort(comIndex)
 
     def taskTimer(self):
         '''
@@ -266,7 +278,7 @@ class HexaGUI(QtGui.QMainWindow):
         OUTPUT: n/a 
         '''
         if (HexaProg.getProgMode() == False):
-            line = hxSerial.readLine(hxSerial.qGraphA)
+            line = HEXA_SDK.hxSerial.readLine(HEXA_SDK.hxSerial.qGraphA)
             if (line != None):
                 #print (HexaSerial.debugSize())
                 #print (HexaSerial.debugLength())
@@ -288,11 +300,12 @@ class HexaGUI(QtGui.QMainWindow):
                     self.curveB.setData(self.dataB[:self.ptr])
                     self.curveB.setPos(-self.ptr, 0)
 
-                miscLine = hxSerial.readLine(hxSerial.qMisc) # Pull data from misc queue
+                #miscLine = hxSerial.readLine(hxSerial.qMisc) # Pull data from misc queue
+                miscLine = HEXA_SDK.readLine(HEXA_SDK.hxSerial.qMisc) # Pull data from misc queue
                 if (miscLine != None):
                     self.historyCommand.append(miscLine) # Place in command history
 
-                self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(hxSerial.getIncomingDataRate(), hxSerial.getOutgoingDataRate()))
+                self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.hxSerial.getIncomingDataRate(), HEXA_SDK.hxSerial.getOutgoingDataRate()))
 
     # ----------------------------------------------------------------
     # ------------------------- MAIN -------------------------

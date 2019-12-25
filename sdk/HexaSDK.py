@@ -1,10 +1,10 @@
 import HexaSerial
 import time
 
-hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
-
 class HexaSDK():  
     def __init__(self):
+        self.hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
+
         self.checkWait = None
         
         self.isSdkModeOn = False 
@@ -12,7 +12,7 @@ class HexaSDK():
         self.isLAOn = [0,0,0,0,0,0]
         self.isStreamingData = False
 
-        self.isEchoCommandsOn = True
+        self.isEchoCommandsOn = False
 
         self.set_up()
 
@@ -20,16 +20,16 @@ class HexaSDK():
         '''
         Looks for available ports, gives you the op
         '''
-        ports = hxSerial.scanForPorts()
+        ports = self.hxSerial.scanForPorts()
 
-        if len(hxSerial.portList) > 0:
-            hxSerial.initPort(0) # Setup the serial ports
-            hxSerial.run() # Set the SMU threads running
+        if len(self.hxSerial.portList) > 0:
+            self.hxSerial.initPort(0) # Setup the serial ports
+            self.hxSerial.run() # Set the SMU threads running
 
     def change_com_port(self, newComPort):
-        hxSerial.ser.close()
+        self.hxSerial.ser.close()
         comIndex = self.comPortSelect.currentIndex()
-        hxSerial.initPort(comIndex)
+        self.hxSerial.initPort(comIndex)
 
     # ----------------------------------------------------------------
     # ------------------------- Sending messages ---------------------
@@ -42,53 +42,33 @@ class HexaSDK():
         INPUT: string
         OUTPUT: n/a 
         '''
-        hxSerial.write(command)
+        self.hxSerial.write(command)
         #self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
         if self.isEchoCommandsOn:
             print (command)
 
-    def togglePosVelStreamData(self):
+    def togglePosVelStreamData(self, state):
         '''
         Tells the firmware to start streaming data.
         position and velocity streaming
         '''
-        if self.isStreamingData:
-            self.sendCommand('v 0') # Turn off streaming
-            self.isStreamingData = False
-            
-        elif not self.isStreamingData:
+        if (state):
             self.sendCommand('v 1') # Turn on streaming
             self.isStreamingData = True
+        else:
+            self.sendCommand('v 0') # Turn off streaming
+            self.isStreamingData = False
 
-    def toggleSDKmode(self):
+    def toggleSDKmode(self, state):
         '''
         The SDK mode stops the firmware echoing everything you are saying.
         '''
-        if self.isSdkModeOn:
-            self.sendCommand('z 0') # Turn sdk mode off
-            self.isSdkModeOn = False
-        elif not self.isSdkModeOn:
+        if (state):
             self.sendCommand('z 1') # Turn sdk mode on
             self.isSdkModeOn = True
-    
-    def flashLed(self):
-        '''
-        Turns the LED on for a seccond then turns it off.
-        '''
-        self.toggleLed()
-        time.sleep(1)
-        self.toggleLed()
-
-    def toggleLed(self):
-        '''
-        Toggles the led on and off
-        '''
-        if self.isLedOn:
-            self.sendCommand('led 0') # trun led off
-            self.isLedOn = False
-        elif not self.isLedOn:
-            self.sendCommand('led 1') # turn led on
-            self.isLedOn = True
+        else:
+            self.sendCommand('z 0') # Turn sdk mode off
+            self.isSdkModeOn = False
 
     def toggleAllLinearActuators( self , LAList ):
         '''
@@ -116,8 +96,12 @@ class HexaSDK():
             state: 1 or 0 depending if you want to turn the LA on or off
         OUTPUT: n/a
         '''
-        command = "o %d %d" %(LA_id , state )
-        # print (command)
+        if (state):
+            state = 1
+        else:
+            state = 0
+
+        command = "o {} {}".format(LA_id, state)
         self.sendCommand(command) #  turn LA i to LAList[i]       
 
     def setControllerMode(self , controlerMode):
@@ -125,13 +109,13 @@ class HexaSDK():
         Sets the controler mode. 
         INPUT: string
         '''
-        if controlerMode == 'off':
+        if controlerMode == "off":
             self.sendCommand('r 0') # off
-        elif controlerMode == 'PID':
+        elif controlerMode == "PID":
             self.sendCommand('r 1') # PID
-        elif controlerMode == 'time based sweep':
+        elif controlerMode == "time based sweep":
             self.sendCommand('rt 1') # Time based sweep
-        elif controlerMode == 'time based single':
+        elif controlerMode == "time based single":
             self.sendCommand('rt 2') # time based single
 
     def setLinearActuatorWorkspace(self, LA):
@@ -151,6 +135,25 @@ class HexaSDK():
             self.sendCommand('w 4')
         elif LA == 5:
             self.sendCommand('w 5')
+
+    def flashLed(self):
+        '''
+        Turns the LED on for a seccond then turns it off.
+        '''
+        self.toggleLed()
+        time.sleep(1)
+        self.toggleLed()
+
+    def toggleLed(self):
+        '''
+        Toggles the led on and off
+        '''
+        if self.isLedOn:
+            self.sendCommand('led 0') # trun led off
+            self.isLedOn = False
+        elif not self.isLedOn:
+            self.sendCommand('led 1') # turn led on
+            self.isLedOn = True
 
     def timeBasedDemo(self):
         '''
@@ -218,11 +221,11 @@ class HexaSDK():
     # ----------------------------------------------------------------
     # ------------------------- Reciving messages ---------------------
     # ----------------------------------------------------------------
-    def readSerialPort():
+    def readLine(self, queue):
         '''
         Read data in from the HexaSerial incoming queue
         '''
-        miscLine = hxSerial.readLine(hxSerial.qMisc)
+        miscLine = self.hxSerial.readLine(queue)
         if (miscLine != None):
             return miscLine
         #if (self.ser.inWaiting()):
@@ -232,6 +235,7 @@ class HexaSDK():
                 #line = line.replace("\r\n","")
 
 if __name__ == '__main__':
+    self.isEchoCommandsOn = True
     HEXA_SDK = HexaSDK()
     HEXA_SDK.toggleSDKmode()
     HEXA_SDK.timeBasedDemo()
