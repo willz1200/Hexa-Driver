@@ -305,7 +305,7 @@ class HexaGUI(QtGui.QMainWindow):
                 if (miscLine != None):
                     self.historyCommand.append(miscLine) # Place in command history
 
-                self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.hxSerial.getIncomingDataRate(), HEXA_SDK.hxSerial.getOutgoingDataRate()))
+            self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.hxSerial.getIncomingDataRate(), HEXA_SDK.hxSerial.getOutgoingDataRate()))
 
     # ----------------------------------------------------------------
     # ------------------------- MAIN -------------------------
