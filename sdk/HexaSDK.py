@@ -1,11 +1,11 @@
-import serial, serial.tools.list_ports
+import HexaSerial
 import time
 
+hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
 
 class HexaSDK():  
     def __init__(self):
         self.checkWait = None
-        self.ser = None
         
         self.isSdkModeOn = False 
         self.isLedOn = False
@@ -20,24 +20,16 @@ class HexaSDK():
         '''
         Looks for available ports, gives you the op
         '''
-        comPortsData = serial.tools.list_ports.comports() #Gets all available 
-        comPorts = []
-        # Adds all the available com ports to a drop down menue in the gui.
-        for port, desc, hwid in sorted(comPortsData):
-            comPorts.append(port)
+        ports = hxSerial.scanForPorts()
 
-        
-        defaultComPort = comPorts[0]
-        
-        #Sets up the serial system. 
-        self.ser = serial.Serial(defaultComPort)
-        self.ser.baudrate = 115200
-        self.checkWait = False
+        if len(hxSerial.portList) > 0:
+            hxSerial.initPort(0) # Setup the serial ports
+            hxSerial.run() # Set the SMU threads running
 
     def change_com_port(self, newComPort):
-        self.ser.close()
-        self.ser = serial.Serial(newComPort)
-        self.ser.baudrate = 115200
+        hxSerial.ser.close()
+        comIndex = self.comPortSelect.currentIndex()
+        hxSerial.initPort(comIndex)
 
     # ----------------------------------------------------------------
     # ------------------------- Sending messages ---------------------
@@ -50,7 +42,8 @@ class HexaSDK():
         INPUT: string
         OUTPUT: n/a 
         '''
-        self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
+        hxSerial.write(command)
+        #self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
         if self.isEchoCommandsOn:
             print (command)
 
@@ -207,7 +200,7 @@ class HexaSDK():
         '''
         sends a value of Kp , Ki & Kd down the serial port , then  
         '''
-
+        pass
         # update Kp , Ki & Kd
 
         # start step responce
@@ -216,23 +209,27 @@ class HexaSDK():
         '''
         Its hard to kill things if you are just using the SDK. For example if 
         the motor is trying to break itsself it would be nice to be able to turn 
-        the motor/controler off. 
+        the motor/controller off. 
         This function should run when you close the program.
         '''
         pass
+
+
     # ----------------------------------------------------------------
     # ------------------------- Reciving messages ---------------------
     # ----------------------------------------------------------------
     def readSerialPort():
         '''
-        Discussion about threading, ques ect...
-        How does this interface with the GUI?
-        '''        
-        if (self.ser.inWaiting()):
-                line = self.ser.readline()   # read a '\n' terminated line)
+        Read data in from the HexaSerial incoming queue
+        '''
+        miscLine = hxSerial.readLine(hxSerial.qMisc)
+        if (miscLine != None):
+            return miscLine
+        #if (self.ser.inWaiting()):
+                #line = self.ser.readline()   # read a '\n' terminated line)
                 #line = b's,0,0,0\r'
-                line = line.decode('utf-8')
-                line = line.replace("\r\n","")
+                #line = line.decode('utf-8')
+                #line = line.replace("\r\n","")
 
 if __name__ == '__main__':
     HEXA_SDK = HexaSDK()
