@@ -53,10 +53,10 @@ class HexaSDK():
         position and velocity streaming
         '''
         if (state):
-            self.sendCommand('v 1') # Turn on streaming
+            self.sendCommand('v 1') # Enable position and velocity streaming
             self.isStreamingData = True
         else:
-            self.sendCommand('v 0') # Turn off streaming
+            self.sendCommand('v 0') # Disable position and velocity streaming
             self.isStreamingData = False
 
     def toggleSDKmode(self, state):
@@ -64,7 +64,7 @@ class HexaSDK():
         The SDK mode stops the firmware echoing everything you are saying.
         '''
         if (state):
-            self.sendCommand('z 1') # Turn sdk mode on
+            self.sendCommand('z 1') # Sets to sdk mode. So it dosn't echo all commands.
             self.isSdkModeOn = True
         else:
             self.sendCommand('z 0') # Turn sdk mode off
@@ -101,7 +101,7 @@ class HexaSDK():
         else:
             state = 0
 
-        command = "o {} {}".format(LA_id, state)
+        command = "o {} {}".format(LA_id, state) # enable the linear actuator channel
         self.sendCommand(command) #  turn LA i to LAList[i]       
 
     def setControllerMode(self , controlerMode):
@@ -221,18 +221,33 @@ class HexaSDK():
     # ----------------------------------------------------------------
     # ------------------------- Reciving messages ---------------------
     # ----------------------------------------------------------------
-    def readLine(self, queue):
+    def readLine(self, queueName):
         '''
-        Read data in from the HexaSerial incoming queue
+        Read data in from the HexaSerial incoming queue, using a string to find the queue
         '''
-        miscLine = self.hxSerial.readLine(queue)
+        targetQueue = self.hxSerial.qMisc
+        if (queueName == "graphA"):
+            targetQueue = self.hxSerial.qGraphA
+        elif (queueName == "graphB"):
+            targetQueue = self.hxSerial.qGraphB
+        elif (queueName == "misc"):
+            targetQueue = self.hxSerial.qMisc
+
+        return self.readLineFromDispatchQueue(targetQueue)
+
+    def readLineFromDispatchQueue(self, queueObj):
+        '''
+        Read data in from the HexaSerial incoming queue, using a queue object to find the queue
+        '''
+        miscLine = self.hxSerial.readLine(queueObj)
         if (miscLine != None):
             return miscLine
-        #if (self.ser.inWaiting()):
-                #line = self.ser.readline()   # read a '\n' terminated line)
-                #line = b's,0,0,0\r'
-                #line = line.decode('utf-8')
-                #line = line.replace("\r\n","")
+
+    def getIncomingDataRate(self):
+        return self.hxSerial.getIncomingDataRate()
+
+    def getOutgoingDataRate(self):
+        return self.hxSerial.getOutgoingDataRate()
 
 if __name__ == '__main__':
     self.isEchoCommandsOn = True

@@ -21,6 +21,8 @@ def enqueue_output(out, queue):
 def procWrapper(serialPort, uploadMode, logBox, inoPath):
     global programming, proc, qStdout, qStderr, pathToArduino
 
+    #print(serialPort)
+
     try:
         serialPort.close()
     except:
@@ -35,13 +37,17 @@ def procWrapper(serialPort, uploadMode, logBox, inoPath):
     #Make queue thread to read subprocess stdout without blocking loop
     qStdout = Queue()
     tStdout = Thread(target=enqueue_output, args=(proc.stdout, qStdout))
-    tStdout.daemon = True # Set the thread to die with the program
+    #tStdout.daemon = True # Set the thread to die with the program
+    tStdout.setDaemon(True) # Set the thread to die with the program
+    tStdout.setName("stdoutProg")
     tStdout.start()
 
     #Make queue thread to read subprocess stderr without blocking loop
     qStderr = Queue()
     tStderr = Thread(target=enqueue_output, args=(proc.stderr, qStderr))
-    tStderr.daemon = True # Set the thread to die with the program
+    #tStderr.daemon = True # Set the thread to die with the program
+    tStderr.setDaemon(True) # Set the thread to die with the program
+    tStderr.setName("stderrProg")
     tStderr.start()
 
     programming = True # Flag that a subprocess is running in the background
