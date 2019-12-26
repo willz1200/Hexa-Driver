@@ -116,7 +116,7 @@ class SMU():
         self.qOutgoing.put_nowait(data)
 
     # Get data from the given dispatch queue
-    def readLine(self, queue):
+    def readLineQ(self, queue):
         try:
             lineTest = queue.get_nowait()
         except Empty:

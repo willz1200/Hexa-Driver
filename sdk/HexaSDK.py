@@ -1,9 +1,11 @@
 import HexaSerial
 import time
 
-class HexaSDK():  
+#class HexaSDK():
+class HexaSDK(HexaSerial.SMU):
     def __init__(self):
-        self.hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
+        super().__init__()
+        #self.hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
 
         self.checkWait = None
         
@@ -20,16 +22,16 @@ class HexaSDK():
         '''
         Looks for available ports, gives you the op
         '''
-        ports = self.hxSerial.scanForPorts()
+        ports = self.scanForPorts()
 
-        if len(self.hxSerial.portList) > 0:
-            self.hxSerial.initPort(0) # Setup the serial ports
-            self.hxSerial.run() # Set the SMU threads running
+        if len(self.portList) > 0:
+            self.initPort(0) # Setup the serial ports
+            self.run() # Set the SMU threads running
 
     def change_com_port(self, newComPort):
-        self.hxSerial.ser.close()
+        self.ser.close()
         comIndex = self.comPortSelect.currentIndex()
-        self.hxSerial.initPort(comIndex)
+        self.initPort(comIndex)
 
     # ----------------------------------------------------------------
     # ------------------------- Sending messages ---------------------
@@ -42,7 +44,7 @@ class HexaSDK():
         INPUT: string
         OUTPUT: n/a 
         '''
-        self.hxSerial.write(command)
+        self.write(command)
         #self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
         if self.isEchoCommandsOn:
             print (command)
@@ -225,13 +227,13 @@ class HexaSDK():
         '''
         Read data in from the HexaSerial incoming queue, using a string to find the queue
         '''
-        targetQueue = self.hxSerial.qMisc
+        targetQueue =  self.qMisc
         if (queueName == "graphA"):
-            targetQueue = self.hxSerial.qGraphA
+            targetQueue = self.qGraphA
         elif (queueName == "graphB"):
-            targetQueue = self.hxSerial.qGraphB
+            targetQueue = self.qGraphB
         elif (queueName == "misc"):
-            targetQueue = self.hxSerial.qMisc
+            targetQueue = self.qMisc
 
         return self.readLineFromDispatchQueue(targetQueue)
 
@@ -239,15 +241,15 @@ class HexaSDK():
         '''
         Read data in from the HexaSerial incoming queue, using a queue object to find the queue
         '''
-        miscLine = self.hxSerial.readLine(queueObj)
+        miscLine = self.readLineQ(queueObj)
         if (miscLine != None):
             return miscLine
 
-    def getIncomingDataRate(self):
-        return self.hxSerial.getIncomingDataRate()
+    # def getIncomingDataRateQ(self):
+    #     return self.getIncomingDataRate()
 
-    def getOutgoingDataRate(self):
-        return self.hxSerial.getOutgoingDataRate()
+    # def getOutgoingDataRateQ(self):
+    #     return self.getOutgoingDataRate()
 
 if __name__ == '__main__':
     self.isEchoCommandsOn = True

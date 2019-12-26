@@ -32,7 +32,7 @@ class HexaGUI(QtGui.QMainWindow):
         #comPorts = serial.tools.list_ports.comports() #Gets all available 
 
         # Adds all the available com ports to a drop down menue in the gui.
-        for portInfo in HEXA_SDK.hxSerial.scanForPorts():
+        for portInfo in HEXA_SDK.scanForPorts():
             self.comPortSelect.addItem(portInfo)
 
         # if len(HEXA_SDK.hxSerial.portList) > 0:
@@ -110,11 +110,11 @@ class HexaGUI(QtGui.QMainWindow):
         self.inoFilePath.setText(filename)
 
     def firmwareCompileOnly(self):
-        HEXA_SDK.hxSerial.pause()
-        HexaProg.compile(HEXA_SDK.hxSerial.ser, self.txt_compilerLog, self.inoFilePath.text())
+        HEXA_SDK.pause()
+        HexaProg.compile(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
 
     def firmwareCompileAndUpload(self):
-        HexaProg.compileAndUpload(HEXA_SDK.hxSerial.ser, self.txt_compilerLog, self.inoFilePath.text())
+        HexaProg.compileAndUpload(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
     
     # ----------------------------------------------------------------
     # ------------------------- SDK Commands -------------------------
@@ -169,9 +169,9 @@ class HexaGUI(QtGui.QMainWindow):
     # ----------------------------------------------------------------
 
     def comPortChange(self):
-        HEXA_SDK.hxSerial.ser.close()
+        HEXA_SDK.ser.close()
         comIndex = self.comPortSelect.currentIndex()
-        HEXA_SDK.hxSerial.initPort(comIndex)
+        HEXA_SDK.initPort(comIndex)
 
     def taskTimer(self):
         '''
@@ -180,7 +180,7 @@ class HexaGUI(QtGui.QMainWindow):
         INPUTS: n/a
         OUTPUTS: n/a
         '''
-        HexaProg.procLoop(HEXA_SDK.hxSerial.ser, self.txt_compilerLog)
+        HexaProg.procLoop(HEXA_SDK.ser, self.txt_compilerLog)
         if (self.checkWait):
             print("Test")
 
