@@ -171,26 +171,26 @@ class HexaSDK(HexaSerial.SMU):
 
         Single mode: runs in one direction for a set time.
         '''
-        self.setControllerMode('time based single') # sets to single mode
+        self.setControllerMode(self.mode.tbSingle) # sets to single mode
         self.sendCommand('rt s 500 1 75') # 500secconds direction1 duty75
         time.sleep(0.500) 
         self.sendCommand('rt s 1000 2 75') # 1000sec dir2 duty75
         time.sleep(1)
         self.sendCommand('rt s 750 1 75') # 750sec dir1 duty75
         time.sleep(0.75)
-        self.setControllerMode('off') # turns off controller.
+        self.setControllerMode(self.mode.off) # turns off controller.
 
     def timeBasedOpen(self):
-        self.setControllerMode('time based single')
+        self.setControllerMode(self.mode.tbSingle)
         self.sendCommand('rt s 500 1 75')
         time.sleep(0.500)
-        self.setControllerMode('off')
+        self.setControllerMode(self.mode.off)
 
     def timeBasedClosed(self):
-        self.sendCommand('rt 2')
+        self.setControllerMode(self.mode.tbSingle)
         self.sendCommand('rt s 500 2 75')
         time.sleep(0.500)
-        self.setControllerMode('off')
+        self.setControllerMode(self.mode.off)
 
     def stepResponce(self, pwmInput):
         '''
