@@ -84,10 +84,10 @@ def procLoop(serialPort, logBox):
                 lineErr = lineErr.decode('ascii')
                 logBox.append("<span style=\"color: rgb(235, 100, 52);\" >" + str(lineErr) + "</span>")
         else:
-            try:
-                serialPort.open()
-            except:
-                if programming is True:
+            if programming is True:
+                try:
+                    serialPort.open()
+                except:
                     print("Couldn't open the serial port")
             programming = False
             compilingOnly = False
@@ -95,6 +95,10 @@ def procLoop(serialPort, logBox):
 def getProgMode():
     global programming
     return programming
+
+def getCompMode():
+    global compilingOnly
+    return compilingOnly
 
 def compile(serialPort, logBox, inoPath):
     procWrapper(serialPort, False, logBox, inoPath)

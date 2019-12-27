@@ -69,6 +69,11 @@ class SMU():
         self.ser.bytesize = serial.EIGHTBITS
         self.ser.open() # Open the COM port
 
+    # Change to the COM port at a given index in the list
+    def comPortChange(self, portListIndex):
+        self.ser.close() # Close the COM port
+        self.initPort(portListIndex)
+
     # Handle incoming data and load it into the appropriate dispatch queue
     def enqueue_incomingData(self):
         while True:

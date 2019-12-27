@@ -6,6 +6,8 @@
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
+# Setup: py -m pip install -r requirements.txt
+
 import HexaSerial
 import time
 import enum
@@ -21,7 +23,7 @@ class HexaSDK(HexaSerial.SMU):
         tbSingle = 3
 
     def __init__(self):
-        super().__init__()
+        super().__init__() # Inheritance
 
         self.isSdkModeOn = False 
         self.isLedOn = False
@@ -30,9 +32,9 @@ class HexaSDK(HexaSerial.SMU):
 
         self.isEchoCommandsOn = False
 
-        self.set_up()
+        self.setup()
 
-    def set_up(self):
+    def setup(self):
         '''
         Looks for available ports, gives you the op
         '''
@@ -42,28 +44,19 @@ class HexaSDK(HexaSerial.SMU):
             self.initPort(0) # Setup the serial ports
             self.run() # Set the SMU threads running
 
-    def change_com_port(self, newComPort):
-        self.ser.close()
-        comIndex = self.comPortSelect.currentIndex()
-        self.initPort(comIndex)
-
-    # ----------------------------------------------------------------
-    # ------------------------- Sending messages ---------------------
-    # ----------------------------------------------------------------
-
     def sendCommand(self , command ):
         '''
-        sends a string down the serial port.
+        sends a command down the serial port. This could be removed as
+        the write command is accessible via inheritance
 
-        INPUT: string
+        INPUT: command (string)
         OUTPUT: n/a 
         '''
         self.write(command)
-        #self.ser.write( (str(command) + "\r").encode() ) # The .encode() converts the string into a bite/binary somthing its the same as b'v 0\r'
         if self.isEchoCommandsOn:
             print (command)
 
-    def togglePosVelStreamData(self, state):
+    def setPosVelStreamData(self, state):
         '''
         Tells the firmware to start streaming data.
         position and velocity streaming
@@ -75,7 +68,7 @@ class HexaSDK(HexaSerial.SMU):
             self.sendCommand('v 0') # Disable position and velocity streaming
             self.isStreamingData = False
 
-    def toggleSDKmode(self, state):
+    def setSDKmode(self, state):
         '''
         The SDK mode stops the firmware echoing everything you are saying.
         '''
@@ -95,13 +88,15 @@ class HexaSDK(HexaSerial.SMU):
         INPUT:  LAList: is a list, ev [0,0,0,0,0,1] corresponcding to which LA you want to turn on.
         OUTPUT: n/a
         '''
-        # breakpoint()
+        for LA in LAList:
+            if (LA!=0 and LA!=1): # Simple data validation checking
+                return
+
         for i in range(len(LAList)):
             if self.isLAOn[i] != LAList[i]:
                 self.setLinearActuator( i , LAList[i] )
                 self.isLAOn[i] = LAList[i]
-                
-    
+        
     def setLinearActuator(self, LA_id , state):
         '''
         sets a linear actuator on or off 
@@ -110,13 +105,13 @@ class HexaSDK(HexaSerial.SMU):
                 state: 1 or 0 depending if you want to turn the LA on or off
         OUTPUT: n/a
         '''
-        if (state):
+        if (state): # Allows use of boolean of integer to represent the state
             state = 1
         else:
             state = 0
 
-        command = "o {} {}".format(LA_id, state) # enable the linear actuator channel
-        self.sendCommand(command) #  turn LA i to LAList[i]       
+        if (LA_id>=0 and LA_id<=5): # Simple data validation checking
+            self.sendCommand("o {} {}".format(LA_id, state)) # enable the linear actuator channel
 
     def setControllerMode(self , controllerMode):
         '''
@@ -148,18 +143,8 @@ class HexaSDK(HexaSerial.SMU):
         There is a pointer in the firmware that lets you eaisily acess the 
         LA in your workspace. This lets you set that. 
         '''
-        if LA == 0:
-            self.sendCommand('w 0')
-        elif LA == 1:
-            self.sendCommand('w 1')
-        elif LA == 2:
-            self.sendCommand('w 2')
-        elif LA == 3:
-            self.sendCommand('w 3')
-        elif LA == 4:
-            self.sendCommand('w 4')
-        elif LA == 5:
-            self.sendCommand('w 5')
+        if (LA>=0 and LA<=5): # Simple data validation checking
+            self.sendCommand("w {}".format(LA))
 
     def flashLed(self):
         '''
@@ -174,10 +159,10 @@ class HexaSDK(HexaSerial.SMU):
         Toggles the led on and off
         '''
         if self.isLedOn:
-            self.sendCommand('led 0') # trun led off
+            self.sendCommand("led 0") # trun led off
             self.isLedOn = False
         elif not self.isLedOn:
-            self.sendCommand('led 1') # turn led on
+            self.sendCommand("led 150") # turn led on, medium brightness
             self.isLedOn = True
 
     def timeBasedDemo(self):
@@ -242,10 +227,6 @@ class HexaSDK(HexaSerial.SMU):
         '''
         pass
 
-
-    # ----------------------------------------------------------------
-    # ------------------------- Reciving messages ---------------------
-    # ----------------------------------------------------------------
     def readLine(self, queueName):
         '''
         Read data in from the HexaSerial incoming queue, using a string to find the queue
@@ -258,41 +239,28 @@ class HexaSDK(HexaSerial.SMU):
         elif (queueName == "misc"):
             targetQueue = self.qMisc
 
-        return self.readLineFromDispatchQueue(targetQueue)
-
-    def readLineFromDispatchQueue(self, queueObj):
-        '''
-        Read data in from the HexaSerial incoming queue, using a queue object to find the queue
-        '''
-        miscLine = self.readLineQ(queueObj)
+        miscLine = self.readLineQ(targetQueue)
         if (miscLine != None):
             return miscLine
-
-    # def getIncomingDataRateQ(self):
-    #     return self.getIncomingDataRate()
-
-    # def getOutgoingDataRateQ(self):
-    #     return self.getOutgoingDataRate()
 
 if __name__ == '__main__':
     HEXA_SDK = HexaSDK()
     HEXA_SDK.isEchoCommandsOn = True
-    # HEXA_SDK.toggleSDKmode()
+    # HEXA_SDK.setSDKmode(True)
     # HEXA_SDK.timeBasedDemo()
     # HEXA_SDK.timeBasedOpen()
     # HEXA_SDK.timeBasedClosed()
     HEXA_SDK.setLinearActuatorWorkspace(5)
     HEXA_SDK.setLinearActuator(5, True)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.pid)
-    HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSweep)
+    # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSweep)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSingle)
-    # HEXA_SDK.setControllerMode(HEXA_SDK.mode.off)
+    HEXA_SDK.setControllerMode(HEXA_SDK.mode.off)
     # HEXA_SDK.setControllerMode(1)
     # HEXA_SDK.setLinearActuatorWorkspace(0)
     # HEXA_SDK.flashLed()
     # HEXA_SDK.sendCommand('led 1')
     # HEXA_SDK.stepResponce(100)
     # HEXA_SDK.runPIDControler()
-    # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,1])
+    # HEXA_SDK.toggleAllLinearActuators([0,1,0,0,0,1])
     # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,0])
-

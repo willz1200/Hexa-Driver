@@ -15,7 +15,7 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
-import HexaProg, HexaSDK # HexaSerial
+import HexaProg, HexaSDK
 
 HEXA_SDK = HexaSDK.HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
 
@@ -30,9 +30,10 @@ class HexaGUI(QtGui.QMainWindow):
         self.initGuiEventSignals()
 
     def initGuiEventSignals(self):
-        # When you change the com port in the dropdown menu, the event runs the comportchange function.
-        self.comPortSelect.currentIndexChanged.connect(self.comPortChange)
+        # When you change the com port in the dropdown menu, the event runs the comPortChange function.
+        self.comPortSelect.currentIndexChanged.connect(lambda: HEXA_SDK.comPortChange(self.comPortSelect.currentIndex()))
 
+        # Setup buttons for building firmware
         self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
         self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
         self.inoLaunchPathDialog.clicked.connect(self.selectFile)
@@ -42,10 +43,10 @@ class HexaGUI(QtGui.QMainWindow):
         self.sendCommand.clicked.connect(self.sendCommandAndClear)
 
         # When the tick box associated with turning on and off the data streaming is pressed you run "togglePosVelStreamData" function
-        self.togPosVelStreamData.stateChanged.connect(lambda: HEXA_SDK.togglePosVelStreamData(self.togPosVelStreamData.isChecked()))
+        self.togPosVelStreamData.stateChanged.connect(lambda: HEXA_SDK.setPosVelStreamData(self.togPosVelStreamData.isChecked()))
 
         # when the tickbox, togSDKmode is selected it the "toggleSDKmode" function is called
-        self.togSDKmode.stateChanged.connect(lambda: HEXA_SDK.toggleSDKmode(self.togSDKmode.isChecked()))
+        self.togSDKmode.stateChanged.connect(lambda: HEXA_SDK.setSDKmode(self.togSDKmode.isChecked()))
 
         # enable/disable control loop for a given linear actuator
         # The lambda function means you can pass in the parameters as well as the function
@@ -73,8 +74,8 @@ class HexaGUI(QtGui.QMainWindow):
             self.comPortSelect.addItem(portInfo)
 
         # Configure the firmware to be SDK mode.
-        HEXA_SDK.toggleSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
-        HEXA_SDK.togglePosVelStreamData(True) # Enable position and velocity streaming
+        HEXA_SDK.setSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
+        HEXA_SDK.setPosVelStreamData(True) # Enable position and velocity streaming
 
         # Set up graph on the workspace tab.
         self.velPosGraphInit(self.widget)
@@ -97,50 +98,34 @@ class HexaGUI(QtGui.QMainWindow):
         self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box.
 
     # ----------------------------------------------------------------
-    # -------------- Arduino Compiler Commands ---------------------
+    # -------------- Firmware Compiler Commands ----------------------
     # ----------------------------------------------------------------
-    #  
+
     def selectFile(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
         self.inoFilePath.setText(filename)
 
     def firmwareCompileOnly(self):
-        # HEXA_SDK.pause()
         HexaProg.compile(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
 
     def firmwareCompileAndUpload(self):
         HexaProg.compileAndUpload(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
-    
-    # ----------------------------------------------------------------
-    # ------------------------- SDK Commands -------------------------
-    # ----------------------------------------------------------------
-
-    def sendCommandAndClear(self):
-        '''
-        Pullls the string out of the text box and sends it down the serial port. 
-        This function is called when the button next to the text box is pressed. 
-        '''
-        cmd = str(self.enterCommand.text())
-        HEXA_SDK.sendCommand(cmd) # Send the command via HexaSDK
-        self.enterCommand.setText("") # Clear the command textbox
 
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
 
-    def comPortChange(self):
-        HEXA_SDK.ser.close()
-        comIndex = self.comPortSelect.currentIndex()
-        HEXA_SDK.initPort(comIndex)
+    def progTimer(self):
+        # Programing interface thread poling for compiler log outputs. 
 
-    def taskTimer(self):
-        '''
-        Programing interface thread poling for compiler log outputs. 
-
-        INPUTS: n/a
-        OUTPUTS: n/a
-        '''
         HexaProg.procLoop(HEXA_SDK.ser, self.txt_compilerLog)
+
+    def sendCommandAndClear(self):
+        # Pullls the string out of the text box and sends it to the serial port via SDK. 
+        # This function is called when the button next to the text box is pressed. 
+        cmd = str(self.enterCommand.text())
+        HEXA_SDK.sendCommand(cmd) # Send the command via HexaSDK
+        self.enterCommand.setText("") # Clear the command textbox
 
     # Override the built-in PyQt keyPressEvent function handler and look for enter key press events
     def keyPressEvent(self, event):
@@ -184,8 +169,8 @@ class HexaGUI(QtGui.QMainWindow):
 
         #firmware compiling timer 
         timer = pg.QtCore.QTimer(self)
-        timer.timeout.connect(self.taskTimer)
-        timer.start(5)
+        timer.timeout.connect(self.progTimer)
+        timer.start(10)
 
     def velPosGraphUpdate(self):
         '''
@@ -203,8 +188,8 @@ class HexaGUI(QtGui.QMainWindow):
                 self.historyCommand.append(line) # add text to command box
                 line = line.split(',')
                 if (line[0] == 's'):
-                    self.data[self.ptr] = float(line[2])#np.random.normal()
-                    self.dataB[self.ptr] = float(line[3])#np.random.normal()
+                    self.data[self.ptr] = float(line[2])
+                    self.dataB[self.ptr] = float(line[3])
                     self.ptr += 1
                     if self.ptr >= self.data.shape[0]:
                         tmp = self.data
@@ -222,7 +207,8 @@ class HexaGUI(QtGui.QMainWindow):
             if (miscLine != None):
                 self.historyCommand.append(miscLine) # Place in command history
 
-            self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate()))
+            dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
+            self.statusbar.showMessage(dataRates)
     
     def guiClosedEvent(self):
         print("The GUI has been closed, bye")
@@ -233,7 +219,6 @@ class HexaGUI(QtGui.QMainWindow):
         self.guiClosedEvent()
         return exitCode
         
-
 # ----------------------------------------------------------------
 # ------------------------- MAIN ---------------------------------
 # ----------------------------------------------------------------
