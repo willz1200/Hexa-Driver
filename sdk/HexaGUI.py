@@ -105,7 +105,7 @@ class HexaGUI(QtGui.QMainWindow):
         self.inoFilePath.setText(filename)
 
     def firmwareCompileOnly(self):
-        HEXA_SDK.pause()
+        # HEXA_SDK.pause()
         HexaProg.compile(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
 
     def firmwareCompileAndUpload(self):

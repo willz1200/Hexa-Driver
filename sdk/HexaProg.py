@@ -10,6 +10,7 @@ from threading import Thread
 from queue import Queue, Empty
 
 programming = False
+compilingOnly = False
 pathToArduino = "C:\\Program Files (x86)\\Arduino\\arduino_debug"
 
 # Callback to load stdout / stderr into the queue
@@ -19,19 +20,23 @@ def enqueue_output(out, queue):
     out.close()
 
 def procWrapper(serialPort, uploadMode, logBox, inoPath):
-    global programming, proc, qStdout, qStderr, pathToArduino
+    global programming, compilingOnly, proc, qStdout, qStderr, pathToArduino
 
     #print(serialPort)
 
-    try:
-        serialPort.close()
-    except:
-        print("Couldn't close the serial port")
-    
     # Somthing to do with multithreading
     if (uploadMode == True):
+        programming = True # Flag that a subprocess is running in the background
+
+        try:
+            serialPort.close()
+        except:
+            print("Couldn't close the serial port")
+
         proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--port", serialPort.port, "--upload", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
+        compilingOnly = True
+
         proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--verify", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     #Make queue thread to read subprocess stdout without blocking loop
@@ -50,13 +55,11 @@ def procWrapper(serialPort, uploadMode, logBox, inoPath):
     tStderr.setName("stderrProg")
     tStderr.start()
 
-    programming = True # Flag that a subprocess is running in the background
-
 def procLoop(serialPort, logBox):
-    global programming, proc, qStdout, qStderr
+    global programming, compilingOnly, proc, qStdout, qStderr
 
     # Allow code in the loop until subprocess terminates, proc.poll will return None if the process hasn't completed
-    if (programming is True):
+    if (programming is True or compilingOnly is True):
         if(proc.poll() is None):
             # Check if data is available from programming subprocess stdout
             try:
@@ -83,9 +86,10 @@ def procLoop(serialPort, logBox):
         else:
             try:
                 serialPort.open()
-                programming = False
             except:
                 print("Couldn't open the serial port")
+            programming = False
+            compilingOnly = False
 
 def getProgMode():
     global programming
