@@ -87,7 +87,8 @@ def procLoop(serialPort, logBox):
             try:
                 serialPort.open()
             except:
-                print("Couldn't open the serial port")
+                if programming is True:
+                    print("Couldn't open the serial port")
             programming = False
             compilingOnly = False
 
