@@ -92,7 +92,7 @@ class HexaGUI(QtGui.QMainWindow):
         self.inoLaunchPathDialog.clicked.connect(self.selectFile)
 
         # ------------------ Modelling Tab Events ------------------
-        
+
         #self.btnModelling_RunA.clicked.connect()
         #self.btnModelling_RunB.clicked.connect()
         #self.btnModelling_RunC.clicked.connect()
@@ -116,7 +116,7 @@ class HexaGUI(QtGui.QMainWindow):
         self.txt_compilerLog.append("Here is the compiler log")
         self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
-        self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked. 
+        self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked.
 
         # Set the current controller mode for the linear actuator in your workspace
         ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options

@@ -165,6 +165,15 @@ class HexaSDK(HexaSerial.SMU):
             self.sendCommand("led 150") # turn led on, medium brightness
             self.isLedOn = True
 
+    # Command a single movement with the timebased controller, time in milliseconds, dir 1/2, duty 0-255
+    def timeBasedSingle(self, time, direction, duty):
+        self.sendCommand("rt s {} {} {}".format(time, direction, duty))
+
+    # Command a repeated sweep movement with the timebased controller, time in milliseconds, duty 0-255
+    def timeBasedSweep(self, time, duty):
+        self.sendCommand("rt t {}".format(time))
+        self.sendCommand("rt v {}".format(duty))
+
     def timeBasedDemo(self):
         '''
         runs the motor back and forward at 75pwm back and forward.
@@ -172,23 +181,23 @@ class HexaSDK(HexaSerial.SMU):
         Single mode: runs in one direction for a set time.
         '''
         self.setControllerMode(self.mode.tbSingle) # sets to single mode
-        self.sendCommand('rt s 500 1 75') # 500secconds direction1 duty75
-        time.sleep(0.500) 
-        self.sendCommand('rt s 1000 2 75') # 1000sec dir2 duty75
-        time.sleep(1)
-        self.sendCommand('rt s 750 1 75') # 750sec dir1 duty75
-        time.sleep(0.75)
+        self.timeBasedSingle(500, 1, 75)
+        time.sleep(0.500)
+        self.timeBasedSingle(1000, 2, 75)
+        time.sleep(1.000)
+        self.timeBasedSingle(750, 1, 75)
+        time.sleep(0.750)
         self.setControllerMode(self.mode.off) # turns off controller.
 
     def timeBasedOpen(self):
         self.setControllerMode(self.mode.tbSingle)
-        self.sendCommand('rt s 500 1 75')
+        self.timeBasedSingle(500, 1, 75)
         time.sleep(0.500)
         self.setControllerMode(self.mode.off)
 
     def timeBasedClosed(self):
         self.setControllerMode(self.mode.tbSingle)
-        self.sendCommand('rt s 500 2 75')
+        self.timeBasedSingle(500, 2, 75)
         time.sleep(0.500)
         self.setControllerMode(self.mode.off)
 
@@ -253,6 +262,7 @@ if __name__ == '__main__':
     HEXA_SDK.setLinearActuatorWorkspace(5)
     HEXA_SDK.setLinearActuator(5, True)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.pid)
+    # HEXA_SDK.timeBasedSweep(500, 75)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSweep)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSingle)
     HEXA_SDK.setControllerMode(HEXA_SDK.mode.off)
