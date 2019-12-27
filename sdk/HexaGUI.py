@@ -30,26 +30,21 @@ class HexaGUI(QtGui.QMainWindow):
         self.initGuiEventSignals()
 
     def initGuiEventSignals(self):
-        # When you change the com port in the dropdown menu, the event runs the comPortChange function.
+        # ------------------ Workspace Tab Events ------------------
+
+        # Change the COM port on the fly, using the drop down list
         self.comPortSelect.currentIndexChanged.connect(lambda: HEXA_SDK.comPortChange(self.comPortSelect.currentIndex()))
 
-        # Setup buttons for building firmware
-        self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
-        self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
-        self.inoLaunchPathDialog.clicked.connect(self.selectFile)
-
-        # ------------------ Workspace tab code ------------------
-        # Taking what ever is in the text box and seding it to the serial port
+        # Send the command in the text box to the serial port
         self.sendCommand.clicked.connect(self.sendCommandAndClear)
 
-        # When the tick box associated with turning on and off the data streaming is pressed you run "togglePosVelStreamData" function
+        # Enable/Disable position and velocity data streaming
         self.togPosVelStreamData.stateChanged.connect(lambda: HEXA_SDK.setPosVelStreamData(self.togPosVelStreamData.isChecked()))
 
-        # when the tickbox, togSDKmode is selected it the "toggleSDKmode" function is called
+        # Enable/Disable SDK mode
         self.togSDKmode.stateChanged.connect(lambda: HEXA_SDK.setSDKmode(self.togSDKmode.isChecked()))
 
-        # enable/disable control loop for a given linear actuator
-        # The lambda function means you can pass in the parameters as well as the function
+        # Enable/Disable control loop for a given linear actuator. Note: The "lambda" operator allows parameters to be passed with the function
         self.checkBox_LA0_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(0, self.checkBox_LA0_Op.isChecked()))
         self.checkBox_LA1_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(1, self.checkBox_LA1_Op.isChecked()))
         self.checkBox_LA2_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(2, self.checkBox_LA2_Op.isChecked()))
@@ -60,13 +55,47 @@ class HexaGUI(QtGui.QMainWindow):
         # Set the current controller mode for the linear actuator in your workspace
         self.listView_ControllerMode.selectionModel().selectionChanged.connect(lambda: HEXA_SDK.setControllerMode(self.listView_ControllerMode.currentRow()))
 
-        # When you select one of the options run the sdk function
+        # Set the linear actuator currently in your workspace. Note: ".selectionModel()" is a PyQt thing for styling. 
         self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(lambda: HEXA_SDK.setLinearActuatorWorkspace(self.listView_WorkspaceSelect.currentRow()))
 
-        # Some demo buttons. when clicked run function
+        # Demo buttons for the time based controller
         self.btnTimeBasedDemo.clicked.connect(HEXA_SDK.timeBasedDemo)
         self.btnTimeBasedOpen.clicked.connect(HEXA_SDK.timeBasedOpen)
         self.btnTimeBasedClosed.clicked.connect(HEXA_SDK.timeBasedClosed)
+
+        # ------------------ Collective Tab Events ------------------
+
+        # self.btnHome_LA0.clicked.connect()
+        # self.btnHome_LA1.clicked.connect()
+        # self.btnHome_LA2.clicked.connect()
+        # self.btnHome_LA3.clicked.connect()
+        # self.btnHome_LA4.clicked.connect()
+        # self.btnHome_LA5.clicked.connect()
+
+        # # Slider event signals: valueChanged, sliderPressed, sliderMoved, sliderReleased
+        # self.horizontalSlider_LA0.sliderReleased.connect()
+        # self.horizontalSlider_LA1.sliderReleased.connect()
+        # self.horizontalSlider_LA2.sliderReleased.connect()
+        # self.horizontalSlider_LA3.sliderReleased.connect()
+        # self.horizontalSlider_LA4.sliderReleased.connect()
+        # self.horizontalSlider_LA5.sliderReleased.connect()
+
+        # self.btnHomeAll.clicked.connect()
+        # self.btnCollectiveDemo.clicked.connect()
+        # self.btnCollectiveEnable.clicked.connect()
+
+        # ------------------ Firmware Tab Events ------------------
+
+        # Setup buttons for building firmware
+        self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
+        self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
+        self.inoLaunchPathDialog.clicked.connect(self.selectFile)
+
+        # ------------------ Modelling Tab Events ------------------
+        
+        #self.btnModelling_RunA.clicked.connect()
+        #self.btnModelling_RunB.clicked.connect()
+        #self.btnModelling_RunC.clicked.connect()
 
     def configGUI(self):
         # Adds all the available com ports to a drop down menue in the gui.
@@ -80,6 +109,7 @@ class HexaGUI(QtGui.QMainWindow):
         # Set up graph on the workspace tab.
         self.velPosGraphInit(self.widget)
         # self.velPosGraphInit(self.myWidget)
+        # self.modellingPlot
 
         # ------------------ Compiler tab code ------------------
         # Sets up the compiler log. 
@@ -88,12 +118,11 @@ class HexaGUI(QtGui.QMainWindow):
 
         self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked. 
 
-        # Set the current controler mode for the linear actuator in your workspace
+        # Set the current controller mode for the linear actuator in your workspace
         ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options
         self.listView_ControllerMode.addItems(ControllerModeEntries)
         
-        # Set up the workspces. 
-        # Note ".selectionModel()" is a pyqt thing for styling. 
+        # Set up the workspces.
         LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5'] #options.
         self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box.
 
