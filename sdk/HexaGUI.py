@@ -22,11 +22,50 @@ HEXA_SDK = HexaSDK.HexaSDK()
 class HexaGUI(QtGui.QMainWindow):
 
     def __init__(self):
-        super(HexaGUI, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'.
+        super(HexaGUI, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'. (Inherit QMainWindow...)
         uic.loadUi("gui.ui", self) # Loads all the GUI elements.
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
         self.configGUI()
+        self.initGuiEventSignals()
+
+    def initGuiEventSignals(self):
+        # When you change the com port in the dropdown menu, the event runs the comportchange function.
+        self.comPortSelect.currentIndexChanged.connect(self.comPortChange)
+
+        self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
+        self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
+        self.inoLaunchPathDialog.clicked.connect(self.selectFile)
+
+        # ------------------ Workspace tab code ------------------
+        # Taking what ever is in the text box and seding it to the serial port
+        self.sendCommand.clicked.connect(self.sendCommandAndClear)
+
+        # When the tick box associated with turning on and off the data streaming is pressed you run "togglePosVelStreamData" function
+        self.togPosVelStreamData.stateChanged.connect(lambda: HEXA_SDK.togglePosVelStreamData(self.togPosVelStreamData.isChecked()))
+
+        # when the tickbox, togSDKmode is selected it the "toggleSDKmode" function is called
+        self.togSDKmode.stateChanged.connect(lambda: HEXA_SDK.toggleSDKmode(self.togSDKmode.isChecked()))
+
+        # enable/disable control loop for a given linear actuator
+        # The lambda function means you can pass in the parameters as well as the function
+        self.checkBox_LA0_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(0, self.checkBox_LA0_Op.isChecked()))
+        self.checkBox_LA1_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(1, self.checkBox_LA1_Op.isChecked()))
+        self.checkBox_LA2_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(2, self.checkBox_LA2_Op.isChecked()))
+        self.checkBox_LA3_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(3, self.checkBox_LA3_Op.isChecked()))
+        self.checkBox_LA4_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(4, self.checkBox_LA4_Op.isChecked()))
+        self.checkBox_LA5_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(5, self.checkBox_LA5_Op.isChecked()))
+
+        # Set the current controler mode for the linear actuator in your workspace
+        self.listView_ControllerMode.selectionModel().selectionChanged.connect(self.controllerMode)
+
+        # When you select one of the options run the sdk function
+        self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(lambda: HEXA_SDK.setLinearActuatorWorkspace(self.listView_WorkspaceSelect.currentRow()))
+
+        # Some demo buttons. when clicked run function
+        self.btnTimeBasedDemo.clicked.connect(HEXA_SDK.timeBasedDemo)
+        self.btnTimeBasedOpen.clicked.connect(HEXA_SDK.timeBasedOpen)
+        self.btnTimeBasedClosed.clicked.connect(HEXA_SDK.timeBasedClosed)
 
     def configGUI(self):
         #comPorts = serial.tools.list_ports.comports() #Gets all available 
@@ -39,9 +78,6 @@ class HexaGUI(QtGui.QMainWindow):
         #     HEXA_SDK.hxSerial.initPort(0)
         #     HEXA_SDK.hxSerial.run()
 
-        # When you change the com port in the dropdown menu, the event runs the comportchange function.
-        self.comPortSelect.currentIndexChanged.connect(self.comPortChange) 
-
         self.checkWait = False
 
         # Configure the firmware to be SDK mode.
@@ -49,7 +85,6 @@ class HexaGUI(QtGui.QMainWindow):
         #hxSerial.write("v 1") # Enable position and velocity streaming
         HEXA_SDK.toggleSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
         HEXA_SDK.togglePosVelStreamData(True) # Enable position and velocity streaming
-
 
         # Set up graph on the workspace tab.
         self.velPosGraphInit(self.widget)
@@ -60,46 +95,16 @@ class HexaGUI(QtGui.QMainWindow):
         self.txt_compilerLog.append("Here is the compiler log")
         self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
-        self.btn_compileOnly.clicked.connect(self.firmwareCompileOnly)
-        self.btn_compileAndUpload.clicked.connect(self.firmwareCompileAndUpload)
-        self.inoLaunchPathDialog.clicked.connect(self.selectFile)
-        
-        # ------------------ Workspace tab code ------------------
-        # Taking what ever is in the text box and seding it to the serial port. 
-        self.sendCommand.clicked.connect(self.sendCommandB)
-
-        # When the tick box associated with turning on and off the data streaming is pressed you run "togglePosVelStreamData" function.
-        self.togPosVelStreamData.stateChanged.connect(self.togglePosVelStreamData)
-        # self.togPosVelStreamData.toggle() # Start as ticked
-
-        # when the tickbox, togSDKmode is selected it the "toggleSDKmode" function is called. 
-        self.togSDKmode.stateChanged.connect(self.toggleSDKmode)
         self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked. 
-
-        # enable/disable control loop for a given linear actuator. 
-        # The lambda function means you can pass in the data as well as the function. 
-        self.checkBox_LA0_Op.stateChanged.connect(lambda: self.operationalLA(0, self.checkBox_LA0_Op))
-        self.checkBox_LA1_Op.stateChanged.connect(lambda: self.operationalLA(1, self.checkBox_LA1_Op))
-        self.checkBox_LA2_Op.stateChanged.connect(lambda: self.operationalLA(2, self.checkBox_LA2_Op))
-        self.checkBox_LA3_Op.stateChanged.connect(lambda: self.operationalLA(3, self.checkBox_LA3_Op))
-        self.checkBox_LA4_Op.stateChanged.connect(lambda: self.operationalLA(4, self.checkBox_LA4_Op))
-        self.checkBox_LA5_Op.stateChanged.connect(lambda: self.operationalLA(5, self.checkBox_LA5_Op))
 
         # Set the current controler mode for the linear actuator in your workspace
         ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options
         self.listView_ControllerMode.addItems(ControllerModeEntries)
-        self.listView_ControllerMode.selectionModel().selectionChanged.connect(self.controllerMode)
-
+        
         # set up the workspces. 
         # note ".selectionModel()" is a pyqt thing for styling. 
         LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5'] #options.
-        self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box. 
-        self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(self.LinearActuatorWorkspace) # when you select one of the option run the function. 
-
-        # Some demo buttons. when clicked run function. 
-        self.btnTimeBasedDemo.clicked.connect(self.timeBasedDemo)
-        self.btnTimeBasedOpen.clicked.connect(self.timeBasedOpen)
-        self.btnTimeBasedClosed.clicked.connect(self.timeBasedClosed)
+        self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box.
 
     # ----------------------------------------------------------------
     # -------------- Arduino Compiler Commands ---------------------
@@ -120,32 +125,14 @@ class HexaGUI(QtGui.QMainWindow):
     # ------------------------- SDK Commands -------------------------
     # ----------------------------------------------------------------
 
-    def sendCommandB(self):
+    def sendCommandAndClear(self):
         '''
         Pullls the string out of the text box and sends it down the serial port. 
         This function is called when the button next to the text box is pressed. 
         '''
         cmd = str(self.enterCommand.text())
-        HEXA_SDK.sendCommand(cmd)
-        self.enterCommand.setText("")
-
-    def togglePosVelStreamData(self):
-        HEXA_SDK.togglePosVelStreamData(self.togPosVelStreamData.isChecked())
-
-    def toggleSDKmode(self):
-        HEXA_SDK.toggleSDKmode(self.togSDKmode.isChecked())
-
-    def operationalLA(self, LA_ID, CheckboxID):
-        HEXA_SDK.setLinearActuator(LA_ID, CheckboxID.isChecked())
-
-    def timeBasedDemo(self):
-        HEXA_SDK.timeBasedDemo()
-
-    def timeBasedOpen(self):
-        HEXA_SDK.timeBasedOpen()
-
-    def timeBasedClosed(self):
-        HEXA_SDK.timeBasedClosed()
+        HEXA_SDK.sendCommand(cmd) # Send the command via HexaSDK
+        self.enterCommand.setText("") # Clear the command textbox
 
     def controllerMode(self):
         controllerRow = self.listView_ControllerMode.currentRow()
@@ -159,10 +146,6 @@ class HexaGUI(QtGui.QMainWindow):
         elif controllerRow == 3:
             #HEXA_SDK.hxSerial.play() # for debugging only
             HEXA_SDK.setControllerMode("time based single")
-
-    def LinearActuatorWorkspace(self):
-        workspaceRow = self.listView_WorkspaceSelect.currentRow()
-        HEXA_SDK.setLinearActuatorWorkspace(workspaceRow)
 
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
@@ -194,7 +177,7 @@ class HexaGUI(QtGui.QMainWindow):
         '''
         #super(myGUI, self).keyPressEvent(event)
         if (event.key() == QtCore.Qt.Key_Enter) or (event.key() == QtCore.Qt.Key_Return):
-            self.sendCommandB()
+            self.sendCommandAndClear()
         event.accept()
 
     def velPosGraphInit(self, graph):
@@ -260,9 +243,9 @@ class HexaGUI(QtGui.QMainWindow):
                     self.curveB.setData(self.dataB[:self.ptr])
                     self.curveB.setPos(-self.ptr, 0)
 
-                miscLine = HEXA_SDK.readLine("misc") # Pull data from misc queue
-                if (miscLine != None):
-                    self.historyCommand.append(miscLine) # Place in command history
+            miscLine = HEXA_SDK.readLine("misc") # Pull data from misc queue
+            if (miscLine != None):
+                self.historyCommand.append(miscLine) # Place in command history
 
             self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate()))
 
