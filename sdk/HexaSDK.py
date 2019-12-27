@@ -1,14 +1,28 @@
+# *******************************************************************************
+# * @File       HexaSDK.py
+# * @Brief      Hexa Driver SDK which gives a higher level interface for commanding
+# *             the Hexa Driver.
+# * @Date       27/12/2019 (Last Updated)
+# * @Author(s)  William Bednall, Russell Grim
+# *******************************************************************************
+
 import HexaSerial
 import time
+import enum
 
-#class HexaSDK():
+# HexaSDK class which inherits the Hexa serial management unit
 class HexaSDK(HexaSerial.SMU):
+
+    # Enum used to set the controller mode
+    class mode(enum.Enum):
+        off = 0
+        pid = 1
+        tbSweep = 2
+        tbSingle = 3
+
     def __init__(self):
         super().__init__()
-        #self.hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
 
-        self.checkWait = None
-        
         self.isSdkModeOn = False 
         self.isLedOn = False
         self.isLAOn = [0,0,0,0,0,0]
@@ -78,8 +92,7 @@ class HexaSDK(HexaSerial.SMU):
         You don't want the firmware to be doing a bunch of other things for the other
         ones. This command turns on a linear actuator. 
 
-        INPUT:
-            LAList: is a list, ev [0,0,0,0,0,1] corresponcding to which LA you want to turn on.
+        INPUT:  LAList: is a list, ev [0,0,0,0,0,1] corresponcding to which LA you want to turn on.
         OUTPUT: n/a
         '''
         # breakpoint()
@@ -93,9 +106,8 @@ class HexaSDK(HexaSerial.SMU):
         '''
         sets a linear actuator on or off 
 
-        INPUT: 
-            LA_id: int 0 to 5
-            state: 1 or 0 depending if you want to turn the LA on or off
+        INPUT:  LA_id: int 0 to 5
+                state: 1 or 0 depending if you want to turn the LA on or off
         OUTPUT: n/a
         '''
         if (state):
@@ -106,19 +118,30 @@ class HexaSDK(HexaSerial.SMU):
         command = "o {} {}".format(LA_id, state) # enable the linear actuator channel
         self.sendCommand(command) #  turn LA i to LAList[i]       
 
-    def setControllerMode(self , controlerMode):
+    def setControllerMode(self , controllerMode):
         '''
-        Sets the controler mode. 
-        INPUT: string
+        Sets the controller mode.
+
+        INPUT: Interger (0-3) or a mode enum (e.g. mode.pid)
         '''
-        if controlerMode == "off":
-            self.sendCommand('r 0') # off
-        elif controlerMode == "PID":
-            self.sendCommand('r 1') # PID
-        elif controlerMode == "time based sweep":
-            self.sendCommand('rt 1') # Time based sweep
-        elif controlerMode == "time based single":
-            self.sendCommand('rt 2') # time based single
+        controllerModeFiltered = 0 # default to 0 incase wrong data type is given
+
+        # Check if the mode input is an emun data type
+        if(type(controllerMode) == type(self.mode.off)):
+            controllerModeFiltered = controllerMode.value # Get int from enum type, the .value operator needed to access integer linked to the given enum 
+
+        # Check if the mode input is an int data type
+        elif(type(controllerMode) == type(0)):
+            controllerModeFiltered = controllerMode # Integer has been given just pass it through
+
+        if controllerModeFiltered == self.mode.off.value: # off
+            self.sendCommand("r 0") # Switch the controller off
+        elif controllerModeFiltered == self.mode.pid.value: #pid
+            self.sendCommand("r 1") # Switch the controller into PID mode
+        elif controllerModeFiltered == self.mode.tbSweep.value: # time based sweep
+            self.sendCommand("rt 1") # Switch the controller into time based sweep mode
+        elif controllerModeFiltered == self.mode.tbSingle.value: # time based single shot
+            self.sendCommand("rt 2") # Switch the controller into time based single mode
 
     def setLinearActuatorWorkspace(self, LA):
         '''
@@ -252,16 +275,19 @@ class HexaSDK(HexaSerial.SMU):
     #     return self.getOutgoingDataRate()
 
 if __name__ == '__main__':
-    self.isEchoCommandsOn = True
     HEXA_SDK = HexaSDK()
-    HEXA_SDK.toggleSDKmode()
-    HEXA_SDK.timeBasedDemo()
+    HEXA_SDK.isEchoCommandsOn = True
+    # HEXA_SDK.toggleSDKmode()
+    # HEXA_SDK.timeBasedDemo()
     # HEXA_SDK.timeBasedOpen()
     # HEXA_SDK.timeBasedClosed()
-    # HEXA_SDK.setControllerMode('PID')
-    # HEXA_SDK.setControllerMode('time based sweep')
-    # HEXA_SDK.setControllerMode('time based single')
-    # HEXA_SDK.setControllerMode('off')
+    HEXA_SDK.setLinearActuatorWorkspace(5)
+    HEXA_SDK.setLinearActuator(5, True)
+    # HEXA_SDK.setControllerMode(HEXA_SDK.mode.pid)
+    HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSweep)
+    # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSingle)
+    # HEXA_SDK.setControllerMode(HEXA_SDK.mode.off)
+    # HEXA_SDK.setControllerMode(1)
     # HEXA_SDK.setLinearActuatorWorkspace(0)
     # HEXA_SDK.flashLed()
     # HEXA_SDK.sendCommand('led 1')

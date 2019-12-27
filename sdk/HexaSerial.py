@@ -1,7 +1,7 @@
 # *******************************************************************************
 # * @File       HexaSerial.py
 # * @Brief      Serial communication layer for the Hexa Driver SDK
-# * @Date       23/12/2019 (Last Updated)
+# * @Date       27/12/2019 (Last Updated)
 # * @Author(s)  William Bednall
 # *******************************************************************************
 

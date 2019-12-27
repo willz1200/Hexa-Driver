@@ -1,7 +1,8 @@
 # *******************************************************************************
 # * @File       HexaGUI.py
-# * @Brief      SDK for controlling the Hexa Driver and graphing data.
-# * @Date       09/12/2019 (Last Updated)
+# * @Brief      GUI that interfaces with the Hexa Driver SDK, allowing buttons,
+# *             text boxes and graphs to be linked to the SDK
+# * @Date       27/12/2019 (Last Updated)
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
@@ -16,8 +17,7 @@ from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
 import HexaProg, HexaSDK # HexaSerial
 
-#hxSerial = HexaSerial.SMU() # Instantiate a Hexa serial management unit
-HEXA_SDK = HexaSDK.HexaSDK()
+HEXA_SDK = HexaSDK.HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
 
 class HexaGUI(QtGui.QMainWindow):
 
@@ -56,8 +56,8 @@ class HexaGUI(QtGui.QMainWindow):
         self.checkBox_LA4_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(4, self.checkBox_LA4_Op.isChecked()))
         self.checkBox_LA5_Op.stateChanged.connect(lambda: HEXA_SDK.setLinearActuator(5, self.checkBox_LA5_Op.isChecked()))
 
-        # Set the current controler mode for the linear actuator in your workspace
-        self.listView_ControllerMode.selectionModel().selectionChanged.connect(self.controllerMode)
+        # Set the current controller mode for the linear actuator in your workspace
+        self.listView_ControllerMode.selectionModel().selectionChanged.connect(lambda: HEXA_SDK.setControllerMode(self.listView_ControllerMode.currentRow()))
 
         # When you select one of the options run the sdk function
         self.listView_WorkspaceSelect.selectionModel().selectionChanged.connect(lambda: HEXA_SDK.setLinearActuatorWorkspace(self.listView_WorkspaceSelect.currentRow()))
@@ -68,21 +68,11 @@ class HexaGUI(QtGui.QMainWindow):
         self.btnTimeBasedClosed.clicked.connect(HEXA_SDK.timeBasedClosed)
 
     def configGUI(self):
-        #comPorts = serial.tools.list_ports.comports() #Gets all available 
-
         # Adds all the available com ports to a drop down menue in the gui.
         for portInfo in HEXA_SDK.scanForPorts():
             self.comPortSelect.addItem(portInfo)
 
-        # if len(HEXA_SDK.hxSerial.portList) > 0:
-        #     HEXA_SDK.hxSerial.initPort(0)
-        #     HEXA_SDK.hxSerial.run()
-
-        self.checkWait = False
-
         # Configure the firmware to be SDK mode.
-        #hxSerial.write("z 1") # Sets to sdk mode. So it dosn't echo all commands.
-        #hxSerial.write("v 1") # Enable position and velocity streaming
         HEXA_SDK.toggleSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
         HEXA_SDK.togglePosVelStreamData(True) # Enable position and velocity streaming
 
@@ -91,7 +81,7 @@ class HexaGUI(QtGui.QMainWindow):
         # self.velPosGraphInit(self.myWidget)
 
         # ------------------ Compiler tab code ------------------
-        #sets up the compiler log. 
+        # Sets up the compiler log. 
         self.txt_compilerLog.append("Here is the compiler log")
         self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
@@ -101,8 +91,8 @@ class HexaGUI(QtGui.QMainWindow):
         ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options
         self.listView_ControllerMode.addItems(ControllerModeEntries)
         
-        # set up the workspces. 
-        # note ".selectionModel()" is a pyqt thing for styling. 
+        # Set up the workspces. 
+        # Note ".selectionModel()" is a pyqt thing for styling. 
         LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5'] #options.
         self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box.
 
@@ -134,19 +124,6 @@ class HexaGUI(QtGui.QMainWindow):
         HEXA_SDK.sendCommand(cmd) # Send the command via HexaSDK
         self.enterCommand.setText("") # Clear the command textbox
 
-    def controllerMode(self):
-        controllerRow = self.listView_ControllerMode.currentRow()
-        if controllerRow == 0:
-            HEXA_SDK.setControllerMode("off")
-        elif controllerRow == 1:
-            HEXA_SDK.setControllerMode("PID")
-        elif controllerRow == 2:
-            #HEXA_SDK.hxSerial.pause() # for debugging only
-            HEXA_SDK.setControllerMode("time based sweep")
-        elif controllerRow == 3:
-            #HEXA_SDK.hxSerial.play() # for debugging only
-            HEXA_SDK.setControllerMode("time based single")
-
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
@@ -164,9 +141,8 @@ class HexaGUI(QtGui.QMainWindow):
         OUTPUTS: n/a
         '''
         HexaProg.procLoop(HEXA_SDK.ser, self.txt_compilerLog)
-        if (self.checkWait):
-            print("Test")
 
+    # Override the built-in PyQt keyPressEvent function handler and look for enter key press events
     def keyPressEvent(self, event):
         '''
         Track if the enter key/ carrage return key has been pressed and linked 
@@ -175,7 +151,6 @@ class HexaGUI(QtGui.QMainWindow):
         INPUT: Event: pulls the key data.
         OUTPUT: n/a
         '''
-        #super(myGUI, self).keyPressEvent(event)
         if (event.key() == QtCore.Qt.Key_Enter) or (event.key() == QtCore.Qt.Key_Return):
             self.sendCommandAndClear()
         event.accept()
@@ -202,7 +177,7 @@ class HexaGUI(QtGui.QMainWindow):
         self.dataB = np.empty(500)
         self.ptr = 0
 
-        # real time grapphing timer
+        # real time graphing timer
         timer = pg.QtCore.QTimer(self)
         timer.timeout.connect(self.velPosGraphUpdate)
         timer.start(5)
@@ -214,8 +189,8 @@ class HexaGUI(QtGui.QMainWindow):
 
     def velPosGraphUpdate(self):
         '''
-        Realtime data entery for the plot widget on the worksace tab. REads in the 
-        Data from the serial port and plots anything with an s. 
+        Realtime data entery for the plot widget on the worksace tab. Reads in the 
+        data from the serial port and plots anything prefixed with an s. 
 
         INPUT: n/a
         OUTPUT: n/a 
@@ -248,18 +223,25 @@ class HexaGUI(QtGui.QMainWindow):
                 self.historyCommand.append(miscLine) # Place in command history
 
             self.statusbar.showMessage("Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate()))
+    
+    def guiClosedEvent(self):
+        print("The GUI has been closed, bye")
 
-    # ----------------------------------------------------------------
-    # ------------------------- MAIN -------------------------
-    # ----------------------------------------------------------------
+    def guiMainLoop(self):
+        self.show() # Show the Hexa GUI on the screen
+        exitCode = app.exec_() # Start the PyQt event loop, will block until application is closed...
+        self.guiClosedEvent()
+        return exitCode
+        
+
+# ----------------------------------------------------------------
+# ------------------------- MAIN ---------------------------------
+# ----------------------------------------------------------------
 if __name__ == '__main__':
-
+    # Create QApplication instance if one doesn't currently exist QApplication instance
     if QtGui.QApplication.instance() is None:
         app = QtGui.QApplication(sys.argv)
 
-    ObjHexaGUI = HexaGUI()
-    ObjHexaGUI.show()
-    # ObjHexaGUI.start()
-    self = ObjHexaGUI
-    exitCode = app.exec_() # Will block until application is closed
-    sys.exit(exitCode)
+    ObjHexaGUI = HexaGUI() # Instantiate the Hexa GUI object
+    exitCode = ObjHexaGUI.guiMainLoop() # Enter the GUI event loop
+    sys.exit(exitCode) # Exit with given code
