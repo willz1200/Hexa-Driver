@@ -135,19 +135,18 @@ class HexaGUI(QtGui.QMainWindow):
         self.inoFilePath.setText(filename)
 
     def firmwareCompileOnly(self):
-        HexaProg.compile(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
+        HexaProg.compile(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
 
     def firmwareCompileAndUpload(self):
-        HexaProg.compileAndUpload(HEXA_SDK.ser, self.txt_compilerLog, self.inoFilePath.text())
+        HexaProg.compileAndUpload(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
 
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
 
-    def progTimer(self):
+    def progPoll(self):
         # Programing interface thread poling for compiler log outputs. 
-
-        HexaProg.procLoop(HEXA_SDK.ser, self.txt_compilerLog)
+        HexaProg.procLoop(HEXA_SDK, self.txt_compilerLog)
 
     def sendCommandAndClear(self):
         # Pullls the string out of the text box and sends it to the serial port via SDK. 
@@ -192,14 +191,14 @@ class HexaGUI(QtGui.QMainWindow):
         self.ptr = 0
 
         # real time graphing timer
-        timer = pg.QtCore.QTimer(self)
-        timer.timeout.connect(self.velPosGraphUpdate)
-        timer.start(5)
+        timerGraph = pg.QtCore.QTimer(self)
+        timerGraph.timeout.connect(self.velPosGraphUpdate)
+        timerGraph.start(5)
 
         #firmware compiling timer 
-        timer = pg.QtCore.QTimer(self)
-        timer.timeout.connect(self.progTimer)
-        timer.start(10)
+        timerProg = pg.QtCore.QTimer(self)
+        timerProg.timeout.connect(self.progPoll)
+        timerProg.start(10)
 
     def velPosGraphUpdate(self):
         '''

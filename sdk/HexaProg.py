@@ -19,21 +19,15 @@ def enqueue_output(out, queue):
         queue.put(line)
     out.close()
 
-def procWrapper(serialPort, uploadMode, logBox, inoPath):
+def procWrapper(HexaSdkObj, uploadMode, logBox, inoPath):
     global programming, compilingOnly, proc, qStdout, qStderr, pathToArduino
-
-    #print(serialPort)
 
     # Somthing to do with multithreading
     if (uploadMode == True):
         programming = True # Flag that a subprocess is running in the background
-
-        try:
-            serialPort.close()
-        except:
-            print("Couldn't close the serial port")
-
-        proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--port", serialPort.port, "--upload", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        comPort = HexaSdkObj.ser.port # Get the COM port currently in use
+        HexaSdkObj.pause() # Release the serial port to allow the board to be programmed
+        proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--port", comPort, "--upload", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
         compilingOnly = True
 
@@ -55,7 +49,7 @@ def procWrapper(serialPort, uploadMode, logBox, inoPath):
     tStderr.setName("stderrProg")
     tStderr.start()
 
-def procLoop(serialPort, logBox):
+def procLoop(HexaSdkObj, logBox):
     global programming, compilingOnly, proc, qStdout, qStderr
 
     # Allow code in the loop until subprocess terminates, proc.poll will return None if the process hasn't completed
@@ -85,10 +79,7 @@ def procLoop(serialPort, logBox):
                 logBox.append("<span style=\"color: rgb(235, 100, 52);\" >" + str(lineErr) + "</span>")
         else:
             if programming is True:
-                try:
-                    serialPort.open()
-                except:
-                    print("Couldn't open the serial port")
+                HexaSdkObj.play() # Programming complete, reconnect to the serial port
             programming = False
             compilingOnly = False
 
@@ -100,8 +91,8 @@ def getCompMode():
     global compilingOnly
     return compilingOnly
 
-def compile(serialPort, logBox, inoPath):
-    procWrapper(serialPort, False, logBox, inoPath)
+def compile(HexaSdkObj, logBox, inoPath):
+    procWrapper(HexaSdkObj, False, logBox, inoPath)
 
-def compileAndUpload(serialPort, logBox, inoPath):
-    procWrapper(serialPort, True, logBox, inoPath)
+def compileAndUpload(HexaSdkObj, logBox, inoPath):
+    procWrapper(HexaSdkObj, True, logBox, inoPath)
