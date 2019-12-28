@@ -22,16 +22,18 @@ def enqueue_output(out, queue):
 def procWrapper(HexaSdkObj, uploadMode, logBox, inoPath):
     global programming, compilingOnly, proc, qStdout, qStderr, pathToArduino
 
-    # Somthing to do with multithreading
+    # Cache the preprocessed .cpp file, compiled .o files and the final .hex file, to help decrease the compilation time
+    outputPath = "build.path={}".format(inoPath + "\\..\\..\\Output")
+
+    # Decide whether to enter compile only mode OR compile & upload mode
     if (uploadMode == True):
         programming = True # Flag that a subprocess is running in the background
         comPort = HexaSdkObj.ser.port # Get the COM port currently in use
         HexaSdkObj.pause() # Release the serial port to allow the board to be programmed
-        proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--port", comPort, "--upload", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen([pathToArduino, "--pref", outputPath, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--port", comPort, "--upload", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
         compilingOnly = True
-
-        proc = subprocess.Popen([pathToArduino, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--verify", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen([pathToArduino, "--pref", outputPath, "--board", "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd", "--verbose", "--verify", inoPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     #Make queue thread to read subprocess stdout without blocking loop
     qStdout = Queue()
@@ -54,7 +56,7 @@ def procLoop(HexaSdkObj, logBox):
 
     # Allow code in the loop until subprocess terminates, proc.poll will return None if the process hasn't completed
     if (programming is True or compilingOnly is True):
-        if(proc.poll() is None):
+        if (proc.poll() is None or (qStdout.qsize() != 0) or (qStderr.qsize() != 0)):
             # Check if data is available from programming subprocess stdout
             try:
                 lineOut = qStdout.get_nowait() # Remove and return an item from the queue
@@ -80,6 +82,7 @@ def procLoop(HexaSdkObj, logBox):
         else:
             if programming is True:
                 HexaSdkObj.play() # Programming complete, reconnect to the serial port
+            #print("Return Code: {}".format(proc.returncode))
             programming = False
             compilingOnly = False
 

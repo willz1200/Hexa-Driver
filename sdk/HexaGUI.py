@@ -190,12 +190,12 @@ class HexaGUI(QtGui.QMainWindow):
         self.dataB = np.empty(500)
         self.ptr = 0
 
-        # real time graphing timer
+        # real time graphing timer - This Needs Optimising!!!
         timerGraph = pg.QtCore.QTimer(self)
         timerGraph.timeout.connect(self.velPosGraphUpdate)
         timerGraph.start(5)
 
-        #firmware compiling timer 
+        # firmware compiling timer - This Needs Optimising!!!
         timerProg = pg.QtCore.QTimer(self)
         timerProg.timeout.connect(self.progPoll)
         timerProg.start(10)
