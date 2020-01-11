@@ -19,6 +19,20 @@ import HexaProg, HexaSDK
 
 HEXA_SDK = HexaSDK.HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
 
+# Thread class to pull new graph data points into the GUI
+class graphWorker(QtCore.QThread):
+    onDataAvailable = QtCore.pyqtSignal(str) #Create signal to update graph
+
+    def __init__(self, graphStr, parent=None):
+        super(graphWorker, self).__init__(parent)
+        self.gStr = graphStr
+
+    def run(self):
+        while True:
+            line = HEXA_SDK.readLine(self.gStr, True) #Blocks until graph data is available
+            if (line != None):
+                self.onDataAvailable.emit(line)
+
 class HexaGUI(QtGui.QMainWindow):
 
     def __init__(self):
@@ -186,19 +200,92 @@ class HexaGUI(QtGui.QMainWindow):
 
         self.curve = graph.plot(pen='g', name='Position')
         self.curveB = graph.plot(pen='r', name='Velocity')
-        self.data = np.empty(500)
-        self.dataB = np.empty(500)
+        self.data = np.empty(600)
+        self.dataB = np.empty(600)
         self.ptr = 0
 
+        zeroArr = np.zeros(10)
+        testArr = np.array([zeroArr])
+        for x in range(0, 2):
+            testArr = np.vstack((testArr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+
+        testArr[0,5] = 50.7
+        testArr[1,5] = 50.2
+        testArr[2,7] = 50.3
+        print(testArr)
+        # testArr[0,:-1] = testArr[0,1:] #Shift Left
+        # print(testArr)
+        # testArr[0,1:] = testArr[0,:-1] #Shift Right
+        # print(testArr)
+        # testArr[0,-1] = 61.2
+        # print(testArr)
+        # testArr[0,1:] = testArr[0,:-1] #Shift Right
+        # print(testArr)
+
         # real time graphing timer - This Needs Optimising!!!
-        timerGraph = pg.QtCore.QTimer(self)
-        timerGraph.timeout.connect(self.velPosGraphUpdate)
-        timerGraph.start(5)
+        #timerGraph = pg.QtCore.QTimer(self)
+        #timerGraph.timeout.connect(self.velPosGraphUpdate)
+        #timerGraph.start(5)
 
         # firmware compiling timer - This Needs Optimising!!!
         timerProg = pg.QtCore.QTimer(self)
         timerProg.timeout.connect(self.progPoll)
         timerProg.start(10)
+
+        # Real time graphing timer, using threads (Much more optimised)
+        self.threadGraphA = graphWorker("graphA")
+        self.threadGraphA.start()
+        self.threadGraphA.onDataAvailable.connect(self.addDataToGraphA) # Signal to trigger a graph update
+
+        self.threadGraphB = graphWorker("graphB")
+        self.threadGraphB.start()
+        self.threadGraphB.onDataAvailable.connect(self.addDataToGraphB)
+
+    def addDataToGraphA(self, line):
+        self.historyCommand.append(line)
+        line = line.split(',')
+        if (line[0] == 's'):
+            self.graphLogic(line[2], self.data, self.curve, True)
+            self.graphLogic(line[3], self.dataB, self.curveB, False)
+
+    def graphLogic(self, newData, dataArray, curve, first):
+        dataArray[self.ptr] = float(newData)    # Insert new data point
+
+        # If the array is full, start shifting the sample point open place to the left
+        if (self.ptr < dataArray.shape[0]-1):
+            if first is True:
+                self.ptr += 1                       # Move to next element if array isn't full
+        else:
+            dataArray[:-1] = dataArray[1:]      # Shift all the samples one place left
+
+        curve.setData(dataArray[:self.ptr]) # Show part of array that contains data on graph
+        curve.setPos(-self.ptr, 0)
+
+    def addDataToGraphAorg(self, line):
+        self.historyCommand.append(line)
+        line = line.split(',')
+        if (line[0] == 's'):
+            self.data[self.ptr] = float(line[2])   #Place data at current ptr index location
+            self.dataB[self.ptr] = float(line[3])
+            self.ptr += 1 # Move to next ptr index location
+            if self.ptr >= self.data.shape[0]: # Check if the array is full, if so double the size of the array
+                # Temp copy of the data
+                tmp = self.data    
+                tmpB = self.dataB
+                # Increase size of array (Not very efficient because the array will double in size once its full), will replace with np.roll(x, -1) # Shift data left
+                self.data = np.empty(self.data.shape[0] * 2)   # .shape returns the n*m size of the array, as this is 1D it will be 500
+                self.dataB = np.empty(self.dataB.shape[0] * 2)
+                # Copy temp data back in
+                self.data[:tmp.shape[0]] = tmp          # :tmp.shape[0] is the first 500 elements
+                self.dataB[:tmpB.shape[0]] = tmpB
+            # Draw array to graph
+            self.curve.setData(self.data[:self.ptr])
+            self.curve.setPos(-self.ptr, 0)
+            self.curveB.setData(self.dataB[:self.ptr])
+            self.curveB.setPos(-self.ptr, 0)
+
+    def addDataToGraphB(self, line):
+        pass
 
     def velPosGraphUpdate(self):
         '''
@@ -246,7 +333,7 @@ class HexaGUI(QtGui.QMainWindow):
         exitCode = app.exec_() # Start the PyQt event loop, will block until application is closed...
         self.guiClosedEvent()
         return exitCode
-        
+
 # ----------------------------------------------------------------
 # ------------------------- MAIN ---------------------------------
 # ----------------------------------------------------------------

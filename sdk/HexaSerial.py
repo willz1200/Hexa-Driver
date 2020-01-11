@@ -120,10 +120,20 @@ class SMU():
         #qOutgoing.put(data)
         self.qOutgoing.put_nowait(data)
 
-    # Get data from the given dispatch queue
+    # Get data from the given dispatch queue, if available
     def readLineQ(self, queue):
         try:
             lineTest = queue.get_nowait()
+        except Empty:
+            pass # The queue is empty, do nothing
+        else:
+            #lineTest = lineTest.decode('ascii')
+            return lineTest
+
+    # Get data from the given dispatch queue, blocks until available
+    def readLineBlockingQ(self, queue):
+        try:
+            lineTest = queue.get()
         except Empty:
             pass # The queue is empty, do nothing
         else:

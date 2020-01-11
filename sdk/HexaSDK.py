@@ -236,19 +236,23 @@ class HexaSDK(HexaSerial.SMU):
         '''
         pass
 
-    def readLine(self, queueName):
+    def readLine(self, queueName, blocking=False):
         '''
         Read data in from the HexaSerial incoming queue, using a string to find the queue
         '''
         targetQueue =  self.qMisc
-        if (queueName == "graphA"):
+        if (queueName == "graphA"): 
             targetQueue = self.qGraphA
         elif (queueName == "graphB"):
             targetQueue = self.qGraphB
         elif (queueName == "misc"):
             targetQueue = self.qMisc
 
-        miscLine = self.readLineQ(targetQueue)
+        if (blocking == True):
+            miscLine = self.readLineBlockingQ(targetQueue)
+        else:
+            miscLine = self.readLineQ(targetQueue)
+
         if (miscLine != None):
             return miscLine
 
