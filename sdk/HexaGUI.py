@@ -204,15 +204,29 @@ class HexaGUI(QtGui.QMainWindow):
         self.dataB = np.empty(600)
         self.ptr = 0
 
-        zeroArr = np.zeros(10)
-        testArr = np.array([zeroArr])
-        for x in range(0, 2):
-            testArr = np.vstack((testArr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+        # self.posErrorCurve = graphB.plot(pen='r', name='Accumulate Velocity Error')
+        # self.velErrorCurve = graphB.plot(pen='g', name='Velocity Error')
+        # self.EncoderPosCurve = graphB.plot(pen='b', name='Encoder Position')
+        # self.velDesiredCurve = graphB.plot(pen='c', name='Desired Velocity')
+        # self.outDesiredCurve = graphB.plot(pen='m', name='Desired Duty Cycle')
+        # self.EncoderRPMCurve = graphB.plot(pen='y', name='Encoder Velocity')
 
-        testArr[0,5] = 50.7
-        testArr[1,5] = 50.2
-        testArr[2,7] = 50.3
-        print(testArr)
+        # self.posError = np.empty(600)
+        # self.velError = np.empty(600)
+        # self.EncoderPos = np.empty(600)
+        # self.velDesired = np.empty(600)
+        # self.outDesired = np.empty(600)
+        # self.EncoderRPM = np.empty(600)
+
+        zeroArr = np.zeros(600)
+        self.testArr = np.array([zeroArr])
+        for x in range(0, 2):
+            self.testArr = np.vstack((self.testArr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+
+        # testArr[0,5] = 50.7
+        # testArr[1,5] = 50.2
+        # testArr[2,7] = 50.3
+        # print(self.testArr[0])
         # testArr[0,:-1] = testArr[0,1:] #Shift Left
         # print(testArr)
         # testArr[0,1:] = testArr[0,:-1] #Shift Right
@@ -235,7 +249,7 @@ class HexaGUI(QtGui.QMainWindow):
         # Real time graphing timer, using threads (Much more optimised)
         self.threadGraphA = graphWorker("graphA")
         self.threadGraphA.start()
-        self.threadGraphA.onDataAvailable.connect(self.addDataToGraphA) # Signal to trigger a graph update
+        self.threadGraphA.onDataAvailable.connect(self.addDataToGraphA) # Signal to trigger a g raph update
 
         self.threadGraphB = graphWorker("graphB")
         self.threadGraphB.start()
@@ -244,11 +258,38 @@ class HexaGUI(QtGui.QMainWindow):
     def addDataToGraphA(self, line):
         self.historyCommand.append(line)
         line = line.split(',')
-        if (line[0] == 's'):
-            self.graphLogic(line[2], self.data, self.curve, True)
-            self.graphLogic(line[3], self.dataB, self.curveB, False)
+        #if (line[0] == 's'): # No longer needed due to dispatch queues
+        self.graphLogic(line[2], self.data, self.curve, True)
+        self.graphLogic(line[3], self.dataB, self.curveB, False)
+        #self.graphLogicArr(line[2], 0, self.curve, False)
+        #self.graphLogicArr(line[3], 1, self.curveB, False)
+
+    def addDataToGraphB(self, line):
+        self.historyCommand.append(line)
+        line = line.split(',')
+        # self.graphLogic(line[1], self.posError, self.posErrorCurve, True)
+        # self.graphLogic(line[2], self.velError, self.velErrorCurve, False)
+        # self.graphLogic(line[3], self.EncoderPos, self.EncoderPosCurve, False)
+        # self.graphLogic(line[4], self.velDesired, self.velDesiredCurve, False)
+        # self.graphLogic(line[5], self.outDesired, self.outDesiredCurve, False)
+        # self.graphLogic(line[6], self.EncoderRPM, self.EncoderRPMCurve, False)
+
+    def graphLogicArr(self, newData, dataArray, curve, first):
+        #print(self.testArr[dataArray])
+        self.testArr[dataArray, self.ptr] = float(newData)    # Insert new data point
+
+        # If the array is full, start shifting the sample point open place to the left
+        if (self.ptr < self.testArr[dataArray].shape[0]-1):
+            if first is True:
+                self.ptr += 1                       # Move to next element if array isn't full
+        else:
+            self.testArr[dataArray, :-1] = self.testArr[dataArray, 1:]      # Shift all the samples one place left
+
+        curve.setData(self.testArr[dataArray, :self.ptr]) # Show part of array that contains data on graph
+        curve.setPos(-self.ptr, 0)
 
     def graphLogic(self, newData, dataArray, curve, first):
+        #print(dataArray)
         dataArray[self.ptr] = float(newData)    # Insert new data point
 
         # If the array is full, start shifting the sample point open place to the left
@@ -283,9 +324,6 @@ class HexaGUI(QtGui.QMainWindow):
             self.curve.setPos(-self.ptr, 0)
             self.curveB.setData(self.dataB[:self.ptr])
             self.curveB.setPos(-self.ptr, 0)
-
-    def addDataToGraphB(self, line):
-        pass
 
     def velPosGraphUpdate(self):
         '''
