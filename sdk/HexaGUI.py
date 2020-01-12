@@ -198,30 +198,44 @@ class HexaGUI(QtGui.QMainWindow):
         graph.setRange(xRange=[-500, 0])
         graph.setLimits(xMax=0)
 
-        self.curve = graph.plot(pen='g', name='Position')
-        self.curveB = graph.plot(pen='r', name='Velocity')
-        self.data = np.empty(600)
-        self.dataB = np.empty(600)
         self.ptr = 0
 
-        # self.posErrorCurve = graphB.plot(pen='r', name='Accumulate Velocity Error')
-        # self.velErrorCurve = graphB.plot(pen='g', name='Velocity Error')
-        # self.EncoderPosCurve = graphB.plot(pen='b', name='Encoder Position')
-        # self.velDesiredCurve = graphB.plot(pen='c', name='Desired Velocity')
-        # self.outDesiredCurve = graphB.plot(pen='m', name='Desired Duty Cycle')
-        # self.EncoderRPMCurve = graphB.plot(pen='y', name='Encoder Velocity')
+        # zeroArr = np.zeros(600)
+        # self.testArr = np.array([zeroArr])
+        # for x in range(0, 2):
+        #     self.testArr = np.vstack((self.testArr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+        
+        self.graphDataA = [
 
-        # self.posError = np.empty(600)
-        # self.velError = np.empty(600)
-        # self.EncoderPos = np.empty(600)
-        # self.velDesired = np.empty(600)
-        # self.outDesired = np.empty(600)
-        # self.EncoderRPM = np.empty(600)
+            # Allocate memory for scrolling graph data
+            self.createGraphDataArray(600, 2), # Length: 600, Rows: 2
+            
+            # Point to index of the new data
+            [2, 3],
 
-        zeroArr = np.zeros(600)
-        self.testArr = np.array([zeroArr])
-        for x in range(0, 2):
-            self.testArr = np.vstack((self.testArr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+            # Create plot curve for each data series
+            [graph.plot(pen='g', name='Position'),
+            graph.plot(pen='r', name='Velocity')]
+
+        ]
+
+        # self.graphDataB = [
+
+        #     # Allocate memory for scrolling graph data
+        #     self.createGraphDataArray(600, 6), # Length: 600, Rows: 2
+            
+        #     # Point to index of the new data
+        #     [1, 2, 3, 4, 5, 6],
+
+        #     # Create plot curve for each data series
+        #     [graphB.plot(pen='r', name='Accumulate Velocity Error'),
+        #     graphB.plot(pen='g', name='Velocity Error'),
+        #     graphB.plot(pen='b', name='Encoder Position'),
+        #     graphB.plot(pen='c', name='Desired Velocity'),
+        #     graphB.plot(pen='m', name='Desired Duty Cycle'),
+        #     graphB.plot(pen='y', name='Encoder Velocity')]
+
+        # ]
 
         # testArr[0,5] = 50.7
         # testArr[1,5] = 50.2
@@ -255,38 +269,45 @@ class HexaGUI(QtGui.QMainWindow):
         self.threadGraphB.start()
         self.threadGraphB.onDataAvailable.connect(self.addDataToGraphB)
 
+    def createGraphDataArray(self, length, rows):
+        zeroArr = np.zeros(length)
+        arr = np.array([zeroArr])
+        for x in range(0, rows-1):
+            arr = np.vstack((arr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+        return arr
+
     def addDataToGraphA(self, line):
         self.historyCommand.append(line)
         line = line.split(',')
-        #if (line[0] == 's'): # No longer needed due to dispatch queues
-        self.graphLogic(line[2], self.data, self.curve, True)
-        self.graphLogic(line[3], self.dataB, self.curveB, False)
-        #self.graphLogicArr(line[2], 0, self.curve, False)
-        #self.graphLogicArr(line[3], 1, self.curveB, False)
+        self.graphLogicMapped(self.graphDataA, 0, line, True)
+        self.graphLogicMapped(self.graphDataA, 1, line, False)
 
     def addDataToGraphB(self, line):
         self.historyCommand.append(line)
-        line = line.split(',')
-        # self.graphLogic(line[1], self.posError, self.posErrorCurve, True)
-        # self.graphLogic(line[2], self.velError, self.velErrorCurve, False)
-        # self.graphLogic(line[3], self.EncoderPos, self.EncoderPosCurve, False)
-        # self.graphLogic(line[4], self.velDesired, self.velDesiredCurve, False)
-        # self.graphLogic(line[5], self.outDesired, self.outDesiredCurve, False)
-        # self.graphLogic(line[6], self.EncoderRPM, self.EncoderRPMCurve, False)
+        line = line.split(',') # Convert line into new data array
+        # self.graphLogicMapped(self.graphDataB, 0, line, True)
+        # self.graphLogicMapped(self.graphDataB, 1, line, False)
+        # self.graphLogicMapped(self.graphDataB, 2, line, False)
+        # self.graphLogicMapped(self.graphDataB, 3, line, False)
+        # self.graphLogicMapped(self.graphDataB, 4, line, False)
+        # self.graphLogicMapped(self.graphDataB, 5, line, False)
 
-    def graphLogicArr(self, newData, dataArray, curve, first):
-        #print(self.testArr[dataArray])
-        self.testArr[dataArray, self.ptr] = float(newData)    # Insert new data point
+    def graphLogicMapped(self, graphData, curveId, lineData, first):
+        scrollMemory = graphData[0][curveId]
+        newDataIndex = graphData[1][curveId]
+        dataCurves = graphData[2][curveId]
+
+        scrollMemory[self.ptr] = float(lineData[newDataIndex]) # Insert new data point
 
         # If the array is full, start shifting the sample point open place to the left
-        if (self.ptr < self.testArr[dataArray].shape[0]-1):
+        if (self.ptr < scrollMemory.shape[0]-1):
             if first is True:
                 self.ptr += 1                       # Move to next element if array isn't full
         else:
-            self.testArr[dataArray, :-1] = self.testArr[dataArray, 1:]      # Shift all the samples one place left
+            scrollMemory[:-1] = scrollMemory[1:]      # Shift all the samples one place left
 
-        curve.setData(self.testArr[dataArray, :self.ptr]) # Show part of array that contains data on graph
-        curve.setPos(-self.ptr, 0)
+        dataCurves.setData(scrollMemory[:self.ptr]) # Show part of array that contains data on graph
+        dataCurves.setPos(-self.ptr, 0)
 
     def graphLogic(self, newData, dataArray, curve, first):
         #print(dataArray)
