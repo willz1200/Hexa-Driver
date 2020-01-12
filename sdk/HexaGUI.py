@@ -35,8 +35,15 @@ class graphWorker(QtCore.QThread):
 
 class graphScrollLogic():
 
-    def __init__(self):
+    def __init__(self, graphStr):
         self.arrPtr = 0
+        
+        # Real time graphing using threads (Fairly well optimised)
+        self.graphThread = graphWorker(graphStr)
+        self.graphThread.onDataAvailable.connect(self.update) #self.addDataToGraphA) # Signal to trigger a g raph update
+
+    def start(self):
+        self.graphThread.start()
 
     def setNewDataIndexing(self, inNewDataIndex):
         self.newDataIndex = inNewDataIndex
@@ -238,17 +245,22 @@ class HexaGUI(QtGui.QMainWindow):
         INPUT: Graph, widget configured to a plot widgit. 
         OUTPUT: n/a
         '''
+        
+        # Label graph Axis
         graph.setLabel('left', 'Encoder Counts', units='')
         graph.setLabel('bottom', 'Time', units='s')
         graph.addLegend()
+
         # Use automatic downsampling and clipping to reduce the drawing load
         graph.setDownsampling(mode='peak')
         graph.setClipToView(True)
+
+        # Set axis limits
         graph.setRange(xRange=[-500, 0])
         graph.setLimits(xMax=0)
 
-        # Setup scrolling logic for graph A
-        self.testGraphA = graphScrollLogic()
+        # Setup graph updating and scrolling
+        self.testGraphA = graphScrollLogic("graphA")
         self.testGraphA.setScrollingMemory(600, 2)
         self.testGraphA.setNewDataIndexing([2, 3])
         self.testGraphA.setPlotCurves([
@@ -256,10 +268,9 @@ class HexaGUI(QtGui.QMainWindow):
             graph.plot(pen='r', name='Velocity')    # 3
         ])
 
-        # Real time graphing timer, using threads (Much more optimised)
-        self.threadGraphA = graphWorker("graphA")
-        self.threadGraphA.start()
-        self.threadGraphA.onDataAvailable.connect(self.testGraphA.update) #self.addDataToGraphA) # Signal to trigger a g raph update
+        # Start the graph updater thread
+        self.testGraphA.start()
+
 
     def errorGraphInit(self, graph):
         '''
@@ -268,16 +279,22 @@ class HexaGUI(QtGui.QMainWindow):
         INPUT: Graph, widget configured to a plot widgit. 
         OUTPUT: n/a
         '''
+
+        # Label graph Axis
         graph.setLabel('left', 'Encoder Counts', units='')
         graph.setLabel('bottom', 'Time', units='s')
         graph.addLegend()
+
         # Use automatic downsampling and clipping to reduce the drawing load
         graph.setDownsampling(mode='peak')
         graph.setClipToView(True)
+
+        # Set axis limits
         graph.setRange(xRange=[-500, 0])
         graph.setLimits(xMax=0)
 
-        self.testGraphB = graphScrollLogic()
+        # Setup graph updating and scrolling
+        self.testGraphB = graphScrollLogic("graphB")
         self.testGraphB.setScrollingMemory(600, 6)
         self.testGraphB.setNewDataIndexing([1, 2, 3, 4, 5, 6])
         self.testGraphB.setPlotCurves([
@@ -289,9 +306,8 @@ class HexaGUI(QtGui.QMainWindow):
             graph.plot(pen='y', name='Encoder Velocity')           # 6
         ])
 
-        self.threadGraphB = graphWorker("graphB")
-        self.threadGraphB.start()
-        self.threadGraphB.onDataAvailable.connect(self.testGraphB.update) #self.addDataToGraphB)
+        # Start the graph updater thread
+        self.testGraphB.start()
 
     def velPosGraphUpdate(self):
         '''
