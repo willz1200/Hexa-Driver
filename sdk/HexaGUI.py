@@ -20,11 +20,11 @@ import HexaProg, HexaSDK
 HEXA_SDK = HexaSDK.HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
 
 # Thread class to pull new graph data points into the GUI
-class graphWorker(QtCore.QThread):
+class queueWorker(QtCore.QThread):
     onDataAvailable = QtCore.pyqtSignal(str) #Create signal to update graph
 
     def __init__(self, graphStr, parent=None):
-        super(graphWorker, self).__init__(parent)
+        super(queueWorker, self).__init__(parent)
         self.gStr = graphStr
 
     def run(self):
@@ -39,7 +39,7 @@ class graphScrollLogic():
         self.arrPtr = 0
         
         # Real time graphing using threads (Fairly well optimised)
-        self.graphThread = graphWorker(graphStr)
+        self.graphThread = queueWorker(graphStr)
         self.graphThread.onDataAvailable.connect(self.update) #self.addDataToGraphA) # Signal to trigger a g raph update
 
     def start(self):
@@ -165,28 +165,27 @@ class HexaGUI(QtGui.QMainWindow):
         for portInfo in HEXA_SDK.scanForPorts():
             self.comPortSelect.addItem(portInfo)
 
+        # Status bar data rate update timer
+        timerDataRate = pg.QtCore.QTimer(self)
+        timerDataRate.timeout.connect(self.dataRateUpdate)
+        timerDataRate.start(500)
+
+        # ------------------ Workspace tab setup ------------------
+
         # Configure the firmware to be SDK mode.
         HEXA_SDK.setSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
         HEXA_SDK.setPosVelStreamData(True) # Enable position and velocity streaming
+
+        self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked.
 
         # Set up real time graphs on the workspace tab.
         self.velPosGraphInit(self.widget)
         self.errorGraphInit(self.myWidget)
 
-        # Future placeholder for modelling plot
-        # self.modellingPlot
-
-        # firmware compiling timer - This Needs Optimising!!!
-        timerProg = pg.QtCore.QTimer(self)
-        timerProg.timeout.connect(self.progPoll)
-        timerProg.start(10)
-
-        # ------------------ Compiler tab code ------------------
-        # Sets up the compiler log. 
-        self.txt_compilerLog.append("Here is the compiler log")
-        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
-
-        self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked.
+        # Create thread to get misc serial data and place it into the command history text box
+        self.miscThread = queueWorker("misc")
+        self.miscThread.onDataAvailable.connect(self.miscSerialData) # Signal to trigger a misc data display
+        self.miscThread.start()
 
         # Set the current controller mode for the linear actuator in your workspace
         ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options
@@ -195,6 +194,19 @@ class HexaGUI(QtGui.QMainWindow):
         # Set up the workspces.
         LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5'] #options.
         self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box.
+
+        # Future placeholder for modelling plot
+        # self.modellingPlot
+
+        # ------------------ Compiler tab setup ------------------
+        # firmware compiling timer - This Needs Optimising!!!
+        timerProg = pg.QtCore.QTimer(self)
+        timerProg.timeout.connect(self.progPoll)
+        timerProg.start(10)
+
+        # Sets up the compiler log. 
+        self.txt_compilerLog.append("Here is the compiler log")
+        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
     # ----------------------------------------------------------------
     # -------------- Firmware Compiler Commands ----------------------
@@ -245,7 +257,7 @@ class HexaGUI(QtGui.QMainWindow):
         INPUT: Graph, widget configured to a plot widgit. 
         OUTPUT: n/a
         '''
-        
+
         # Label graph Axis
         graph.setLabel('left', 'Encoder Counts', units='')
         graph.setLabel('bottom', 'Time', units='s')
@@ -309,43 +321,14 @@ class HexaGUI(QtGui.QMainWindow):
         # Start the graph updater thread
         self.testGraphB.start()
 
-    def velPosGraphUpdate(self):
-        '''
-        Realtime data entery for the plot widget on the worksace tab. Reads in the 
-        data from the serial port and plots anything prefixed with an s. 
+    def miscSerialData(self, line):
+        if (line != None):
+            self.historyCommand.append(line) # Place in command history
 
-        INPUT: n/a
-        OUTPUT: n/a 
-        '''
-        if (HexaProg.getProgMode() == False):
-            line = HEXA_SDK.readLine("graphA")
-            if (line != None):
-                #print (HexaSerial.debugSize())
-                #print (HexaSerial.debugLength())
-                self.historyCommand.append(line) # add text to command box
-                line = line.split(',')
-                if (line[0] == 's'):
-                    self.data[self.ptr] = float(line[2])
-                    self.dataB[self.ptr] = float(line[3])
-                    self.ptr += 1
-                    if self.ptr >= self.data.shape[0]:
-                        tmp = self.data
-                        tmpB = self.dataB
-                        self.data = np.empty(self.data.shape[0] * 2)
-                        self.dataB = np.empty(self.dataB.shape[0] * 2)
-                        self.data[:tmp.shape[0]] = tmp
-                        self.dataB[:tmpB.shape[0]] = tmpB
-                    self.curve.setData(self.data[:self.ptr])
-                    self.curve.setPos(-self.ptr, 0)
-                    self.curveB.setData(self.dataB[:self.ptr])
-                    self.curveB.setPos(-self.ptr, 0)
-
-            miscLine = HEXA_SDK.readLine("misc") # Pull data from misc queue
-            if (miscLine != None):
-                self.historyCommand.append(miscLine) # Place in command history
-
-            dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
-            self.statusbar.showMessage(dataRates)
+    # Update data rate in status bar
+    def dataRateUpdate(self):
+        dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
+        self.statusbar.showMessage(dataRates)
     
     def guiClosedEvent(self):
         print("The GUI has been closed, bye")
