@@ -33,6 +33,46 @@ class graphWorker(QtCore.QThread):
             if (line != None):
                 self.onDataAvailable.emit(line)
 
+class graphScrollLogic():
+
+    def __init__(self):
+        self.arrPtr = 0
+
+    def setNewDataIndexing(self, inNewDataIndex):
+        self.newDataIndex = inNewDataIndex
+
+    def setScrollingMemory(self, length, rows):
+        zeroArr = np.zeros(length)
+        self.scrollMemory = np.array([zeroArr])
+        for x in range(0, rows-1):
+            self.scrollMemory = np.vstack((self.scrollMemory, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+
+    def setPlotCurves(self, plotDataCurves):
+        self.dataCurves = plotDataCurves
+
+    def update(self, line):
+        # lenNewDataIndex = len(self.newDataIndex)
+        # lenDataCurves = len(self.dataCurves)
+        # if (lenNewDataIndex == lenDataCurves):
+
+        for curveId in range(0, len(self.newDataIndex)):
+            self.scrollMemory[curveId, self.arrPtr] = float(line[self.newDataIndex[curveId]]) # Insert new data point
+
+            # If the array is full, start shifting the sample point open place to the left
+            if (self.arrPtr < self.scrollMemory[curveId].shape[0]-1):
+                if (curveId == 0):
+                    self.arrPtr += 1                                # Move to next element if array isn't full
+                    
+            else:
+                self.scrollMemory[curveId, :-1] = self.scrollMemory[curveId, 1:]      # Shift all the samples one place left
+
+            self.dataCurves[curveId].setData(self.scrollMemory[curveId, :self.arrPtr]) # Show part of array that contains data on graph
+            self.dataCurves[curveId].setPos(-self.arrPtr, 0)
+
+        # else:
+        #     print("Error: NewDataIndex to DataCurves mismatch")
+
+
 class HexaGUI(QtGui.QMainWindow):
 
     def __init__(self):
@@ -198,63 +238,27 @@ class HexaGUI(QtGui.QMainWindow):
         graph.setRange(xRange=[-500, 0])
         graph.setLimits(xMax=0)
 
-        self.ptr = 0
+        # Setup scrolling logic for graph A
+        self.testGraphA = graphScrollLogic()
+        self.testGraphA.setScrollingMemory(600, 2)
+        self.testGraphA.setNewDataIndexing([2, 3])
+        self.testGraphA.setPlotCurves([
+            graph.plot(pen='g', name='Position'),   # 2
+            graph.plot(pen='r', name='Velocity')    # 3
+        ])
 
-        # zeroArr = np.zeros(600)
-        # self.testArr = np.array([zeroArr])
-        # for x in range(0, 2):
-        #     self.testArr = np.vstack((self.testArr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+        # self.testGraphB = graphScrollLogic()
+        # self.testGraphB.setScrollingMemory(600, 6)
+        # self.testGraphB.setNewDataIndexing([1, 2, 3, 4, 5, 6])
+        # self.testGraphB.setPlotCurves([
+        #     graphB.plot(pen='r', name='Accumulate Velocity Error'), # 1
+        #     graphB.plot(pen='g', name='Velocity Error'),            # 2
+        #     graphB.plot(pen='b', name='Encoder Position'),          # 3
+        #     graphB.plot(pen='c', name='Desired Velocity'),          # 4
+        #     graphB.plot(pen='m', name='Desired Duty Cycle'),        # 5
+        #     graphB.plot(pen='y', name='Encoder Velocity')           # 6
+        # ])
         
-        self.graphDataA = [
-
-            # Allocate memory for scrolling graph data
-            self.createGraphDataArray(600, 2), # Length: 600, Rows: 2
-            
-            # Point to index of the new data
-            [2, 3],
-
-            # Create plot curve for each data series
-            [graph.plot(pen='g', name='Position'),
-            graph.plot(pen='r', name='Velocity')]
-
-        ]
-
-        # self.graphDataB = [
-
-        #     # Allocate memory for scrolling graph data
-        #     self.createGraphDataArray(600, 6), # Length: 600, Rows: 2
-            
-        #     # Point to index of the new data
-        #     [1, 2, 3, 4, 5, 6],
-
-        #     # Create plot curve for each data series
-        #     [graphB.plot(pen='r', name='Accumulate Velocity Error'),
-        #     graphB.plot(pen='g', name='Velocity Error'),
-        #     graphB.plot(pen='b', name='Encoder Position'),
-        #     graphB.plot(pen='c', name='Desired Velocity'),
-        #     graphB.plot(pen='m', name='Desired Duty Cycle'),
-        #     graphB.plot(pen='y', name='Encoder Velocity')]
-
-        # ]
-
-        # testArr[0,5] = 50.7
-        # testArr[1,5] = 50.2
-        # testArr[2,7] = 50.3
-        # print(self.testArr[0])
-        # testArr[0,:-1] = testArr[0,1:] #Shift Left
-        # print(testArr)
-        # testArr[0,1:] = testArr[0,:-1] #Shift Right
-        # print(testArr)
-        # testArr[0,-1] = 61.2
-        # print(testArr)
-        # testArr[0,1:] = testArr[0,:-1] #Shift Right
-        # print(testArr)
-
-        # real time graphing timer - This Needs Optimising!!!
-        #timerGraph = pg.QtCore.QTimer(self)
-        #timerGraph.timeout.connect(self.velPosGraphUpdate)
-        #timerGraph.start(5)
-
         # firmware compiling timer - This Needs Optimising!!!
         timerProg = pg.QtCore.QTimer(self)
         timerProg.timeout.connect(self.progPoll)
@@ -269,59 +273,15 @@ class HexaGUI(QtGui.QMainWindow):
         self.threadGraphB.start()
         self.threadGraphB.onDataAvailable.connect(self.addDataToGraphB)
 
-    def createGraphDataArray(self, length, rows):
-        zeroArr = np.zeros(length)
-        arr = np.array([zeroArr])
-        for x in range(0, rows-1):
-            arr = np.vstack((arr, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
-        return arr
-
     def addDataToGraphA(self, line):
         self.historyCommand.append(line)
-        line = line.split(',')
-        self.graphLogicMapped(self.graphDataA, 0, line, True)
-        self.graphLogicMapped(self.graphDataA, 1, line, False)
+        line = line.split(',') # Convert line into new data array
+        self.testGraphA.update(line)
 
     def addDataToGraphB(self, line):
         self.historyCommand.append(line)
         line = line.split(',') # Convert line into new data array
-        # self.graphLogicMapped(self.graphDataB, 0, line, True)
-        # self.graphLogicMapped(self.graphDataB, 1, line, False)
-        # self.graphLogicMapped(self.graphDataB, 2, line, False)
-        # self.graphLogicMapped(self.graphDataB, 3, line, False)
-        # self.graphLogicMapped(self.graphDataB, 4, line, False)
-        # self.graphLogicMapped(self.graphDataB, 5, line, False)
-
-    def graphLogicMapped(self, graphData, curveId, lineData, first):
-        scrollMemory = graphData[0][curveId]
-        newDataIndex = graphData[1][curveId]
-        dataCurves = graphData[2][curveId]
-
-        scrollMemory[self.ptr] = float(lineData[newDataIndex]) # Insert new data point
-
-        # If the array is full, start shifting the sample point open place to the left
-        if (self.ptr < scrollMemory.shape[0]-1):
-            if first is True:
-                self.ptr += 1                       # Move to next element if array isn't full
-        else:
-            scrollMemory[:-1] = scrollMemory[1:]      # Shift all the samples one place left
-
-        dataCurves.setData(scrollMemory[:self.ptr]) # Show part of array that contains data on graph
-        dataCurves.setPos(-self.ptr, 0)
-
-    def graphLogic(self, newData, dataArray, curve, first):
-        #print(dataArray)
-        dataArray[self.ptr] = float(newData)    # Insert new data point
-
-        # If the array is full, start shifting the sample point open place to the left
-        if (self.ptr < dataArray.shape[0]-1):
-            if first is True:
-                self.ptr += 1                       # Move to next element if array isn't full
-        else:
-            dataArray[:-1] = dataArray[1:]      # Shift all the samples one place left
-
-        curve.setData(dataArray[:self.ptr]) # Show part of array that contains data on graph
-        curve.setPos(-self.ptr, 0)
+        #self.testGraphB.update(line)
 
     def addDataToGraphAorg(self, line):
         self.historyCommand.append(line)
