@@ -209,26 +209,8 @@ class HexaGUI(QtGui.QMainWindow):
         self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
     # ----------------------------------------------------------------
-    # -------------- Firmware Compiler Commands ----------------------
-    # ----------------------------------------------------------------
-
-    def selectFile(self):
-        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
-        self.inoFilePath.setText(filename)
-
-    def firmwareCompileOnly(self):
-        HexaProg.compile(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
-
-    def firmwareCompileAndUpload(self):
-        HexaProg.compileAndUpload(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
-
-    # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
-
-    def progPoll(self):
-        # Programing interface thread poling for compiler log outputs. 
-        HexaProg.procLoop(HEXA_SDK, self.txt_compilerLog)
 
     def sendCommandAndClear(self):
         # Pullls the string out of the text box and sends it to the serial port via SDK. 
@@ -249,6 +231,47 @@ class HexaGUI(QtGui.QMainWindow):
         if (event.key() == QtCore.Qt.Key_Enter) or (event.key() == QtCore.Qt.Key_Return):
             self.sendCommandAndClear()
         event.accept()
+
+    # Display misc serial data
+    def miscSerialData(self, line):
+        if (line != None):
+            self.historyCommand.append(line) # Place in command history
+
+    # Update data rate in status bar
+    def dataRateUpdate(self):
+        dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
+        self.statusbar.showMessage(dataRates)
+    
+    def guiClosedEvent(self):
+        print("The GUI has been closed, bye")
+
+    def guiMainLoop(self):
+        self.show() # Show the Hexa GUI on the screen
+        exitCode = app.exec_() # Start the PyQt event loop, will block until application is closed...
+        self.guiClosedEvent()
+        return exitCode
+
+    # ----------------------------------------------------------------
+    # -------------- Firmware Compiler Commands ----------------------
+    # ----------------------------------------------------------------
+
+    def selectFile(self):
+        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
+        self.inoFilePath.setText(filename)
+
+    def firmwareCompileOnly(self):
+        HexaProg.compile(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
+
+    def firmwareCompileAndUpload(self):
+        HexaProg.compileAndUpload(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
+
+    def progPoll(self):
+        # Programing interface thread poling for compiler log outputs. 
+        HexaProg.procLoop(HEXA_SDK, self.txt_compilerLog)
+
+    # ----------------------------------------------------------------
+    # ------------------------- Graph Config -------------------------
+    # ----------------------------------------------------------------
 
     def velPosGraphInit(self, graph):
         '''
@@ -320,24 +343,6 @@ class HexaGUI(QtGui.QMainWindow):
 
         # Start the graph updater thread
         self.testGraphB.start()
-
-    def miscSerialData(self, line):
-        if (line != None):
-            self.historyCommand.append(line) # Place in command history
-
-    # Update data rate in status bar
-    def dataRateUpdate(self):
-        dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
-        self.statusbar.showMessage(dataRates)
-    
-    def guiClosedEvent(self):
-        print("The GUI has been closed, bye")
-
-    def guiMainLoop(self):
-        self.show() # Show the Hexa GUI on the screen
-        exitCode = app.exec_() # Start the PyQt event loop, will block until application is closed...
-        self.guiClosedEvent()
-        return exitCode
 
 # ----------------------------------------------------------------
 # ------------------------- MAIN ---------------------------------
