@@ -55,6 +55,8 @@ class graphScrollLogic():
         # lenDataCurves = len(self.dataCurves)
         # if (lenNewDataIndex == lenDataCurves):
 
+        line = line.split(',') # Convert line into new data array
+
         for curveId in range(0, len(self.newDataIndex)):
             self.scrollMemory[curveId, self.arrPtr] = float(line[self.newDataIndex[curveId]]) # Insert new data point
 
@@ -160,10 +162,17 @@ class HexaGUI(QtGui.QMainWindow):
         HEXA_SDK.setSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
         HEXA_SDK.setPosVelStreamData(True) # Enable position and velocity streaming
 
-        # Set up graph on the workspace tab.
+        # Set up real time graphs on the workspace tab.
         self.velPosGraphInit(self.widget)
-        # self.velPosGraphInit(self.myWidget)
+        self.errorGraphInit(self.myWidget)
+
+        # Future placeholder for modelling plot
         # self.modellingPlot
+
+        # firmware compiling timer - This Needs Optimising!!!
+        timerProg = pg.QtCore.QTimer(self)
+        timerProg.timeout.connect(self.progPoll)
+        timerProg.start(10)
 
         # ------------------ Compiler tab code ------------------
         # Sets up the compiler log. 
@@ -224,7 +233,7 @@ class HexaGUI(QtGui.QMainWindow):
 
     def velPosGraphInit(self, graph):
         '''
-        Sets up the graph on the workspace tab. Labeling, binds timers for updating 
+        Sets up the graph on the workspace tab. Labeling, binds thread for updating 
 
         INPUT: Graph, widget configured to a plot widgit. 
         OUTPUT: n/a
@@ -247,64 +256,42 @@ class HexaGUI(QtGui.QMainWindow):
             graph.plot(pen='r', name='Velocity')    # 3
         ])
 
-        # self.testGraphB = graphScrollLogic()
-        # self.testGraphB.setScrollingMemory(600, 6)
-        # self.testGraphB.setNewDataIndexing([1, 2, 3, 4, 5, 6])
-        # self.testGraphB.setPlotCurves([
-        #     graphB.plot(pen='r', name='Accumulate Velocity Error'), # 1
-        #     graphB.plot(pen='g', name='Velocity Error'),            # 2
-        #     graphB.plot(pen='b', name='Encoder Position'),          # 3
-        #     graphB.plot(pen='c', name='Desired Velocity'),          # 4
-        #     graphB.plot(pen='m', name='Desired Duty Cycle'),        # 5
-        #     graphB.plot(pen='y', name='Encoder Velocity')           # 6
-        # ])
-        
-        # firmware compiling timer - This Needs Optimising!!!
-        timerProg = pg.QtCore.QTimer(self)
-        timerProg.timeout.connect(self.progPoll)
-        timerProg.start(10)
-
         # Real time graphing timer, using threads (Much more optimised)
         self.threadGraphA = graphWorker("graphA")
         self.threadGraphA.start()
-        self.threadGraphA.onDataAvailable.connect(self.addDataToGraphA) # Signal to trigger a g raph update
+        self.threadGraphA.onDataAvailable.connect(self.testGraphA.update) #self.addDataToGraphA) # Signal to trigger a g raph update
+
+    def errorGraphInit(self, graph):
+        '''
+        Sets up the graph on the workspace tab. Labeling, binds thread for updating 
+
+        INPUT: Graph, widget configured to a plot widgit. 
+        OUTPUT: n/a
+        '''
+        graph.setLabel('left', 'Encoder Counts', units='')
+        graph.setLabel('bottom', 'Time', units='s')
+        graph.addLegend()
+        # Use automatic downsampling and clipping to reduce the drawing load
+        graph.setDownsampling(mode='peak')
+        graph.setClipToView(True)
+        graph.setRange(xRange=[-500, 0])
+        graph.setLimits(xMax=0)
+
+        self.testGraphB = graphScrollLogic()
+        self.testGraphB.setScrollingMemory(600, 6)
+        self.testGraphB.setNewDataIndexing([1, 2, 3, 4, 5, 6])
+        self.testGraphB.setPlotCurves([
+            graph.plot(pen='r', name='Accumulate Velocity Error'), # 1
+            graph.plot(pen='g', name='Velocity Error'),            # 2
+            graph.plot(pen='b', name='Encoder Position'),          # 3
+            graph.plot(pen='c', name='Desired Velocity'),          # 4
+            graph.plot(pen='m', name='Desired Duty Cycle'),        # 5
+            graph.plot(pen='y', name='Encoder Velocity')           # 6
+        ])
 
         self.threadGraphB = graphWorker("graphB")
         self.threadGraphB.start()
-        self.threadGraphB.onDataAvailable.connect(self.addDataToGraphB)
-
-    def addDataToGraphA(self, line):
-        self.historyCommand.append(line)
-        line = line.split(',') # Convert line into new data array
-        self.testGraphA.update(line)
-
-    def addDataToGraphB(self, line):
-        self.historyCommand.append(line)
-        line = line.split(',') # Convert line into new data array
-        #self.testGraphB.update(line)
-
-    def addDataToGraphAorg(self, line):
-        self.historyCommand.append(line)
-        line = line.split(',')
-        if (line[0] == 's'):
-            self.data[self.ptr] = float(line[2])   #Place data at current ptr index location
-            self.dataB[self.ptr] = float(line[3])
-            self.ptr += 1 # Move to next ptr index location
-            if self.ptr >= self.data.shape[0]: # Check if the array is full, if so double the size of the array
-                # Temp copy of the data
-                tmp = self.data    
-                tmpB = self.dataB
-                # Increase size of array (Not very efficient because the array will double in size once its full), will replace with np.roll(x, -1) # Shift data left
-                self.data = np.empty(self.data.shape[0] * 2)   # .shape returns the n*m size of the array, as this is 1D it will be 500
-                self.dataB = np.empty(self.dataB.shape[0] * 2)
-                # Copy temp data back in
-                self.data[:tmp.shape[0]] = tmp          # :tmp.shape[0] is the first 500 elements
-                self.dataB[:tmpB.shape[0]] = tmpB
-            # Draw array to graph
-            self.curve.setData(self.data[:self.ptr])
-            self.curve.setPos(-self.ptr, 0)
-            self.curveB.setData(self.dataB[:self.ptr])
-            self.curveB.setPos(-self.ptr, 0)
+        self.threadGraphB.onDataAvailable.connect(self.testGraphB.update) #self.addDataToGraphB)
 
     def velPosGraphUpdate(self):
         '''
