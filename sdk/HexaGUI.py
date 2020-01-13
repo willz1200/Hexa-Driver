@@ -31,6 +31,7 @@ class queueWorker(QtCore.QThread):
         while True:
             line = HEXA_SDK.readLine(self.gStr, True) #Blocks until graph data is available
             if (line != None):
+                #pass
                 self.onDataAvailable.emit(line)
 
 class graphScrollLogic():
@@ -57,7 +58,14 @@ class graphScrollLogic():
     def setPlotCurves(self, plotDataCurves):
         self.dataCurves = plotDataCurves
 
+    # Two different types of update() switched here, performance testing needed.
+    # High CPU usage is mainly due to PyQtGraph???
     def update(self, line):
+        #self.updateCycleMem(line)
+        self.updateGrowMEM(line)
+
+    # Lower RAM usage, Higher CPU usage 
+    def updateCycleMem(self, line):
         # lenNewDataIndex = len(self.newDataIndex)
         # lenDataCurves = len(self.dataCurves)
         # if (lenNewDataIndex == lenDataCurves):
@@ -73,13 +81,35 @@ class graphScrollLogic():
                     self.arrPtr += 1                                # Move to next element if array isn't full
                     
             else:
-                self.scrollMemory[curveId, :-1] = self.scrollMemory[curveId, 1:]      # Shift all the samples one place left
+                self.scrollMemory[curveId, :-1] = self.scrollMemory[curveId, 1:]      # Shift all the samples one place left (Inefficient for CPU!)
 
             self.dataCurves[curveId].setData(self.scrollMemory[curveId, :self.arrPtr]) # Show part of array that contains data on graph
             self.dataCurves[curveId].setPos(-self.arrPtr, 0)
 
         # else:
         #     print("Error: NewDataIndex to DataCurves mismatch")
+
+    # Higher RAM usage, Lower CPU usage 
+    def updateGrowMEM(self, line):
+        line = line.split(',') # Convert line into new data array
+
+        for curveId in range(0, len(self.newDataIndex)):
+            # Insert new data point, place data at current arrPtr index location
+            self.scrollMemory[curveId, self.arrPtr] = float(line[self.newDataIndex[curveId]])
+
+            # Move to next element
+            if (curveId == 0):
+                self.arrPtr += 1
+
+            # Make sure current scrolling memory isn't full
+            if (self.arrPtr >= self.scrollMemory[curveId].shape[0]):
+                # Increase size of array (Not very efficient because the array will double in size once its full)
+                zeros = np.zeros((len(self.newDataIndex), self.scrollMemory[curveId].shape[0]))
+                self.scrollMemory = np.concatenate((self.scrollMemory, zeros), axis=1)
+
+            # Draw array to graph
+            self.dataCurves[curveId].setData(self.scrollMemory[curveId, :self.arrPtr])
+            self.dataCurves[curveId].setPos(-self.arrPtr, 0)
 
 
 class HexaGUI(QtGui.QMainWindow):
@@ -246,7 +276,7 @@ class HexaGUI(QtGui.QMainWindow):
     def dataRateUpdate(self):
         dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
         self.statusbar.showMessage(dataRates)
-        self.getPythonInstance()
+        # self.getPythonInstance() # Debug CPU and RAM usage
     
     def guiClosedEvent(self):
         print("The GUI has been closed, bye")
@@ -259,8 +289,13 @@ class HexaGUI(QtGui.QMainWindow):
 
     def getPythonInstance(self):
         memoryUse = self.processUtil.memory_info().rss/1024 # Convert Bytes to KB
+        memoryUseVMS = self.processUtil.memory_info().vms/1024 # Convert Bytes to KB
         cpuPercent = self.processUtil.cpu_percent(interval=None)
-        print("pid: {}, RAM: {}KB, CPU: {}%".format(self.processID, memoryUse, cpuPercent))
+        #progThreads = self.processUtil.threads()
+        numThreads = self.processUtil.num_threads()
+        print("pid: {}, RAM(rss): {}KB, RAM(vms): {}, CPU: {}%, Threads: {}".format(self.processID, memoryUse, memoryUseVMS, cpuPercent, numThreads))
+        #for thread in progThreads:
+            #print(thread)
 
     # ----------------------------------------------------------------
     # -------------- Firmware Compiler Commands ----------------------
