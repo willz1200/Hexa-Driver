@@ -10,7 +10,7 @@
 
 import time
 import sys
-import os
+import os, psutil
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
@@ -170,6 +170,11 @@ class HexaGUI(QtGui.QMainWindow):
         timerDataRate.timeout.connect(self.dataRateUpdate)
         timerDataRate.start(500)
 
+        #Setup CPU and RAM usage tracking
+        self.processID = os.getpid()
+        self.processUtil = psutil.Process(self.processID)
+        self.processUtil.cpu_percent(interval=None)
+
         # ------------------ Workspace tab setup ------------------
 
         # Configure the firmware to be SDK mode.
@@ -241,6 +246,7 @@ class HexaGUI(QtGui.QMainWindow):
     def dataRateUpdate(self):
         dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
         self.statusbar.showMessage(dataRates)
+        self.getPythonInstance()
     
     def guiClosedEvent(self):
         print("The GUI has been closed, bye")
@@ -250,6 +256,11 @@ class HexaGUI(QtGui.QMainWindow):
         exitCode = app.exec_() # Start the PyQt event loop, will block until application is closed...
         self.guiClosedEvent()
         return exitCode
+
+    def getPythonInstance(self):
+        memoryUse = self.processUtil.memory_info().rss/1024 # Convert Bytes to KB
+        cpuPercent = self.processUtil.cpu_percent(interval=None)
+        print("pid: {}, RAM: {}KB, CPU: {}%".format(self.processID, memoryUse, cpuPercent))
 
     # ----------------------------------------------------------------
     # -------------- Firmware Compiler Commands ----------------------
