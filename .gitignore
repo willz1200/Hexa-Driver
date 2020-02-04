@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 run.bat
+.pytest_cache
 
 #C++
 Output/

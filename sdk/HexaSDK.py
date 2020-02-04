@@ -11,6 +11,8 @@
 import HexaSerial
 import time
 import enum
+import pickle
+
 
 # HexaSDK class which inherits the Hexa serial management unit
 class HexaSDK(HexaSerial.SMU):
@@ -209,14 +211,41 @@ class HexaSDK(HexaSerial.SMU):
         OUTPUT: 
         '''
         pass
+        self.setPosVelStreamData(1)
         # send input value to initiate step responce
-        # self.ser.write(b'step 100\r')
+        self.sendCommand('step 100')
+        print ('now blocking')
+        # listen for data # listen for "im finished" signal
+        
+        while (self.readLine("misc", True) != "step finished"):
+            pass
+        
+        # testLine = ""
+        # while (testLine != "step finished"):
+        #     testLine = self.readLine("misc")
+        #     if testLine != None:
+        #         print(testLine)
 
-        # listen for data
-
-        # listen for "im finished" signal
+        # while True:
+        #     line = self.readLine("misc")
+        #     if line != None:
+        #         print(line)
+            
+        
 
         # save data to file
+        step = []
+        isRunning = True
+        print ('collecting data')
+        while isRunning:
+            line = self.readLine('graphA')
+            if line != None:
+                step.append( line)
+            else:
+                isRunning = False
+        
+        self.step = step
+
 
     def runPIDControler(self):
         '''
@@ -274,7 +303,15 @@ if __name__ == '__main__':
     # HEXA_SDK.setLinearActuatorWorkspace(0)
     # HEXA_SDK.flashLed()
     # HEXA_SDK.sendCommand('led 1')
-    # HEXA_SDK.stepResponce(100)
+    HEXA_SDK.stepResponce(100)
     # HEXA_SDK.runPIDControler()
     # HEXA_SDK.toggleAllLinearActuators([0,1,0,0,0,1])
     # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,0])
+    pickle.dump(HEXA_SDK.step, open( "../data_out/data.p", "wb" ))
+    
+    from data_processer import *
+    data = DataProcesser("../data_out/data.p")
+    data.unpack_data()
+    data.plot_data()
+    breakpoint()
+    

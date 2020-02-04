@@ -229,6 +229,7 @@ void Controller::stepResponseSetup( unsigned char Speed ){
 	stepResponseSpeed = Speed;
 	// chaing controlerMode to 4
 	controllerMode = 4;
+	sampleRate = 5;
 	stepStartTime = millis();
 	togglePosVel = true;
 }
@@ -241,9 +242,12 @@ void Controller::stepResponse(){
 	stepCurrentTime = millis() - stepStartTime;
 	
 	// stop step if 12 secconds
-	if (stepCurrentTime > 12000){
+	if (stepCurrentTime > 4000){
 		SpinMotor( 0 , dirB ); //Start motor
 		togglePosVel = false;
+		controllerMode = 0;
+		sampleRate = 10;
+		Serial.println("step finished");
 	} else if (stepCurrentTime > 2000){
 		// start step if 2 secconds
 		SpinMotor(stepResponseSpeed, dirB); //Stop motor
