@@ -29,7 +29,9 @@ class Controller: public LinearActuator {
 		void update();
 		void position();
 		void stepResponseSetup( unsigned char Speed );
+		void frequencyResponseSetup( unsigned char freq );
 		void stepResponse();
+		void frequencyResponse();
 
 		//Time based controller
 		void runTimeSweep();
@@ -46,8 +48,11 @@ class Controller: public LinearActuator {
 		float velIntGain;
 		float outDesired;
 		float stepStartTime;
+		float freqStartTime;
 		float stepCurrentTime;
+		float freqCurrentTime;
 		unsigned char stepResponseSpeed;
+		unsigned char freqResponcefrequency;
 		unsigned int sampleRate;
 		unsigned long timeKeep, timeSinceUpdate, sweepMS_runTime, singleMS_runTime; //Time keeping vars
 		bool togglePosVel;

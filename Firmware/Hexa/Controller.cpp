@@ -92,6 +92,8 @@ void Controller::update(){
 			runTimeSingleUpdate();
 		} else if(controllerMode == 4){
 			stepResponse();
+		} else if(controllerMode == 5){
+			frequencyResponse();	
 		} else {
 			SpinMotor(0, dirB);
 		}
@@ -223,8 +225,6 @@ void Controller::runTimeSingleUpdate(){
 }
 
 void Controller::stepResponseSetup( unsigned char Speed ){
-	
-
 	// chainges some class variable
 	stepResponseSpeed = Speed;
 	// chaing controlerMode to 4
@@ -255,6 +255,34 @@ void Controller::stepResponse(){
 	
 	//...
 	// Stream data
+}
+
+void Controller::frequencyResponseSetup( unsigned char freq ){
+	// chainges some class variable
+	freqResponcefrequency = freq;
+	// chaing controlerMode to 4
+	controllerMode = 5;
+	sampleRate = 5;
+	freqStartTime = millis();
+	togglePosVel = true;
+}
+
+void Controller::frequencyResponse(){
+	analogWrite(33, freqResponcefrequency );
+	// get current time 
+	freqCurrentTime = millis() - stepStartTime;
+	
+	// stop step if 12 secconds
+	if (stepCurrentTime > 4000){
+		SpinMotor( 0 , dirB ); //Start motor
+		togglePosVel = false;
+		controllerMode = 0;
+		sampleRate = 10;
+		Serial.println("step finished");
+	} else if (stepCurrentTime > 2000){
+		// start step if 2 secconds
+		SpinMotor(stepResponseSpeed, dirB); //Stop motor
+	}
 }
 
 Controller* idToInstance(uint8_t LA_ID){

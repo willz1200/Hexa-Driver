@@ -26,6 +26,20 @@ void stepResponse(){
 	Dev_LA->stepResponseSetup( CLI.readInt() );
 }
 
+void frequencyResponce(){
+	/*
+		Runs a step responce for the motor currently in the workspace. 
+		INPUT: one float that represents the PWM input sent to the function
+		OUTPUT: None
+	*/
+	// CLI.read float for input 
+	// read the motor
+	// Dev_LA->stepResponceSetup 
+
+	Dev_LA->frequencyResponseSetup( CLI.readInt() );
+	
+}
+
 void lsFunc(){
 	Serial.println(Dev_LA->GetEncoderPos());
 }
