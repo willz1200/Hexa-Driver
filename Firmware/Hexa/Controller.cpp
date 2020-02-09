@@ -110,11 +110,14 @@ void Controller::update(){
 			VelocityUpdate();
 			if (togglePosVel){
 				Serial.print("s,");
-				Serial.print(millis());
+				Serial.print(millis() - startTime );
+				Serial.print(",");
+				Serial.print(dutyCycle);
 				Serial.print(",");
 				Serial.print(GetEncoderPos());
 				Serial.print(",");
-				Serial.println(GetEncoderRPM());	
+				Serial.println(GetEncoderRPM());
+									
 			} 
 		}
 	} else {
@@ -269,7 +272,7 @@ void Controller::frequencyResponseSetup( unsigned char freq ){
 	// chaing controlerMode to 4
 	controllerMode = 5;
 	sampleRate = 5; // T = 1000/20f remember ms not s
-	freqStartTime = millis();
+	startTime = millis();
 	togglePosVel = true;
 	Serial.println(freq);
 }
@@ -277,7 +280,7 @@ void Controller::frequencyResponseSetup( unsigned char freq ){
 void Controller::frequencyResponse(){
 	analogWrite(33, freqResponcefrequency );
 	// get current time 
-	freqCurrentTime = millis() - freqStartTime;
+	freqCurrentTime = millis() - startTime;
 	
 	// stop step if 4 secconds
 	if (freqCurrentTime > 6000){
@@ -288,7 +291,7 @@ void Controller::frequencyResponse(){
 		Serial.println("freq finished");
 	} else if (freqCurrentTime > 2000){
 		// start step if 2 secconds
-		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000)*255; //dc  = sin(2 pi f t )
+		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000) *255; //dc  = sin(2 pi f t )
 		if (dutyCycle >= 0){
 			SpinMotor( abs(dutyCycle) , dirB); 
 		} else if (dutyCycle < 0){

@@ -48,11 +48,11 @@ class Controller: public LinearActuator {
 		float velIntGain;
 		float outDesired;
 		float stepStartTime;
-		float freqStartTime;
+		float startTime;
 		float stepCurrentTime;
 		float freqCurrentTime;
 		// float PI = 3.1415;
-		long dutyCycle;
+		long dutyCycle = 0;
 		unsigned char stepResponseSpeed;
 		unsigned char freqResponcefrequency;
 		unsigned int sampleRate;
