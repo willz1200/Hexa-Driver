@@ -54,6 +54,11 @@ class Controller: public LinearActuator {
 		bool togglePIdebug;
 
 		bool flagSingle_runTime;
+
+		//Frequency response system identification variables
+		double piLoop;
+		long timeMS_freqResp;
+		void freqRespSysIdTest();
 };
 
 Controller* idToInstance(uint8_t LA_ID);
