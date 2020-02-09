@@ -32,6 +32,10 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 
 	sweepMS_runTime = millis();
 	singleMS_runTime = millis();
+
+	//Frequency response system identification variables
+	piLoop = 0;
+	timeMS_freqResp = millis();
 }
 
 void Controller::closedSpinTest(){
@@ -97,6 +101,8 @@ void Controller::update(){
 		} else {
 			SpinMotor(0, dirB);
 		}
+
+		freqRespSysIdTest();
 
 		//Velocity sampling
 		if (millis() - timeSinceUpdate > sampleRate){
@@ -283,6 +289,24 @@ void Controller::frequencyResponse(){
 	// 	// start step if 2 secconds
 	// 	SpinMotor(stepResponseSpeed, dirB); //dc  = sin()
 	// }
+}
+
+//TEST - Sine wave duty generator of frequency response system identification 
+void Controller::freqRespSysIdTest(){
+
+	// 10 updates per second of 0.05 PI rad steps
+	if (millis() - timeMS_freqResp > 100){
+		timeMS_freqResp = millis();
+
+		//x = 2*PI*f*t
+		Serial.println("s,0," + String(sin(piLoop)) + ",0"); // Quick hack to draw sine wave on the GUI graph
+		piLoop+=0.05; // Increment PI radians for sine wave
+
+		//Limit sine wave to 2 PI radians
+		if (piLoop >= 2*PI){
+			piLoop = 0;
+		}
+	}
 }
 
 Controller* idToInstance(uint8_t LA_ID){
