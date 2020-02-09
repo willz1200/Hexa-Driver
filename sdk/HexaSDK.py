@@ -245,25 +245,25 @@ class HexaSDK(HexaSerial.SMU):
         self.setPosVelStreamData(1)
         # # send input value to initiate step responce
         self.sendCommand('freq ' + str(freq))
-        # print ('now blocking')
-        # # listen for data # listen for "im finished" signal
+        print ('now blocking')
+        # listen for data # listen for "im finished" signal
         
-        # while (self.readLine("misc", True) != "step finished"):
-        #     pass
+        while (self.readLine("misc", True) != "freq finished"):
+            pass
         
 
-        # # save data to file
-        # step = []
-        # isRunning = True
-        # print ('collecting data')
-        # while isRunning:
-        #     line = self.readLine('graphA')
-        #     if line != None:
-        #         step.append( line)
-        #     else:
-        #         isRunning = False
+        # save data to file
+        step = []
+        isRunning = True
+        print ('collecting data')
+        while isRunning:
+            line = self.readLine('graphA')
+            if line != None:
+                step.append( line)
+            else:
+                isRunning = False
         
-        # self.step = step
+        self.step = step
 
     def runPIDControler(self):
         '''
@@ -336,6 +336,11 @@ if __name__ == '__main__':
 
     # freq responce
     HEXA_SDK.frequencyResponce(1)
-
+    pickle.dump(HEXA_SDK.step, open( "../data_out/data.p", "wb" ))
+    
+    from data_processer import *
+    data = DataProcesser("../data_out/data.p")
+    data.unpack_data()
+    data.plot_data()
     # breakpoint()
     

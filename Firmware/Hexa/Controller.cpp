@@ -102,7 +102,7 @@ void Controller::update(){
 			SpinMotor(0, dirB);
 		}
 
-		freqRespSysIdTest();
+		// freqRespSysIdTest();
 
 		//Velocity sampling
 		if (millis() - timeSinceUpdate > sampleRate){
@@ -268,27 +268,35 @@ void Controller::frequencyResponseSetup( unsigned char freq ){
 	freqResponcefrequency = freq;
 	// chaing controlerMode to 4
 	controllerMode = 5;
-	sampleRate = 5; // T = 1/20f
+	sampleRate = 5; // T = 1000/20f remember ms not s
 	freqStartTime = millis();
 	togglePosVel = true;
+	Serial.println(freq);
 }
 
 void Controller::frequencyResponse(){
 	analogWrite(33, freqResponcefrequency );
 	// get current time 
-	// freqCurrentTime = millis() - stepStartTime;
+	freqCurrentTime = millis() - freqStartTime;
 	
-	// // stop step if 4 secconds
-	// if (stepCurrentTime > 4000){
-	// 	SpinMotor( 0 , dirB ); //Start motor
-	// 	togglePosVel = false;
-	// 	controllerMode = 0;
-	// 	sampleRate = 10;
-	// 	Serial.println("step finished");
-	// } else if (stepCurrentTime > 2000){
-	// 	// start step if 2 secconds
-	// 	SpinMotor(stepResponseSpeed, dirB); //dc  = sin()
-	// }
+	// stop step if 4 secconds
+	if (freqCurrentTime > 6000){
+		SpinMotor( 0 , dirB ); //Start motor
+		togglePosVel = false;
+		controllerMode = 0;
+		sampleRate = 10;
+		Serial.println("freq finished");
+	} else if (freqCurrentTime > 2000){
+		// start step if 2 secconds
+		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000)*255; //dc  = sin(2 pi f t )
+		if (dutyCycle >= 0){
+			SpinMotor( abs(dutyCycle) , dirB); 
+		} else if (dutyCycle < 0){
+			SpinMotor( abs(dutyCycle) , dirA);
+		}
+		
+		Serial.println(dutyCycle);
+	}
 }
 
 //TEST - Sine wave duty generator of frequency response system identification 
