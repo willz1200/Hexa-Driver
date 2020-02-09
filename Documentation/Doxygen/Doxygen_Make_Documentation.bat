@@ -1,0 +1,9 @@
+::Hexa Software, Build the documentation...
+
+@echo off
+cls
+
+echo Building Firmware Documentation...
+start doxygen Doxygen_Hexa_Firmware
+echo Building SDK Documentation...
+start doxygen Doxygen_Hexa_SDK
