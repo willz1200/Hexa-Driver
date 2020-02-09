@@ -17,7 +17,7 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	velIntGain = 0.2;
 	timeKeep = millis();
 	timeSinceUpdate = millis();
-	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
+	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz !!!! period not rate
 	togglePosVel = false;
 	togglePIdebug = false;
 
@@ -262,7 +262,7 @@ void Controller::frequencyResponseSetup( unsigned char freq ){
 	freqResponcefrequency = freq;
 	// chaing controlerMode to 4
 	controllerMode = 5;
-	sampleRate = 5;
+	sampleRate = 5; // T = 1/20f
 	freqStartTime = millis();
 	togglePosVel = true;
 }
@@ -270,19 +270,19 @@ void Controller::frequencyResponseSetup( unsigned char freq ){
 void Controller::frequencyResponse(){
 	analogWrite(33, freqResponcefrequency );
 	// get current time 
-	freqCurrentTime = millis() - stepStartTime;
+	// freqCurrentTime = millis() - stepStartTime;
 	
-	// stop step if 12 secconds
-	if (stepCurrentTime > 4000){
-		SpinMotor( 0 , dirB ); //Start motor
-		togglePosVel = false;
-		controllerMode = 0;
-		sampleRate = 10;
-		Serial.println("step finished");
-	} else if (stepCurrentTime > 2000){
-		// start step if 2 secconds
-		SpinMotor(stepResponseSpeed, dirB); //Stop motor
-	}
+	// // stop step if 4 secconds
+	// if (stepCurrentTime > 4000){
+	// 	SpinMotor( 0 , dirB ); //Start motor
+	// 	togglePosVel = false;
+	// 	controllerMode = 0;
+	// 	sampleRate = 10;
+	// 	Serial.println("step finished");
+	// } else if (stepCurrentTime > 2000){
+	// 	// start step if 2 secconds
+	// 	SpinMotor(stepResponseSpeed, dirB); //dc  = sin()
+	// }
 }
 
 Controller* idToInstance(uint8_t LA_ID){
