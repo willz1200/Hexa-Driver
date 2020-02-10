@@ -2,7 +2,7 @@
 # * @File       HexaSDK.py
 # * @Brief      Hexa Driver SDK which gives a higher level interface for commanding
 # *             the Hexa Driver.
-# * @Date       27/12/2019 (Last Updated)
+# * @Date       10/02/2020 (Last Updated)
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
@@ -12,7 +12,11 @@ import HexaSerial
 import time
 import enum
 import pickle
+import os
+import time
 
+# Simple millis macro
+current_milli_time = lambda: int(round(time.time() * 1000))
 
 # HexaSDK class which inherits the Hexa serial management unit
 class HexaSDK(HexaSerial.SMU):
@@ -236,21 +240,22 @@ class HexaSDK(HexaSerial.SMU):
 
     def frequencyResponce(self, freq):
         '''
-        sends an input value to the firmware then listents for 
+        Sends a duty cycle frequency to the Hexa Driver and then listens for position and velocity data coming back
 
-        INPUT: pwm signal 0-255 
+        INPUT: Modulation frequency of duty cycle 
         OUTPUT: 
         '''
-        pass
         self.setPosVelStreamData(1)
-        # # send input value to initiate step responce
+        # send input value to initiate step responce
         self.sendCommand('freq ' + str(freq))
         print ('now blocking')
         # listen for data # listen for "im finished" signal
         
+        freqStart = current_milli_time()
         while (self.readLine("misc", True) != "freq finished"):
-            pass
-        
+            # 7 second timeout to stop hanging on fault
+            if ((current_milli_time() - freqStart) >= 7000):
+                break
 
         # save data to file
         step = []
@@ -310,7 +315,7 @@ if __name__ == '__main__':
     # HEXA_SDK.timeBasedDemo()
     # HEXA_SDK.timeBasedOpen()
     # HEXA_SDK.timeBasedClosed()
-    # HEXA_SDK.setLinearActuatorWorkspace(0)
+    HEXA_SDK.setLinearActuatorWorkspace(0)
     HEXA_SDK.setLinearActuator(0, True)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.pid)
     # HEXA_SDK.timeBasedSweep(500, 75)
@@ -327,19 +332,24 @@ if __name__ == '__main__':
     # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,0])
     
     # HEXA_SDK.stepResponce(100)
-    # pickle.dump(HEXA_SDK.step, open( "../data_out/data.p", "wb" ))
+    # pickle.dump(HEXA_SDK.step, open( "data.p", "wb" ))
     
     # from data_processer import *
-    # data = DataProcesser("../data_out/data.p")
+    # data = DataProcesser("data.p")
     # data.unpack_data()
     # data.plot_data()
 
     # freq responce
-    HEXA_SDK.frequencyResponce(1)
-    pickle.dump(HEXA_SDK.step, open( "../data_out/data.p", "wb" ))
+    HEXA_SDK.frequencyResponce(0.5)
+
+    # Make pickle_data folder
+    if not os.path.exists("./pickle_data"):
+        os.makedirs("./pickle_data")
+
+    pickle.dump(HEXA_SDK.step, open("./pickle_data/frequency_responce_data.p", "wb"))
     
     from data_processer import *
-    data = DataProcesser("../data_out/data.p")
+    data = DataProcesser("./pickle_data/frequency_responce_data.p")
     data.unpack_data()
     data.plot_data()
     # breakpoint()

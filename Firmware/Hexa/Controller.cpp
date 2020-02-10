@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		Controller.cpp
  * @Brief		DC motor control systems are implemented here 
- * @Date		20/11/2019 (Last Updated)
+ * @Date		10/02/2020 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -112,11 +112,11 @@ void Controller::update(){
 				Serial.print("s,");
 				Serial.print(millis() - startTime );
 				Serial.print(",");
-				Serial.print(dutyCycle);
-				Serial.print(",");
 				Serial.print(GetEncoderPos());
 				Serial.print(",");
-				Serial.println(GetEncoderRPM());
+				Serial.print(GetEncoderRPM());
+				Serial.print(",");
+				Serial.println(dutyCycle);
 									
 			} 
 		}
@@ -266,7 +266,7 @@ void Controller::stepResponse(){
 	// Stream data
 }
 
-void Controller::frequencyResponseSetup( unsigned char freq ){
+void Controller::frequencyResponseSetup( float freq ){
 	// chainges some class variable
 	freqResponcefrequency = freq;
 	// chaing controlerMode to 4
@@ -274,15 +274,15 @@ void Controller::frequencyResponseSetup( unsigned char freq ){
 	sampleRate = 5; // T = 1000/20f remember ms not s
 	startTime = millis();
 	togglePosVel = true;
-	Serial.println(freq);
+	//Serial.println(freq);
 }
 
 void Controller::frequencyResponse(){
-	analogWrite(33, freqResponcefrequency );
+	// analogWrite(LED, freqResponcefrequency );
 	// get current time 
 	freqCurrentTime = millis() - startTime;
 	
-	// stop step if 4 secconds
+	// stop step if 2+4 secconds
 	if (freqCurrentTime > 6000){
 		SpinMotor( 0 , dirB ); //Start motor
 		togglePosVel = false;
@@ -291,14 +291,14 @@ void Controller::frequencyResponse(){
 		Serial.println("freq finished");
 	} else if (freqCurrentTime > 2000){
 		// start step if 2 secconds
-		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000) *255; //dc  = sin(2 pi f t )
+		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000) * 255; //dc  = sin(2 pi f t )
 		if (dutyCycle >= 0){
 			SpinMotor( abs(dutyCycle) , dirB); 
 		} else if (dutyCycle < 0){
 			SpinMotor( abs(dutyCycle) , dirA);
 		}
 		
-		Serial.println(dutyCycle);
+		//Serial.println(dutyCycle);
 	}
 }
 
