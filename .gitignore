@@ -2,6 +2,9 @@
 __pycache__/
 *.pyc
 run.bat
+.pytest_cache
+pickle_data/
+*.p
 
 #C++
 Output/

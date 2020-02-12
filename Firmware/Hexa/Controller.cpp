@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		Controller.cpp
  * @Brief		DC motor control systems are implemented here 
- * @Date		20/11/2019 (Last Updated)
+ * @Date		10/02/2020 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -17,7 +17,7 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 	velIntGain = 0.2;
 	timeKeep = millis();
 	timeSinceUpdate = millis();
-	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz
+	sampleRate = 10; //Set default sample rate to 10 ms = 100 Hz !!!! period not rate
 	togglePosVel = false;
 	togglePIdebug = false;
 
@@ -32,6 +32,10 @@ Controller::Controller(const byte _LinearActuatorID) : LinearActuator(_LinearAct
 
 	sweepMS_runTime = millis();
 	singleMS_runTime = millis();
+
+	//Frequency response system identification variables
+	piLoop = 0;
+	timeMS_freqResp = millis();
 }
 
 void Controller::closedSpinTest(){
@@ -92,9 +96,13 @@ void Controller::update(){
 			runTimeSingleUpdate();
 		} else if(controllerMode == 4){
 			stepResponse();
+		} else if(controllerMode == 5){
+			frequencyResponse();	
 		} else {
 			SpinMotor(0, dirB);
 		}
+
+		// freqRespSysIdTest();
 
 		//Velocity sampling
 		if (millis() - timeSinceUpdate > sampleRate){
@@ -102,11 +110,14 @@ void Controller::update(){
 			VelocityUpdate();
 			if (togglePosVel){
 				Serial.print("s,");
-				Serial.print(millis());
+				Serial.print(millis() - startTime );
 				Serial.print(",");
 				Serial.print(GetEncoderPos());
 				Serial.print(",");
-				Serial.println(GetEncoderRPM());	
+				Serial.print(GetEncoderRPM());
+				Serial.print(",");
+				Serial.println(dutyCycle);
+									
 			} 
 		}
 	} else {
@@ -223,12 +234,11 @@ void Controller::runTimeSingleUpdate(){
 }
 
 void Controller::stepResponseSetup( unsigned char Speed ){
-	
-
 	// chainges some class variable
 	stepResponseSpeed = Speed;
 	// chaing controlerMode to 4
 	controllerMode = 4;
+	sampleRate = 5;
 	stepStartTime = millis();
 	togglePosVel = true;
 }
@@ -241,9 +251,12 @@ void Controller::stepResponse(){
 	stepCurrentTime = millis() - stepStartTime;
 	
 	// stop step if 12 secconds
-	if (stepCurrentTime > 12000){
+	if (stepCurrentTime > 4000){
 		SpinMotor( 0 , dirB ); //Start motor
 		togglePosVel = false;
+		controllerMode = 0;
+		sampleRate = 10;
+		Serial.println("step finished");
 	} else if (stepCurrentTime > 2000){
 		// start step if 2 secconds
 		SpinMotor(stepResponseSpeed, dirB); //Stop motor
@@ -251,6 +264,60 @@ void Controller::stepResponse(){
 	
 	//...
 	// Stream data
+}
+
+void Controller::frequencyResponseSetup( float freq ){
+	// chainges some class variable
+	freqResponcefrequency = freq;
+	// chaing controlerMode to 4
+	controllerMode = 5;
+	sampleRate = 5; // T = 1000/20f remember ms not s
+	startTime = millis();
+	togglePosVel = true;
+	//Serial.println(freq);
+}
+
+void Controller::frequencyResponse(){
+	// analogWrite(LED, freqResponcefrequency );
+	// get current time 
+	freqCurrentTime = millis() - startTime;
+	
+	// stop step if 2+4 secconds
+	if (freqCurrentTime > 6000){
+		SpinMotor( 0 , dirB ); //Start motor
+		togglePosVel = false;
+		controllerMode = 0;
+		sampleRate = 10;
+		Serial.println("freq finished");
+	} else if (freqCurrentTime > 2000){
+		// start step if 2 secconds
+		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000) * 255; //dc  = sin(2 pi f t )
+		if (dutyCycle >= 0){
+			SpinMotor( abs(dutyCycle) , dirB); 
+		} else if (dutyCycle < 0){
+			SpinMotor( abs(dutyCycle) , dirA);
+		}
+		
+		//Serial.println(dutyCycle);
+	}
+}
+
+//TEST - Sine wave duty generator of frequency response system identification 
+void Controller::freqRespSysIdTest(){
+
+	// 10 updates per second of 0.05 PI rad steps
+	if (millis() - timeMS_freqResp > 100){
+		timeMS_freqResp = millis();
+
+		//x = 2*PI*f*t
+		Serial.println("s,0," + String(sin(piLoop)) + ",0"); // Quick hack to draw sine wave on the GUI graph
+		piLoop+=0.05; // Increment PI radians for sine wave
+
+		//Limit sine wave to 2 PI radians
+		if (piLoop >= 2*PI){
+			piLoop = 0;
+		}
+	}
 }
 
 Controller* idToInstance(uint8_t LA_ID){

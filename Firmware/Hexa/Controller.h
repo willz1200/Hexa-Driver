@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		Controller.h
  * @Brief		DC motor control systems are implemented here
- * @Date		20/11/2019 (Last Updated)
+ * @Date		10/02/2020 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 
@@ -29,7 +29,9 @@ class Controller: public LinearActuator {
 		void update();
 		void position();
 		void stepResponseSetup( unsigned char Speed );
+		void frequencyResponseSetup( float freq );
 		void stepResponse();
+		void frequencyResponse();
 
 		//Time based controller
 		void runTimeSweep();
@@ -46,14 +48,23 @@ class Controller: public LinearActuator {
 		float velIntGain;
 		float outDesired;
 		float stepStartTime;
+		float startTime;
 		float stepCurrentTime;
+		float freqCurrentTime;
+		long dutyCycle = 0;
 		unsigned char stepResponseSpeed;
+		float freqResponcefrequency;
 		unsigned int sampleRate;
 		unsigned long timeKeep, timeSinceUpdate, sweepMS_runTime, singleMS_runTime; //Time keeping vars
 		bool togglePosVel;
 		bool togglePIdebug;
 
 		bool flagSingle_runTime;
+
+		//Frequency response system identification variables
+		double piLoop;
+		long timeMS_freqResp;
+		void freqRespSysIdTest();
 };
 
 Controller* idToInstance(uint8_t LA_ID);

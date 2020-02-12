@@ -99,3 +99,6 @@ def compile(HexaSdkObj, logBox, inoPath):
 
 def compileAndUpload(HexaSdkObj, logBox, inoPath):
     procWrapper(HexaSdkObj, True, logBox, inoPath)
+
+if __name__ == '__main__':
+    pass

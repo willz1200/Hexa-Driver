@@ -2,7 +2,7 @@
 # * @File       HexaSDK.py
 # * @Brief      Hexa Driver SDK which gives a higher level interface for commanding
 # *             the Hexa Driver.
-# * @Date       27/12/2019 (Last Updated)
+# * @Date       10/02/2020 (Last Updated)
 # * @Author(s)  William Bednall, Russell Grim
 # *******************************************************************************
 
@@ -11,6 +11,12 @@
 import HexaSerial
 import time
 import enum
+import pickle
+import os
+import time
+
+# Simple millis macro
+current_milli_time = lambda: int(round(time.time() * 1000))
 
 # HexaSDK class which inherits the Hexa serial management unit
 class HexaSDK(HexaSerial.SMU):
@@ -209,14 +215,60 @@ class HexaSDK(HexaSerial.SMU):
         OUTPUT: 
         '''
         pass
+        self.setPosVelStreamData(1)
         # send input value to initiate step responce
-        # self.ser.write(b'step 100\r')
-
-        # listen for data
-
-        # listen for "im finished" signal
+        self.sendCommand('step 100')
+        print ('now blocking')
+        # listen for data # listen for "im finished" signal
+        
+        while (self.readLine("misc", True) != "step finished"):
+            pass
+        
 
         # save data to file
+        step = []
+        isRunning = True
+        print ('collecting data')
+        while isRunning:
+            line = self.readLine('graphA')
+            if line != None:
+                step.append( line)
+            else:
+                isRunning = False
+        
+        self.step = step
+
+    def frequencyResponce(self, freq):
+        '''
+        Sends a duty cycle frequency to the Hexa Driver and then listens for position and velocity data coming back
+
+        INPUT: Modulation frequency of duty cycle 
+        OUTPUT: 
+        '''
+        self.setPosVelStreamData(1)
+        # send input value to initiate step responce
+        self.sendCommand('freq ' + str(freq))
+        print ('now blocking')
+        # listen for data # listen for "im finished" signal
+        
+        freqStart = current_milli_time()
+        while (self.readLine("misc", True) != "freq finished"):
+            # 7 second timeout to stop hanging on fault
+            if ((current_milli_time() - freqStart) >= 7000):
+                break
+
+        # save data to file
+        step = []
+        isRunning = True
+        print ('collecting data')
+        while isRunning:
+            line = self.readLine('graphA')
+            if line != None:
+                step.append( line)
+            else:
+                isRunning = False
+        
+        self.step = step
 
     def runPIDControler(self):
         '''
@@ -236,19 +288,23 @@ class HexaSDK(HexaSerial.SMU):
         '''
         pass
 
-    def readLine(self, queueName):
+    def readLine(self, queueName, blocking=False):
         '''
         Read data in from the HexaSerial incoming queue, using a string to find the queue
         '''
         targetQueue =  self.qMisc
-        if (queueName == "graphA"):
+        if (queueName == "graphA"): 
             targetQueue = self.qGraphA
         elif (queueName == "graphB"):
             targetQueue = self.qGraphB
         elif (queueName == "misc"):
             targetQueue = self.qMisc
 
-        miscLine = self.readLineQ(targetQueue)
+        if (blocking == True):
+            miscLine = self.readLineBlockingQ(targetQueue)
+        else:
+            miscLine = self.readLineQ(targetQueue)
+
         if (miscLine != None):
             return miscLine
 
@@ -259,8 +315,8 @@ if __name__ == '__main__':
     # HEXA_SDK.timeBasedDemo()
     # HEXA_SDK.timeBasedOpen()
     # HEXA_SDK.timeBasedClosed()
-    HEXA_SDK.setLinearActuatorWorkspace(5)
-    HEXA_SDK.setLinearActuator(5, True)
+    HEXA_SDK.setLinearActuatorWorkspace(0)
+    HEXA_SDK.setLinearActuator(0, True)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.pid)
     # HEXA_SDK.timeBasedSweep(500, 75)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSweep)
@@ -270,7 +326,31 @@ if __name__ == '__main__':
     # HEXA_SDK.setLinearActuatorWorkspace(0)
     # HEXA_SDK.flashLed()
     # HEXA_SDK.sendCommand('led 1')
-    # HEXA_SDK.stepResponce(100)
+    
     # HEXA_SDK.runPIDControler()
     # HEXA_SDK.toggleAllLinearActuators([0,1,0,0,0,1])
     # HEXA_SDK.toggleAllLinearActuators([0,0,0,0,0,0])
+    
+    # HEXA_SDK.stepResponce(100)
+    # pickle.dump(HEXA_SDK.step, open( "data.p", "wb" ))
+    
+    # from data_processer import *
+    # data = DataProcesser("data.p")
+    # data.unpack_data()
+    # data.plot_data()
+
+    # freq responce
+    HEXA_SDK.frequencyResponce(0.5)
+
+    # Make pickle_data folder
+    if not os.path.exists("./pickle_data"):
+        os.makedirs("./pickle_data")
+
+    pickle.dump(HEXA_SDK.step, open("./pickle_data/frequency_responce_data.p", "wb"))
+    
+    from data_processer import *
+    data = DataProcesser("./pickle_data/frequency_responce_data.p")
+    data.unpack_data()
+    data.plot_data()
+    # breakpoint()
+    

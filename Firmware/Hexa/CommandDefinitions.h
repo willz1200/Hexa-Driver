@@ -14,6 +14,7 @@ extern Controller *Dev_LA;
 //extern uint8_t spinRunning;
 void ledfunc();
 void stepResponse();
+void frequencyResponce();
 void lsFunc();
 void spinFunc();
 void posGainFunc();
@@ -29,10 +30,11 @@ void setWorkspaceLA();
 void operationalLA();
 
 //Commands cannot contain spaces or `
-#define cmd_total 15
+#define cmd_total 16
 const cmdFormat cmd_bind[cmd_total] PROGMEM = {
 	{ "led", ledfunc },
 	{ "step", stepResponse },
+	{ "freq", frequencyResponce },
 	{ "ls", lsFunc },
 	{ "r", spinFunc },
 	{ "pp", posGainFunc },

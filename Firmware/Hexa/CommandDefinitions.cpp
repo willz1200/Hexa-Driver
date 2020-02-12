@@ -1,7 +1,7 @@
 /******************************************************************************
  * @File		CommandDefinitions.cpp
  * @Brief		Put your custom commands in here
- * @Date		27/11/2019 (Last Updated)
+ * @Date		10/02/2020 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
@@ -10,20 +10,23 @@
 //uint8_t spinRunning = 0;
 
 void ledfunc(){
-	analogWrite(33, CLI.readInt());
+	analogWrite(LED, CLI.readInt());
 }
 
+/**
+* Runs a step responce for the motor currently in the workspace.
+* @param duty Positive integer that represents the PWM input sent to the function 0-255
+*/
 void stepResponse(){
-	/*
-		Runs a step responce for the motor currently in the workspace. 
-		INPUT: one float that represents the PWM input sent to the function
-		OUTPUT: None
-	*/
-	// CLI.read float for input 
-	// read the motor
-	// Dev_LA->stepResponceSetup 
-
 	Dev_LA->stepResponseSetup( CLI.readInt() );
+}
+
+/**
+* Runs a frequency responce for the motor currently in the workspace.
+* @param freq Float that represents the frequency input sent to the function
+*/
+void frequencyResponce(){
+	Dev_LA->frequencyResponseSetup( CLI.readFloat() );
 }
 
 void lsFunc(){

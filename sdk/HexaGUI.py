@@ -10,7 +10,7 @@
 
 import time
 import sys
-import os
+import os, psutil
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
@@ -18,6 +18,99 @@ from PyQt5.QtGui import QFileDialog
 import HexaProg, HexaSDK
 
 HEXA_SDK = HexaSDK.HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
+
+# Thread class to pull new graph data points into the GUI
+class queueWorker(QtCore.QThread):
+    onDataAvailable = QtCore.pyqtSignal(str) #Create signal to update graph
+
+    def __init__(self, graphStr, parent=None):
+        super(queueWorker, self).__init__(parent)
+        self.gStr = graphStr
+
+    def run(self):
+        while True:
+            line = HEXA_SDK.readLine(self.gStr, True) #Blocks until graph data is available
+            if (line != None):
+                #pass
+                self.onDataAvailable.emit(line)
+
+class graphScrollLogic():
+
+    def __init__(self, graphStr):
+        self.arrPtr = 0
+        
+        # Real time graphing using threads (Fairly well optimised)
+        self.graphThread = queueWorker(graphStr)
+        self.graphThread.onDataAvailable.connect(self.update) #self.addDataToGraphA) # Signal to trigger a g raph update
+
+    def start(self):
+        self.graphThread.start()
+
+    def setNewDataIndexing(self, inNewDataIndex):
+        self.newDataIndex = inNewDataIndex
+
+    def setScrollingMemory(self, length, rows):
+        zeroArr = np.zeros(length)
+        self.scrollMemory = np.array([zeroArr])
+        for x in range(0, rows-1):
+            self.scrollMemory = np.vstack((self.scrollMemory, zeroArr)) #Take a sequence of arrays and stack them vertically to make a single array (1D -> 2D)
+
+    def setPlotCurves(self, plotDataCurves):
+        self.dataCurves = plotDataCurves
+
+    # Two different types of update() switched here, performance testing needed.
+    # High CPU usage is mainly due to PyQtGraph???
+    def update(self, line):
+        #self.updateCycleMem(line)
+        self.updateGrowMEM(line)
+
+    # Lower RAM usage, Higher CPU usage 
+    def updateCycleMem(self, line):
+        # lenNewDataIndex = len(self.newDataIndex)
+        # lenDataCurves = len(self.dataCurves)
+        # if (lenNewDataIndex == lenDataCurves):
+
+        line = line.split(',') # Convert line into new data array
+
+        for curveId in range(0, len(self.newDataIndex)):
+            self.scrollMemory[curveId, self.arrPtr] = float(line[self.newDataIndex[curveId]]) # Insert new data point
+
+            # If the array is full, start shifting the sample point open place to the left
+            if (self.arrPtr < self.scrollMemory[curveId].shape[0]-1):
+                if (curveId == 0):
+                    self.arrPtr += 1                                # Move to next element if array isn't full
+                    
+            else:
+                self.scrollMemory[curveId, :-1] = self.scrollMemory[curveId, 1:]      # Shift all the samples one place left (Inefficient for CPU!)
+
+            self.dataCurves[curveId].setData(self.scrollMemory[curveId, :self.arrPtr]) # Show part of array that contains data on graph
+            self.dataCurves[curveId].setPos(-self.arrPtr, 0)
+
+        # else:
+        #     print("Error: NewDataIndex to DataCurves mismatch")
+
+    # Higher RAM usage, Lower CPU usage 
+    def updateGrowMEM(self, line):
+        line = line.split(',') # Convert line into new data array
+
+        for curveId in range(0, len(self.newDataIndex)):
+            # Insert new data point, place data at current arrPtr index location
+            self.scrollMemory[curveId, self.arrPtr] = float(line[self.newDataIndex[curveId]])
+
+            # Move to next element
+            if (curveId == 0):
+                self.arrPtr += 1
+
+            # Make sure current scrolling memory isn't full
+            if (self.arrPtr >= self.scrollMemory[curveId].shape[0]):
+                # Increase size of array (Not very efficient because the array will double in size once its full)
+                zeros = np.zeros((len(self.newDataIndex), self.scrollMemory[curveId].shape[0]))
+                self.scrollMemory = np.concatenate((self.scrollMemory, zeros), axis=1)
+
+            # Draw array to graph
+            self.dataCurves[curveId].setData(self.scrollMemory[curveId, :self.arrPtr])
+            self.dataCurves[curveId].setPos(-self.arrPtr, 0)
+
 
 class HexaGUI(QtGui.QMainWindow):
 
@@ -102,21 +195,32 @@ class HexaGUI(QtGui.QMainWindow):
         for portInfo in HEXA_SDK.scanForPorts():
             self.comPortSelect.addItem(portInfo)
 
+        # Status bar data rate update timer
+        timerDataRate = pg.QtCore.QTimer(self)
+        timerDataRate.timeout.connect(self.dataRateUpdate)
+        timerDataRate.start(500)
+
+        #Setup CPU and RAM usage tracking
+        self.processID = os.getpid()
+        self.processUtil = psutil.Process(self.processID)
+        self.processUtil.cpu_percent(interval=None)
+
+        # ------------------ Workspace tab setup ------------------
+
         # Configure the firmware to be SDK mode.
         HEXA_SDK.setSDKmode(True) # Sets to sdk mode. So it dosn't echo all commands.
         HEXA_SDK.setPosVelStreamData(True) # Enable position and velocity streaming
 
-        # Set up graph on the workspace tab.
-        self.velPosGraphInit(self.widget)
-        # self.velPosGraphInit(self.myWidget)
-        # self.modellingPlot
-
-        # ------------------ Compiler tab code ------------------
-        # Sets up the compiler log. 
-        self.txt_compilerLog.append("Here is the compiler log")
-        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
-
         self.togSDKmode.toggle() # You want this to be ticked by defult. So this initalises it as ticked.
+
+        # Set up real time graphs on the workspace tab.
+        self.velPosGraphInit(self.widget)
+        self.errorGraphInit(self.myWidget)
+
+        # Create thread to get misc serial data and place it into the command history text box
+        self.miscThread = queueWorker("misc")
+        self.miscThread.onDataAvailable.connect(self.miscSerialData) # Signal to trigger a misc data display
+        self.miscThread.start()
 
         # Set the current controller mode for the linear actuator in your workspace
         ControllerModeEntries = ['Off', 'PI', 'Timed - Sweep', 'Timed - Single'] # Options
@@ -126,27 +230,22 @@ class HexaGUI(QtGui.QMainWindow):
         LinearActuatorEntries = ['LA0', 'LA1', 'LA2', 'LA3', 'LA4', 'LA5'] #options.
         self.listView_WorkspaceSelect.addItems(LinearActuatorEntries) #lodes the different options into the text box.
 
-    # ----------------------------------------------------------------
-    # -------------- Firmware Compiler Commands ----------------------
-    # ----------------------------------------------------------------
+        # Future placeholder for modelling plot
+        # self.modellingPlot
 
-    def selectFile(self):
-        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
-        self.inoFilePath.setText(filename)
+        # ------------------ Compiler tab setup ------------------
+        # firmware compiling timer - This Needs Optimising!!!
+        timerProg = pg.QtCore.QTimer(self)
+        timerProg.timeout.connect(self.progPoll)
+        timerProg.start(10)
 
-    def firmwareCompileOnly(self):
-        HexaProg.compile(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
-
-    def firmwareCompileAndUpload(self):
-        HexaProg.compileAndUpload(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
+        # Sets up the compiler log. 
+        self.txt_compilerLog.append("Here is the compiler log")
+        self.inoFilePath.setText(os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'Firmware', 'Hexa', 'Hexa.ino'))) # selects the default firmware path.
 
     # ----------------------------------------------------------------
     # ------------------------- GUI Commands -------------------------
     # ----------------------------------------------------------------
-
-    def progPoll(self):
-        # Programing interface thread poling for compiler log outputs. 
-        HexaProg.procLoop(HEXA_SDK, self.txt_compilerLog)
 
     def sendCommandAndClear(self):
         # Pullls the string out of the text box and sends it to the serial port via SDK. 
@@ -168,75 +267,16 @@ class HexaGUI(QtGui.QMainWindow):
             self.sendCommandAndClear()
         event.accept()
 
-    def velPosGraphInit(self, graph):
-        '''
-        Sets up the graph on the workspace tab. Labeling, binds timers for updating 
+    # Display misc serial data
+    def miscSerialData(self, line):
+        if (line != None):
+            self.historyCommand.append(line) # Place in command history
 
-        INPUT: Graph, widget configured to a plot widgit. 
-        OUTPUT: n/a
-        '''
-        graph.setLabel('left', 'Encoder Counts', units='')
-        graph.setLabel('bottom', 'Time', units='s')
-        graph.addLegend()
-        # Use automatic downsampling and clipping to reduce the drawing load
-        graph.setDownsampling(mode='peak')
-        graph.setClipToView(True)
-        graph.setRange(xRange=[-500, 0])
-        graph.setLimits(xMax=0)
-
-        self.curve = graph.plot(pen='g', name='Position')
-        self.curveB = graph.plot(pen='r', name='Velocity')
-        self.data = np.empty(500)
-        self.dataB = np.empty(500)
-        self.ptr = 0
-
-        # real time graphing timer - This Needs Optimising!!!
-        timerGraph = pg.QtCore.QTimer(self)
-        timerGraph.timeout.connect(self.velPosGraphUpdate)
-        timerGraph.start(5)
-
-        # firmware compiling timer - This Needs Optimising!!!
-        timerProg = pg.QtCore.QTimer(self)
-        timerProg.timeout.connect(self.progPoll)
-        timerProg.start(10)
-
-    def velPosGraphUpdate(self):
-        '''
-        Realtime data entery for the plot widget on the worksace tab. Reads in the 
-        data from the serial port and plots anything prefixed with an s. 
-
-        INPUT: n/a
-        OUTPUT: n/a 
-        '''
-        if (HexaProg.getProgMode() == False):
-            line = HEXA_SDK.readLine("graphA")
-            if (line != None):
-                #print (HexaSerial.debugSize())
-                #print (HexaSerial.debugLength())
-                self.historyCommand.append(line) # add text to command box
-                line = line.split(',')
-                if (line[0] == 's'):
-                    self.data[self.ptr] = float(line[2])
-                    self.dataB[self.ptr] = float(line[3])
-                    self.ptr += 1
-                    if self.ptr >= self.data.shape[0]:
-                        tmp = self.data
-                        tmpB = self.dataB
-                        self.data = np.empty(self.data.shape[0] * 2)
-                        self.dataB = np.empty(self.dataB.shape[0] * 2)
-                        self.data[:tmp.shape[0]] = tmp
-                        self.dataB[:tmpB.shape[0]] = tmpB
-                    self.curve.setData(self.data[:self.ptr])
-                    self.curve.setPos(-self.ptr, 0)
-                    self.curveB.setData(self.dataB[:self.ptr])
-                    self.curveB.setPos(-self.ptr, 0)
-
-            miscLine = HEXA_SDK.readLine("misc") # Pull data from misc queue
-            if (miscLine != None):
-                self.historyCommand.append(miscLine) # Place in command history
-
-            dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
-            self.statusbar.showMessage(dataRates)
+    # Update data rate in status bar
+    def dataRateUpdate(self):
+        dataRates = "Incoming: {} / 11,520 Bps || Outgoing: {} / 11,520 Bps".format(HEXA_SDK.getIncomingDataRate(), HEXA_SDK.getOutgoingDataRate())
+        self.statusbar.showMessage(dataRates)
+        # self.getPythonInstance() # Debug CPU and RAM usage
     
     def guiClosedEvent(self):
         print("The GUI has been closed, bye")
@@ -246,7 +286,110 @@ class HexaGUI(QtGui.QMainWindow):
         exitCode = app.exec_() # Start the PyQt event loop, will block until application is closed...
         self.guiClosedEvent()
         return exitCode
-        
+
+    def getPythonInstance(self):
+        memoryUse = self.processUtil.memory_info().rss/1024 # Convert Bytes to KB
+        memoryUseVMS = self.processUtil.memory_info().vms/1024 # Convert Bytes to KB
+        cpuPercent = self.processUtil.cpu_percent(interval=None)
+        #progThreads = self.processUtil.threads()
+        numThreads = self.processUtil.num_threads()
+        print("pid: {}, RAM(rss): {}KB, RAM(vms): {}, CPU: {}%, Threads: {}".format(self.processID, memoryUse, memoryUseVMS, cpuPercent, numThreads))
+        #for thread in progThreads:
+            #print(thread)
+
+    # ----------------------------------------------------------------
+    # -------------- Firmware Compiler Commands ----------------------
+    # ----------------------------------------------------------------
+
+    def selectFile(self):
+        filename, _filter = QFileDialog.getOpenFileName(None, "Open File", '..\\Firmware\\Hexa\\Hexa.ino', "Arduino Sketch File (*.ino)")
+        self.inoFilePath.setText(filename)
+
+    def firmwareCompileOnly(self):
+        HexaProg.compile(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
+
+    def firmwareCompileAndUpload(self):
+        HexaProg.compileAndUpload(HEXA_SDK, self.txt_compilerLog, self.inoFilePath.text())
+
+    def progPoll(self):
+        # Programing interface thread poling for compiler log outputs. 
+        HexaProg.procLoop(HEXA_SDK, self.txt_compilerLog)
+
+    # ----------------------------------------------------------------
+    # ------------------------- Graph Config -------------------------
+    # ----------------------------------------------------------------
+
+    def velPosGraphInit(self, graph):
+        '''
+        Sets up the graph on the workspace tab. Labeling, binds thread for updating 
+
+        INPUT: Graph, widget configured to a plot widgit. 
+        OUTPUT: n/a
+        '''
+
+        # Label graph Axis
+        graph.setLabel('left', 'Encoder Counts', units='')
+        graph.setLabel('bottom', 'Time', units='s')
+        graph.addLegend()
+
+        # Use automatic downsampling and clipping to reduce the drawing load
+        graph.setDownsampling(mode='peak')
+        graph.setClipToView(True)
+
+        # Set axis limits
+        graph.setRange(xRange=[-500, 0])
+        graph.setLimits(xMax=0)
+
+        # Setup graph updating and scrolling
+        self.testGraphA = graphScrollLogic("graphA")
+        self.testGraphA.setScrollingMemory(600, 2)
+        self.testGraphA.setNewDataIndexing([2, 3])
+        self.testGraphA.setPlotCurves([
+            graph.plot(pen='g', name='Position'),   # 2
+            graph.plot(pen='r', name='Velocity')    # 3
+        ])
+
+        # Start the graph updater thread
+        self.testGraphA.start()
+
+
+    def errorGraphInit(self, graph):
+        '''
+        Sets up the graph on the workspace tab. Labeling, binds thread for updating 
+
+        INPUT: Graph, widget configured to a plot widgit. 
+        OUTPUT: n/a
+        '''
+
+        # Label graph Axis
+        graph.setLabel('left', 'Encoder Counts', units='')
+        graph.setLabel('bottom', 'Time', units='s')
+        graph.addLegend()
+
+        # Use automatic downsampling and clipping to reduce the drawing load
+        graph.setDownsampling(mode='peak')
+        graph.setClipToView(True)
+
+        # Set axis limits
+        graph.setRange(xRange=[-500, 0])
+        graph.setLimits(xMax=0)
+
+        # Setup graph updating and scrolling
+        self.testGraphB = graphScrollLogic("graphB")
+        self.testGraphB.setScrollingMemory(600, 6)
+        self.testGraphB.setNewDataIndexing([1, 2, 3, 4, 5, 6])
+        self.testGraphB.setPlotCurves([
+            graph.plot(pen='r', name='Accumulate Velocity Error'), # 1
+            graph.plot(pen='g', name='Velocity Error'),            # 2
+            graph.plot(pen='b', name='Encoder Position'),          # 3
+            graph.plot(pen='c', name='Desired Velocity'),          # 4
+            graph.plot(pen='m', name='Desired Duty Cycle'),        # 5
+            graph.plot(pen='y', name='Encoder Velocity')           # 6
+        ])
+
+        # Start the graph updater thread
+        self.testGraphB.start()
+
 # ----------------------------------------------------------------
 # ------------------------- MAIN ---------------------------------
 # ----------------------------------------------------------------
