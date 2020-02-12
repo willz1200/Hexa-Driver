@@ -252,7 +252,7 @@ class HexaSDK(HexaSerial.SMU):
         # listen for data # listen for "im finished" signal
         
         freqStart = current_milli_time()
-        while (self.readLine("misc", False) != "freq finished"):
+        while (self.readLine("misc", True) != "freq finished"):
             # 7 second timeout to stop hanging on fault
             if ((current_milli_time() - freqStart) >= 7000):
                 break
