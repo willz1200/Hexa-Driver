@@ -252,7 +252,7 @@ class HexaSDK(HexaSerial.SMU):
         # listen for data # listen for "im finished" signal
         
         freqStart = current_milli_time()
-        while (self.readLine("misc", True) != "freq finished"):
+        while (self.readLine("misc", False) != "freq finished"):
             # 7 second timeout to stop hanging on fault
             if ((current_milli_time() - freqStart) >= 7000):
                 break
@@ -315,8 +315,8 @@ if __name__ == '__main__':
     # HEXA_SDK.timeBasedDemo()
     # HEXA_SDK.timeBasedOpen()
     # HEXA_SDK.timeBasedClosed()
-    HEXA_SDK.setLinearActuatorWorkspace(0)
-    HEXA_SDK.setLinearActuator(0, True)
+    HEXA_SDK.setLinearActuatorWorkspace(5)
+    HEXA_SDK.setLinearActuator(5, True)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.pid)
     # HEXA_SDK.timeBasedSweep(500, 75)
     # HEXA_SDK.setControllerMode(HEXA_SDK.mode.tbSweep)
