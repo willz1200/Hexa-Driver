@@ -50,11 +50,10 @@ jobs:
 
       # We then install the platform, which one will be determined
       # dynamically by the build matrix.
+      # arduino-cli core install arduino:sam
       - name: Install platform
         run: |
-          arduino-cli core search STM32
-          arduino-cli core update-index
-          arduino-cli core install arduino:sam
+          arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
           arduino-cli core install ${{ matrix.arduino-platform }}
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
