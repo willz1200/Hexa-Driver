@@ -55,9 +55,15 @@ jobs:
         run:
           arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
           
-      - name: list platforms
+      - name: Install sam platform
+        run:
+          arduino-cli core install arduino:sam
+          
+      - name: List platforms
         run:
           arduino-cli core list
+          
+          
           
       - name: Install STM32F1
         run:
