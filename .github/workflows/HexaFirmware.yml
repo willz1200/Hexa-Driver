@@ -53,6 +53,7 @@ jobs:
       - name: Install platform
         run: |
           arduino-cli core update-index
+          arduino-cli core search STM32
           arduino-cli core install ${{ matrix.arduino-platform }}
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
