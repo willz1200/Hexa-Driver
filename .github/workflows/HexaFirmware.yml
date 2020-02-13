@@ -51,21 +51,20 @@ jobs:
       # We then install the platform, which one will be determined
       # dynamically by the build matrix.
       # arduino-cli core install arduino:sam
+
       - name: Install package config
-        run:
-          arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
-          
-      - name: Install sam platform
-        run:
-          arduino-cli core install arduino:sam
-          
-      - name: List platforms
-        run:
-          arduino-cli core list
-          
-          
-          
-      - name: Install STM32F1
+        run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
+ 
+      - name: Core Index Update
+        run: arduino-cli core update-index    
+
+      - name: Install SAM Platform
+        run: arduino-cli core install arduino:sam
+
+      - name: List Platforms
+        run: arduino-cli core list
+
+      - name: Install STM32F1 Platform
         run:
           arduino-cli core install Arduino_STM32:STM32F1
           
