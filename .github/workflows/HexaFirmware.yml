@@ -54,8 +54,7 @@ jobs:
       - name: Install platform
         run: |
           arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
-          arduino-cli board listall
-          arduino-cli core search STM32
+          arduino-cli core list
           arduino-cli core install Arduino_STM32:STM32F1
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
