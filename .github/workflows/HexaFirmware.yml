@@ -44,6 +44,9 @@ jobs:
       # configure the Arduino CLI on the system.
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v1.0.0
+        
+      - name: Directory ls
+        run: ls -l
 
       # We then install the platform, which one will be determined
       # dynamically by the build matrix.
