@@ -52,9 +52,7 @@ jobs:
       # dynamically by the build matrix.
       # arduino-cli core install arduino:sam
       - name: Install platform
-        run: |
-          arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
-          arduino-cli core install ${{ matrix.arduino-platform }}
+        run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json          
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
       - name: Compile Sketch
