@@ -76,6 +76,7 @@ jobs:
 
       # Display firmware compilation log as a warning so its tagged as an annotation...
       - name: Fetch Compilation Log
-        run: Write-Host "::warning:: $CompilerLog"
+        run: |
+          Write-Host "::warning:: $CompilerLog"
           #$CompilerLogOLD = Get-Content -Path ./CompilerLog.txt -Raw
           
