@@ -64,8 +64,8 @@ jobs:
       - name: Directory List
         run: dir
         
-      #- name: Install package config
-      #  run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
+      - name: Install package config
+        run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
  
       - name: Core Index Update
         run: arduino-cli core update-index    
