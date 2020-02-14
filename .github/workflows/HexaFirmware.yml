@@ -61,8 +61,8 @@ jobs:
       - name: Create arduino-cli.yaml File
         run: arduino-cli config init
         
-      - name: Install package config
-        run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
+      #- name: Install package config
+      #  run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
  
       - name: Core Index Update
         run: arduino-cli core update-index    
@@ -75,6 +75,12 @@ jobs:
         
       - name: Directory List
         run: dir "C:\Users\runneradmin\AppData\Local\Arduino15\"
+        
+      - name: Add Line to arduino-cli.yaml
+        run: |
+          $file = 'C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml'
+          $regex = '(?<=  additional_urls: [)[^]]*'
+          (Get-Content $file) -replace $regex, 'https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json' | Set-Content $file
       
       - name: Print arduino-cli.yaml
         run: Get-Content -Path C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml
