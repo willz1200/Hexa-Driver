@@ -60,9 +60,6 @@ jobs:
       
       - name: Create arduino-cli.yaml File
         run: arduino-cli config init
-          
-      - name: Directory List
-        run: dir
         
       - name: Install package config
         run: arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
@@ -75,6 +72,12 @@ jobs:
 
       - name: List Platforms
         run: arduino-cli core list
+        
+      - name: Move to Arduino15
+        run: cd C:\Users\runneradmin\AppData\Local\Arduino15\
+        
+      - name: Directory List
+        run: dir
 
       - name: Install STM32F1 Platform
         run:
