@@ -71,7 +71,7 @@ jobs:
       # Finally, we compile the firmware, using the FQBN that was set
       # in the build matrix. 2>&1 is to get errors too
       - name: Compile Hexa Driver Firmware
-        run: $CompilerLog = &"arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa" 2>&1
+        run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
       
       - name: Log Test
         run: Write-Host '::warning::' $CompilerLog
