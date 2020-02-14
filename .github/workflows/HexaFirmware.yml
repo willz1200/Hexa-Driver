@@ -65,34 +65,16 @@ jobs:
           arduino-cli core install Arduino_STM32:STM32F1
 
       # Check the STM32F1 package has been installed
-      #- name: List Platforms
+      #- name: List Platforms Installed
       #  run: arduino-cli core list
 
       # Finally, we compile the firmware, using the FQBN that was set
-      # in the build matrix. 2>&1 is to get errors too
+      # in the build matrix. Storing arduino-cli output in CompilerLog.txt
       - name: Compile Hexa Driver Firmware
         run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa > CompilerLog.txt
-        #run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
-          
-      - name: Print CompilerLog.txt
+
+      # Display firmware compilation log as a warning so its tagged as an annotation...
+      - name: Fetch Compilation Log
         run: |
-          #Get-Content -Path ./CompilerLog.txt
-          $raw = Get-Content -Path ./CompilerLog.txt -Raw
-          Write-Host "CompilerLog contains $($raw)"
-          Write-Host "CompilerLog contains $raw"
-          $raw = Get-Content -Path ./CompilerLog.txt
-          Write-Host "CompilerLog contains $($raw)"
-          Write-Host "CompilerLog contains $raw"
-      
-      #- name: Log Test
-       # run: | 
-        #  echo $CompilerLog
-         # $testVar = "12Test"
-          #Write-Host '::warning::Output' $CompilerLog 'A:' $testVar
-          
-        
-          #echo "::warning::$CompilerLog"
-          #echo "::set-output name=action_testSizeData::1234Hello"
-          #echo "::debug::This is a debug message"
-          #echo "::error::This is an error message"
-          
+          $CompilerLog = Get-Content -Path ./CompilerLog.txt -Raw
+          Write-Host "::warning:: $CompilerLog"
