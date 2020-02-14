@@ -75,8 +75,9 @@ jobs:
       
       - name: Log Test
         run: | 
+          echo $CompilerLog
           $testVar = "12Test"
-          Write-Host '::warning::' $CompilerLog 'A:' $testVar
+          Write-Host '::warning::Output' $CompilerLog 'A:' $testVar
           
         
           #echo "::warning::$CompilerLog"
