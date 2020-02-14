@@ -75,7 +75,14 @@ jobs:
         #run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
           
       - name: Print CompilerLog.txt
-        run: Get-Content -Path ./CompilerLog.txt
+        run: |
+          #Get-Content -Path ./CompilerLog.txt
+          $raw = Get-Content -Path ./CompilerLog.txt -Raw
+          Write-Host "CompilerLog contains $($raw)"
+          Write-Host "CompilerLog contains $raw"
+          $raw = Get-Content -Path ./CompilerLog.txt
+          Write-Host "CompilerLog contains $($raw)"
+          Write-Host "CompilerLog contains $raw"
       
       #- name: Log Test
        # run: | 
