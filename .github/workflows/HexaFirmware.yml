@@ -79,5 +79,24 @@ jobs:
       - name: Fetch Compilation Log
         run: |
           $CompilerLog = Get-Content -Path ./CompilerLog.txt -Raw
-          Write-Host "::warning:: $CompilerLog"
+
+          function GetSubStr {
+            $s = $args[0]
+            $e = $args[1]
+            $sLen = $s.length
+            $start = $CompilerLog.IndexOf($s) + $sLen
+            $len = $CompilerLog.IndexOf($e, $start) - $start
+            $CompilerLog.Substring($start, $len)
+          }
+
+          Write-Host "$CompilerLog"
+
+          $FlashUsed = GetSubStr "Sketch uses " " bytes "
+          $FlashMax = GetSubStr " space. Maximum is " " bytes."
+          $FlashPercent = [math]::Round( 100*($FlashUsed/$FlashMax), 1)
+          $RamUsed = GetSubStr "Global variables use " " bytes "
+          $RamMax = GetSubStr " variables. Maximum is " " bytes."
+          $RamPercent = [math]::Round( 100*($RamUsed/$RamMax), 1)
+
+          Write-Host "::warning:: Flash($FlashPercent%): $FlashUsed / $FlashMax, RAM($RamPercent%): $RamUsed / $RamMax"
           
