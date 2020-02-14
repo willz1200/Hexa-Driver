@@ -55,8 +55,8 @@ jobs:
       - name: Create arduino-cli.yaml File
         uses: finnp/create-file-action@1.0.0
         env: |
-          FILE_NAME: "arduino-cli.yaml"
-          FILE_DATA: "board_manager:\n  additional_urls:\n    - https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json"
+          FILE_NAME = "arduino-cli.yaml"
+          FILE_DATA = "board_manager:\n  additional_urls:\n    - https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json"
           
       - name: Directory List
         run: dir
