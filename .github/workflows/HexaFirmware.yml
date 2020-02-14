@@ -71,11 +71,11 @@ jobs:
       # Finally, we compile the firmware, using the FQBN that was set
       # in the build matrix. Storing arduino-cli output in CompilerLog.txt
       - name: Compile Hexa Driver Firmware
-        run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa > CompilerLog.txt
+        #run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa > CompilerLog.txt
+        run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
 
       # Display firmware compilation log as a warning so its tagged as an annotation...
       - name: Fetch Compilation Log
-        run: |
-          $CompilerLogOLD = Get-Content -Path ./CompilerLog.txt -Raw
-          $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
-          Write-Host "::warning:: $CompilerLog"
+        run: Write-Host "::warning:: $CompilerLog"
+          #$CompilerLogOLD = Get-Content -Path ./CompilerLog.txt -Raw
+          
