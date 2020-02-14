@@ -98,5 +98,5 @@ jobs:
           $RamMax = GetSubStr " variables. Maximum is " " bytes."
           $RamPercent = [math]::Round( 100*($RamUsed/$RamMax), 1)
 
-          Write-Host "::warning:: Flash($FlashPercent%): $FlashUsed / $FlashMax \nRAM($RamPercent%): $RamUsed / $RamMax"
+          Write-Host "::warning:: Flash($FlashPercent%): $FlashUsed / $FlashMax, RAM($RamPercent%): $RamUsed / $RamMax"
           
