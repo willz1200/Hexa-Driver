@@ -11,7 +11,7 @@ on: [push, pull_request]
 # will produce.
 jobs:
   # This is the name of the job - can be whatever.
-  Hexa-Matrix:
+  Hexa-Driver:
 
     # Here we tell GitHub that the jobs must be determined
     # dynamically depending on a matrix configuration.
@@ -39,43 +39,28 @@ jobs:
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v1.0.0
 
-      ###---\/---REMOVED---\/---
-      #- name: Create arduino-cli.yaml File
-      #  uses: finnp/create-file-action@1.0.0
-      #  env: |
-      #    FILE_NAME = "arduino-cli.yaml"
-      #    FILE_DATA = "board_manager:\n  additional_urls:\n    - https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json"
+      ###---\/---REMOVED---\/--- : I think theres a bug in the arduino-cli, solution is to inject the url directly into arduino-cli.yaml as seen below...
       
-      
-      #- name: Create arduino-cli.yaml File
-      #  run: arduino-cli config init
-      
-      #- name: Add Line to arduino-cli.yaml
+      # Install the STM32F1 package config
+      #- name: Install package config
       #  run: |
-      #    $file = 'C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml'
-      #    $find = '  additional_urls: []'
-      #    $replace = '  additional_urls: [https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json]'
-      #    (Get-Content $file).replace($find, $replace) | Set-Content $file
-        
-      #- name: Directory List
-      #  run: dir "C:\Users\runneradmin\AppData\Local\Arduino15\"
+      #    arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
+      #    arduino-cli core search Arduino_STM32 --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
       
-      #- name: Print arduino-cli.yaml
-      #  run: Get-Content -Path C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml
       ###---/\---REMOVED---/\---
-      
-      # Install the STM32F1 package
-      - name: Install package config
+
+      # Install the STM32F1 package config, Core index update to pull latest json file from server
+      - name: Generate arduino-cli.yaml and Inject Server URL
         run: |
-          arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
-          arduino-cli core search Arduino_STM32 --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
-      
-      # Core index update to pull latest json file from server
-      - name: Core Index Update
-        run: arduino-cli core update-index
+          arduino-cli config init
+          $file = 'C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml'
+          $find = '  additional_urls: []'
+          $replace = '  additional_urls: [https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json]'
+          (Get-Content $file).replace($find, $replace) | Set-Content $file
+          arduino-cli core update-index
 
       # Install STM32F1 package using zip found in json file
-      - name: Install STM32F1 Platform
+      - name: Install STM32F1 Package
         run:
           arduino-cli core install Arduino_STM32:STM32F1
 
