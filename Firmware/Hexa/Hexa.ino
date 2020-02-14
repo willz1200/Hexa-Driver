@@ -10,7 +10,7 @@
 #include "CommandDefinitions.h"
 
 Controller *Dev_LA = &LA0;
-broken = 2
+
 unsigned long timeSince;
 
 void setup() {
