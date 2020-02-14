@@ -60,7 +60,7 @@ jobs:
           arduino-cli core update-index
 
       # Install STM32F1 package using zip found in json file
-      - name: Install STM32F1 Package
+      - name: Install STM32F1 Package and arm-none-eabi-gcc Toolchain
         run:
           arduino-cli core install Arduino_STM32:STM32F1
 
@@ -68,15 +68,16 @@ jobs:
       #- name: List Platforms Installed
       #  run: arduino-cli core list
 
-      # Finally, we compile the firmware, using the FQBN that was set
-      # in the build matrix. Storing arduino-cli output in CompilerLog.txt
+      # Finally, we compile the firmware, using the FQBN that was set in the build matrix.
+      # Storing arduino-cli output in CompilerLog.txt as github actions doesn't appear to retain powershell variables between build steps :(
       - name: Compile Hexa Driver Firmware
-        #run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa > CompilerLog.txt
-        run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
+        run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa > CompilerLog.txt
+        #run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
 
       # Display firmware compilation log as a warning so its tagged as an annotation...
+      # Write-Host command only works when using the multi line operator | could be a github actions bug?
       - name: Fetch Compilation Log
         run: |
+          $CompilerLog = Get-Content -Path ./CompilerLog.txt -Raw
           Write-Host "::warning:: $CompilerLog"
-          #$CompilerLogOLD = Get-Content -Path ./CompilerLog.txt -Raw
           
