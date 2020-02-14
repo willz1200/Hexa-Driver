@@ -75,6 +75,9 @@ jobs:
         
       - name: Directory List
         run: dir "C:\Users\runneradmin\AppData\Local\Arduino15\"
+      
+      - name: Print arduino-cli.yaml
+        run: Get-Content -Path C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml
 
       - name: Install STM32F1 Platform
         run:
