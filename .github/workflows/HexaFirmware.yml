@@ -79,8 +79,9 @@ jobs:
       - name: Add Line to arduino-cli.yaml
         run: |
           $file = 'C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml'
-          $regex = '(?<=  additional_urls: [)[^]]*'
-          (Get-Content $file) -replace $regex, 'https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json' | Set-Content $file
+          $find = '  additional_urls: []'
+          $replace = '  additional_urls: [https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json]'
+          (Get-Content $file).replace($find, $replace) | Set-Content $file
       
       - name: Print arduino-cli.yaml
         run: Get-Content -Path C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml
