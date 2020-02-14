@@ -11,7 +11,7 @@ on: [push, pull_request]
 # will produce.
 jobs:
   # This is the name of the job - can be whatever.
-  test-matrix:
+  Hexa-Matrix:
 
     # Here we tell GitHub that the jobs must be determined
     # dynamically depending on a matrix configuration.
@@ -20,82 +20,70 @@ jobs:
         # The matrix will produce one job for each configuration
         # parameter of type `arduino-platform`, in this case a
         # total of 1.
-        arduino-platform: ["Arduino_STM32"]
-        # This is usually optional but we need to statically define the
-        # FQBN of the boards we want to test for each platform. In the
-        # future the CLI might automatically detect and download the core
-        # needed to compile against a certain FQBN, at that point the
-        # following `include` section will be useless.
+        arduino-platform: ["Hexa_Rev_1.0"]
+
         include:
-          - arduino-platform: "Arduino_STM32"
+          - arduino-platform: "Hexa_Rev_1.0"
             fqbn: "Arduino_STM32:STM32F1:mapleMini:bootloader_version=bootloader20,cpu_speed=speed_72mhz,opt=osstd"
 
-    # This is the platform GitHub will use to run our workflow, we
-    # pick Windows for no particular reason.
+    # This is the platform GitHub will use to run our workflow
     runs-on: windows-latest
 
     # This is the list of steps this job will run.
     steps:
-      # First of all, we clone the repo using the `checkout` action.
+      # Clone the repo using the `checkout` action.
       - name: Checkout
         uses: actions/checkout@v2
 
-      # We use the `arduino/setup-arduino-cli` action to install and
-      # configure the Arduino CLI on the system.
+      # Configure the Arduino CLI on the system.
       - name: Setup Arduino CLI
         uses: arduino/setup-arduino-cli@v1.0.0
-        
-      - name: Directory List
-        run: dir
 
-      # We then install the platform, which one will be determined
-      # dynamically by the build matrix.
-      # arduino-cli core install arduino:sam
-
+      ###---\/---REMOVED---\/---
       #- name: Create arduino-cli.yaml File
       #  uses: finnp/create-file-action@1.0.0
       #  env: |
       #    FILE_NAME = "arduino-cli.yaml"
       #    FILE_DATA = "board_manager:\n  additional_urls:\n    - https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json"
       
-      - name: Create arduino-cli.yaml File
-        run: arduino-cli config init
       
-      - name: Add Line to arduino-cli.yaml
-        run: |
-          $file = 'C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml'
-          $find = '  additional_urls: []'
-          $replace = '  additional_urls: [https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json]'
-          (Get-Content $file).replace($find, $replace) | Set-Content $file
-        
-      - name: Directory List
-        run: dir "C:\Users\runneradmin\AppData\Local\Arduino15\"
+      #- name: Create arduino-cli.yaml File
+      #  run: arduino-cli config init
       
-      - name: Print arduino-cli.yaml
-        run: Get-Content -Path C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml
-        
-      #- name: Install package config
+      #- name: Add Line to arduino-cli.yaml
       #  run: |
-      #   arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
-      #   arduino-cli core search Arduino_STM32 --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
- 
+      #    $file = 'C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml'
+      #    $find = '  additional_urls: []'
+      #    $replace = '  additional_urls: [https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json]'
+      #    (Get-Content $file).replace($find, $replace) | Set-Content $file
+        
+      #- name: Directory List
+      #  run: dir "C:\Users\runneradmin\AppData\Local\Arduino15\"
+      
+      #- name: Print arduino-cli.yaml
+      #  run: Get-Content -Path C:\Users\runneradmin\AppData\Local\Arduino15\arduino-cli.yaml
+      ###---/\---REMOVED---/\---
+      
+      # Install the STM32F1 package
+      - name: Install package config
+        run: |
+          arduino-cli core update-index --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
+          arduino-cli core search Arduino_STM32 --additional-urls https://lemzo.co.uk/Arduino_STM32/package_Arduino_STM32_index.json
+      
+      # Core index update to pull latest json file from server
       - name: Core Index Update
-        run: arduino-cli core update-index    
+        run: arduino-cli core update-index
 
-      #- name: Install SAM Platform
-      #  run: arduino-cli core install arduino:sam
-
-      - name: List Platforms
-        run: arduino-cli core list
-
+      # Install STM32F1 package using zip found in json file
       - name: Install STM32F1 Platform
         run:
           arduino-cli core install Arduino_STM32:STM32F1
-          
-      - name: List Platforms
-        run: arduino-cli core list
-          
-      # Finally, we compile the sketch, using the FQBN that was set
+
+      # Check the STM32F1 package has been installed
+      #- name: List Platforms
+      #  run: arduino-cli core list
+
+      # Finally, we compile the firmware, using the FQBN that was set
       # in the build matrix.
-      - name: Compile Sketch
+      - name: Compile Hexa Driver Firmware
         run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa
