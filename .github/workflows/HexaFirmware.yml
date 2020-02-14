@@ -74,7 +74,10 @@ jobs:
         run: $CompilerLog = & arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware/Hexa 2>&1
       
       - name: Log Test
-        run: Write-Host '::warning::' $CompilerLog
+        run: | 
+          $testVar = "12Test"
+          Write-Host '::warning::' $CompilerLog 'A:' $12Test
+          
         
           #echo "::warning::$CompilerLog"
           #echo "::set-output name=action_testSizeData::1234Hello"
