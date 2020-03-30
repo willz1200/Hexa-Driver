@@ -1,4 +1,4 @@
-from HexaSDK import *
+from sdk.HexaSDK import *
 
 # def assert_true():
 #     return True

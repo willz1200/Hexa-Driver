@@ -8,7 +8,7 @@
 
 # Setup: py -m pip install -r requirements.txt
 
-import HexaSerial
+from sdk.HexaSerial import SMU
 import time
 import enum
 import pickle
@@ -19,7 +19,7 @@ import time
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 # HexaSDK class which inherits the Hexa serial management unit
-class HexaSDK(HexaSerial.SMU):
+class HexaSDK(SMU):
 
     # Enum used to set the controller mode
     class mode(enum.Enum):
