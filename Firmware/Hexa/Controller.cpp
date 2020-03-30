@@ -271,7 +271,8 @@ void Controller::frequencyResponseSetup( float freq ){
 	freqResponcefrequency = freq;
 	// chaing controlerMode to 4
 	controllerMode = 5;
-	sampleRate = 5; // T = 1000/20f remember ms not s
+	sampleRate = 1000 / ( 20 * freqResponcefrequency ); // samples 20 times the frequency of the drive signal
+	sampleWindow = 1000 * 6 / freqResponcefrequency ; // only runs 6 cycles
 	startTime = millis();
 	togglePosVel = true;
 	//Serial.println(freq);
@@ -283,7 +284,7 @@ void Controller::frequencyResponse(){
 	freqCurrentTime = millis() - startTime;
 	
 	// stop step if 2+4 secconds
-	if (freqCurrentTime > 6000){
+	if (freqCurrentTime > sampleWindow){
 		SpinMotor( 0 , dirB ); //Start motor
 		togglePosVel = false;
 		controllerMode = 0;

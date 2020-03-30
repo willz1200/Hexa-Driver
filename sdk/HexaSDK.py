@@ -340,7 +340,7 @@ if __name__ == '__main__':
     # data.plot_data()
 
     # freq responce
-    HEXA_SDK.frequencyResponce(0.5)
+    HEXA_SDK.frequencyResponce(1)
 
     # Make pickle_data folder
     if not os.path.exists("./pickle_data"):

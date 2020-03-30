@@ -49,6 +49,7 @@ class Controller: public LinearActuator {
 		float outDesired;
 		float stepStartTime;
 		float startTime;
+		long sampleWindow;
 		float stepCurrentTime;
 		float freqCurrentTime;
 		long dutyCycle = 0;
