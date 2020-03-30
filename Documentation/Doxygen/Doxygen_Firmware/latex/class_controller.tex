@@ -1,0 +1,86 @@
+\hypertarget{class_controller}{}\doxysection{Controller Class Reference}
+\label{class_controller}\index{Controller@{Controller}}
+Inheritance diagram for Controller\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_controller}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_controller_ab05385ca27e24935552eb9a7e5febae0}\label{class_controller_ab05385ca27e24935552eb9a7e5febae0}} 
+{\bfseries Controller} (const byte \+\_\+\+Linear\+Actuator\+ID)
+\item 
+\mbox{\Hypertarget{class_controller_a92597b1a5bb1ac5ffa48ade32a23abdb}\label{class_controller_a92597b1a5bb1ac5ffa48ade32a23abdb}} 
+void {\bfseries closed\+Spin\+Test} ()
+\item 
+\mbox{\Hypertarget{class_controller_a0a0fc6b08a5ec0796d4316857ce4a6bc}\label{class_controller_a0a0fc6b08a5ec0796d4316857ce4a6bc}} 
+void {\bfseries set\+Pos\+Gain} (float gain)
+\item 
+\mbox{\Hypertarget{class_controller_a7d3d865492b093ca939c72a8bca9a9be}\label{class_controller_a7d3d865492b093ca939c72a8bca9a9be}} 
+void {\bfseries set\+Vel\+Gain} (float gain)
+\item 
+\mbox{\Hypertarget{class_controller_aed7f9f71ebc5ae1300dac4245481e9fe}\label{class_controller_aed7f9f71ebc5ae1300dac4245481e9fe}} 
+void {\bfseries set\+Vel\+Int\+Gain} (float gain)
+\item 
+\mbox{\Hypertarget{class_controller_ac2846d11c6f072657f613d4ad7f28f23}\label{class_controller_ac2846d11c6f072657f613d4ad7f28f23}} 
+void {\bfseries set\+Point} (float setpoint)
+\item 
+\mbox{\Hypertarget{class_controller_af8c50d754344a0ff1819bba40a424b48}\label{class_controller_af8c50d754344a0ff1819bba40a424b48}} 
+void {\bfseries set\+Sample\+Rate} (unsigned int rate)
+\item 
+\mbox{\Hypertarget{class_controller_a0d7ebdab8aedaa55cc490bac2957959f}\label{class_controller_a0d7ebdab8aedaa55cc490bac2957959f}} 
+void {\bfseries stream\+Pos\+Vel} (bool toggle)
+\item 
+\mbox{\Hypertarget{class_controller_a7d04c17913f04f99429aa29fa8505484}\label{class_controller_a7d04c17913f04f99429aa29fa8505484}} 
+void {\bfseries update} ()
+\item 
+\mbox{\Hypertarget{class_controller_a3fffe27deea9a769d70d8972598bccfe}\label{class_controller_a3fffe27deea9a769d70d8972598bccfe}} 
+void {\bfseries position} ()
+\item 
+\mbox{\Hypertarget{class_controller_a68a30e550aa381aaaf85a934fae051c7}\label{class_controller_a68a30e550aa381aaaf85a934fae051c7}} 
+void {\bfseries step\+Response\+Setup} (unsigned char Speed)
+\item 
+\mbox{\Hypertarget{class_controller_a0005a2a70c6ff6c28256c31f67c74ea9}\label{class_controller_a0005a2a70c6ff6c28256c31f67c74ea9}} 
+void {\bfseries frequency\+Response\+Setup} (float freq)
+\item 
+\mbox{\Hypertarget{class_controller_a7988131439acf7c1b31505ffde9153e1}\label{class_controller_a7988131439acf7c1b31505ffde9153e1}} 
+void {\bfseries step\+Response} ()
+\item 
+\mbox{\Hypertarget{class_controller_ac621a8f93bb74e0d61874cdfee734d58}\label{class_controller_ac621a8f93bb74e0d61874cdfee734d58}} 
+void {\bfseries frequency\+Response} ()
+\item 
+\mbox{\Hypertarget{class_controller_ae14fe4f8c8b88fa637739c8c847848bf}\label{class_controller_ae14fe4f8c8b88fa637739c8c847848bf}} 
+void {\bfseries run\+Time\+Sweep} ()
+\item 
+\mbox{\Hypertarget{class_controller_a90b3015e112cbf40c67af1bd14af6770}\label{class_controller_a90b3015e112cbf40c67af1bd14af6770}} 
+void {\bfseries run\+Time\+Single\+Fire} (uint16\+\_\+t duration, uint8\+\_\+t dir, uint8\+\_\+t duty)
+\item 
+\mbox{\Hypertarget{class_controller_aa95b874f4daad021deb4a0057c570240}\label{class_controller_aa95b874f4daad021deb4a0057c570240}} 
+void {\bfseries run\+Time\+Single\+Update} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_controller_aef398b29e64c729b8471424822953599}\label{class_controller_aef398b29e64c729b8471424822953599}} 
+uint16\+\_\+t {\bfseries dir\+A\+\_\+run\+Time}
+\item 
+\mbox{\Hypertarget{class_controller_af4819579b4d232a02a77e9148352975c}\label{class_controller_af4819579b4d232a02a77e9148352975c}} 
+uint16\+\_\+t {\bfseries dir\+B\+\_\+run\+Time}
+\item 
+\mbox{\Hypertarget{class_controller_a1013cfbf65c0ee5054a4a628661d566e}\label{class_controller_a1013cfbf65c0ee5054a4a628661d566e}} 
+uint16\+\_\+t {\bfseries duration\+Single\+\_\+run\+Time}
+\item 
+\mbox{\Hypertarget{class_controller_a8813f2598a223ef20e46c34b38190eec}\label{class_controller_a8813f2598a223ef20e46c34b38190eec}} 
+uint8\+\_\+t {\bfseries duty\+\_\+run\+Time}
+\item 
+\mbox{\Hypertarget{class_controller_acba867b540dd4cff7e11a961beb44e99}\label{class_controller_acba867b540dd4cff7e11a961beb44e99}} 
+uint8\+\_\+t {\bfseries controller\+Mode}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/russe/\+Documents/documents/\+Side projects/\+Bionics/code/\+Hexa-\/\+Driver/\+Firmware/\+Hexa/Controller.\+h\item 
+C\+:/\+Users/russe/\+Documents/documents/\+Side projects/\+Bionics/code/\+Hexa-\/\+Driver/\+Firmware/\+Hexa/Controller.\+cpp\end{DoxyCompactItemize}
