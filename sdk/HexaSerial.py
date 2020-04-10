@@ -43,7 +43,7 @@ class SMU():
         }
 
     # Create an array of com ports available
-    def scanForPorts(self):
+    def _scanForPorts(self):
         comPorts = serial.tools.list_ports.comports() # Gets all available COM ports
         self.portList = []
 
@@ -54,6 +54,7 @@ class SMU():
             return self.portList
         else:
             print("No COM ports available")
+            self._isConnected = False
 
     # Open a COM port from position n of the portList array
     def initPort(self, portListIndex):

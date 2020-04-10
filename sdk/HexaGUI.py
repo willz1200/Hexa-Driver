@@ -15,9 +15,13 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, uic
 from PyQt5.QtGui import QFileDialog
-import HexaProg, HexaSDK
+# import HexaProg, HexaSDK
+import sdk.HexaProg 
+from sdk.HexaSDK import HexaSDK
+import sdk
 
-HEXA_SDK = HexaSDK.HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
+
+HEXA_SDK = HexaSDK() # Instantiate the Hexa SDK, could be done inside the HexaGUI class... to be decided
 
 # Thread class to pull new graph data points into the GUI
 class queueWorker(QtCore.QThread):
@@ -116,7 +120,9 @@ class HexaGUI(QtGui.QMainWindow):
 
     def __init__(self):
         super(HexaGUI, self).__init__() # The super() builtin returns a proxy object that allows you to refer parent class by 'super'. (Inherit QMainWindow...)
-        uic.loadUi("gui.ui", self) # Loads all the GUI elements.
+        
+        uic.loadUi( sdk.GUI_UI_FILE_PATH , self) # Loads all the GUI elements. GUI_UI_FILE_PATH is in the __init__.py file. 
+        # uic.loadUi("gui.ui", self) # Loads all the GUI elements.
         self.setWindowTitle("Hexa Driver SDK - Version: 0.1")
         print (sys.version)
         self.configGUI()

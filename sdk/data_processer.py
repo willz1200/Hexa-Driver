@@ -24,21 +24,14 @@ class DataProcesser(  ):
         self.velocity = velocity
     
     def plot_data(self):
-        fig, (ax1,ax2) = plt.subplots(2)
-        ax1a = ax1.twinx()
-        ax1.plot(self.time, self.dutyCycle, 'b', label = "Duty Cycle")
-        
-        ax2.plot(self.time, self.position, 'y' , label = "Position")
-        ax1a.plot(self.time, self.velocity, 'r' , label = "Velocity")
-        ax1.set_xlabel('Time (ms)')
-        ax2.set_xlabel('Time (ms)')
-        ax1.set_ylabel('Input: Duty cycle (bits)')
-        ax1a.set_ylabel('Output: Motor velocity (samples/ms) ')
-        ax2.set_ylabel('Motor position (samples/ms) ')
-        ax1.set_title('Frequency responce')
-        ax1.legend()
-        ax1a.legend()
-        ax2.legend()
+        fig, ax = plt.subplots()
+        ax.plot(self.time, self.dutyCycle, label = "Duty Cycle")
+        ax.plot(self.time, self.position, label = "Position")
+        ax.plot(self.time, self.velocity, label = "Velocity")
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Amplitude')
+        ax.set_title('Frequency responce')
+        ax.legend()
         plt.show()
 
 if __name__ == '__main__':

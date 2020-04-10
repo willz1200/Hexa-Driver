@@ -9,6 +9,7 @@
 # Setup: py -m pip install -r requirements.txt
 
 from sdk.HexaSerial import SMU
+# import HexaSerial
 import time
 import enum
 import pickle
@@ -22,7 +23,7 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 class HexaSDK(SMU):
 
     # Enum used to set the controller mode
-    class mode(enum.Enum):
+    class mode(enum.Enum): # < --------------------------------------whats going on there? why are we importing enum?
         off = 0
         pid = 1
         tbSweep = 2
@@ -38,17 +39,30 @@ class HexaSDK(SMU):
 
         self.isEchoCommandsOn = False
 
-        self.setup()
+        self.connect()
 
-    def setup(self):
+    def connect(self):
         '''
         Looks for available ports, gives you the op
         '''
-        ports = self.scanForPorts()
-
+        ports = self._scanForPorts()
         if len(self.portList) > 0:
             self.initPort(0) # Setup the serial ports
             self.run() # Set the SMU threads running
+            self._isConnected = True
+            print ("connected successfully")
+    
+    def isConnected(self):
+        return self._isConnected
+
+    def check_connection(self):
+        """
+        We need a way to trouble shoot the port connection. This function should 
+        check the port. If its available then return True, if not tell the 
+        user to trouble shoot the port, when its ready try again. itterate untill 
+        the port is working. 
+        """
+        pass
 
     def sendCommand(self , command ):
         '''
@@ -308,6 +322,8 @@ class HexaSDK(SMU):
         if (miscLine != None):
             return miscLine
 
+    
+
 if __name__ == '__main__':
     HEXA_SDK = HexaSDK()
     HEXA_SDK.isEchoCommandsOn = True
@@ -340,7 +356,7 @@ if __name__ == '__main__':
     # data.plot_data()
 
     # freq responce
-    HEXA_SDK.frequencyResponce(1)
+    HEXA_SDK.frequencyResponce(0.5)
 
     # Make pickle_data folder
     if not os.path.exists("./pickle_data"):
