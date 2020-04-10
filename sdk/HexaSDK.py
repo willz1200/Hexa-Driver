@@ -51,7 +51,10 @@ class HexaSDK(SMU):
             self.run() # Set the SMU threads running
             self._isConnected = True
             print ("connected successfully")
-    
+
+    def disconnect(self):
+        self.ser.close() # Close the COM port
+
     def isConnected(self):
         return self._isConnected
 
@@ -283,6 +286,14 @@ class HexaSDK(SMU):
                 isRunning = False
         
         self.step = step
+
+    def dump_pickel(self, path):
+        # Make pickle_data folder
+        if not os.path.exists(path + "pickle_data"):
+            os.makedirs(path + "pickle_data")
+
+        pickle.dump(HEXA_SDK.step, open(path + "/pickle_data/frequency_responce_data.p", "wb"))
+
 
     def runPIDControler(self):
         '''
