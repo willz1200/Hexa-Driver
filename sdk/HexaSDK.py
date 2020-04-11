@@ -252,7 +252,7 @@ class HexaSDK(SMU):
                 step.append( line)
             else:
                 isRunning = False
-        
+        self.freq = "step_" + str(pwmInput)
         self.step = step
 
     def frequencyResponce(self, freq):
@@ -262,6 +262,7 @@ class HexaSDK(SMU):
         INPUT: Modulation frequency of duty cycle 
         OUTPUT: 
         '''
+        self.freq = freq
         self.setPosVelStreamData(1)
         # send input value to initiate step responce
         self.sendCommand('freq ' + str(freq))
@@ -287,12 +288,17 @@ class HexaSDK(SMU):
         
         self.step = step
 
+    def run_multiple_frequency_responces(self, freq_list, path):
+        for freq in freq_list:
+            self.frequencyResponce(freq)
+            self.dump_pickel(path)
+
     def dump_pickel(self, path):
         # Make pickle_data folder
         if not os.path.exists(path + "pickle_data"):
             os.makedirs(path + "pickle_data")
-
-        pickle.dump(HEXA_SDK.step, open(path + "/pickle_data/frequency_responce_data.p", "wb"))
+        freq = self.freq
+        pickle.dump(self.step, open(path + "pickle_data/frequency_responce_data_%s_Hz.p"%freq, "wb"))
 
 
     def runPIDControler(self):

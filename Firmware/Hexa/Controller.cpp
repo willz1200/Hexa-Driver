@@ -272,7 +272,7 @@ void Controller::frequencyResponseSetup( float freq ){
 	// chaing controlerMode to 4
 	controllerMode = 5;
 	sampleRate = 1000 / ( 20 * freqResponcefrequency ); // samples 20 times the frequency of the drive signal
-	sampleWindow = 1000 * 6 / freqResponcefrequency ; // only runs 6 cycles
+	sampleWindow = 1000+ (1000 * 10 / freqResponcefrequency ); // only runs 6 cycles
 	startTime = millis();
 	togglePosVel = true;
 	//Serial.println(freq);
@@ -290,7 +290,8 @@ void Controller::frequencyResponse(){
 		controllerMode = 0;
 		sampleRate = 10;
 		Serial.println("freq finished");
-	} else if (freqCurrentTime > 2000){
+	} else if (freqCurrentTime > 0){
+		
 		// start step if 2 secconds
 		dutyCycle = sin( 2.0 * PI * freqResponcefrequency * freqCurrentTime / 1000) * 255; //dc  = sin(2 pi f t )
 		if (dutyCycle >= 0){

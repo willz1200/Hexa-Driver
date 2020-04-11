@@ -1,8 +1,10 @@
 import pickle
 import matplotlib.pyplot as plt
+from os import walk
 
 class DataProcesser(  ):
     def __init__(self,filepath):
+        
         self.filepath = filepath
         self.data = pickle.load( open( self.filepath, "rb" ) )
     
@@ -23,7 +25,7 @@ class DataProcesser(  ):
         self.position = position
         self.velocity = velocity
     
-    def plot_data(self):
+    def plot_data(self, path, filename):
         fig, ax = plt.subplots()
         ax.plot(self.time, self.dutyCycle, label = "Duty Cycle")
         ax.plot(self.time, self.position, label = "Position")
@@ -32,7 +34,19 @@ class DataProcesser(  ):
         ax.set_ylabel('Amplitude')
         ax.set_title('Frequency responce')
         ax.legend()
-        plt.show()
+        plt.savefig(path+filename)
+        # plt.show()
+
+    # def print_all_files(self, mypath):
+
+    #     f = []
+    #     for (dirpath, dirnames, filenames) in walk(mypath):
+    #         f.extend(filenames)
+    #         break
+    #     print f
+
+    def find_max_vel(self):
+        return max(self.velocity)
 
 if __name__ == '__main__':
     data = DataProcesser("./pickle_data/frequency_responce_data.p")
