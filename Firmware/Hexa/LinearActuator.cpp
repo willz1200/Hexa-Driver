@@ -8,6 +8,28 @@
 #include <Arduino.h>
 #include "LinearActuator.h"
 
+// Universal Code - Compatible with Hexa Driver 1.0 & 2.0 
+
+
+// TBD - Move things here
+
+
+// Platform Specific Code
+
+#ifdef ESP8266
+// --- Hexa Driver 2.0 ---
+
+//Linear Actuator Constructor
+LinearActuator::LinearActuator(const byte _LinearActuatorID)
+	: LinearActuatorID (_LinearActuatorID){ //Used to store const values
+
+}
+
+
+
+#elif defined MCU_STM32F103CB
+// --- Hexa Driver 1.0 ---
+
 //Linear Actuator Constructor
 LinearActuator::LinearActuator(const byte _LinearActuatorID)
 	: LinearActuatorID (_LinearActuatorID){ //Used to store const values
@@ -175,3 +197,7 @@ void LinearActuator::SpinMotor(unsigned char dutyCycle, unsigned char direction)
 bool LinearActuator::getMotorDir(){
 	return motorDirection;
 }
+
+#endif
+
+

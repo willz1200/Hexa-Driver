@@ -8,6 +8,21 @@
 #ifndef LinearActuator_h
 #define LinearActuator_h
 
+#ifdef ESP8266
+// --- Hexa Driver 2.0 ---
+
+	#include "PinDefinitionsRev2_00.h"
+
+class LinearActuator {
+
+	public:
+		LinearActuator(const byte _LinearActuatorID);
+};
+
+
+#elif defined MCU_STM32F103CB
+// --- Hexa Driver 1.0 ---
+
 #include "PinDefinitionsRev1_00.h"
 
 class LinearActuator {
@@ -44,5 +59,7 @@ class LinearActuator {
 		bool getMotorDir();
 		bool enableLA;
 };
+
+#endif
 
 #endif
