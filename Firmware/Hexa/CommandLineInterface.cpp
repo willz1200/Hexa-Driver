@@ -145,8 +145,17 @@ float CommandLineInterface::readFloat(){
 }
 
 double CommandLineInterface::readDouble(){
-	return atof(paramHandle().c_str());
-	//return paramHandle().toDouble(); //toDouble command missing from Arduino_STM32 :(
+	#ifdef ESP8266
+	// -------------------------------- Hexa Driver 2.0 --------------------------------
+	
+	return paramHandle().toDouble();
+	
+	#elif defined MCU_STM32F103CB
+	// -------------------------------- Hexa Driver 1.0 --------------------------------
+	
+	return atof(paramHandle().c_str()); // toDouble command missing from Arduino_STM32 :(
+	
+	#endif	
 }
 
 char CommandLineInterface::readChar(){

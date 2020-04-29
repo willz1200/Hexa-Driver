@@ -31,7 +31,7 @@ void operationalLA();
 
 //Commands cannot contain spaces or `
 #define cmd_total 16
-const cmdFormat cmd_bind[cmd_total] PROGMEM = {
+const cmdFormat cmd_bind[cmd_total] = { //Could use: #ifdef MCU_STM32F103CB PROGMEM #endif
 	{ "led", ledfunc },
 	{ "step", stepResponse },
 	{ "freq", frequencyResponce },

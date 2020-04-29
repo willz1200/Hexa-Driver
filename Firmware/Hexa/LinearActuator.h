@@ -2,26 +2,45 @@
  * @File		LinearActuator.h
  * @Brief		Linear actuator class, used to drive the motor H-Bridge and track
  *				encoder steps.
- * @Date		27/11/2019 (Last Updated)
+ * @Date		28/04/2020 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #ifndef LinearActuator_h
 #define LinearActuator_h
 
 #ifdef ESP8266
-// --- Hexa Driver 2.0 ---
+// -------------------------------- Hexa Driver 2.0 --------------------------------
 
 	#include "PinDefinitionsRev2_00.h"
+	#include "HexaBridge.h"
 
-class LinearActuator {
+class LinearActuator: public HexaBridge {
+
+	private:
+		const byte LinearActuatorID;
+
+
+		int virtualPosition;
+		bool motorDirection;
+		unsigned long velocityTime;
+		int velocityLastPos;
+		float rpm;
 
 	public:
 		LinearActuator(const byte _LinearActuatorID);
+		void VelocityUpdate();
+		int GetEncoderPos();
+		float GetEncoderRPM();
+		bool getMotorDir();
+		void SpinMotor(unsigned char dutyCycle, unsigned char direction);
+		void encoderUpdate();
+		
+		bool enableLA;
 };
 
 
 #elif defined MCU_STM32F103CB
-// --- Hexa Driver 1.0 ---
+// -------------------------------- Hexa Driver 1.0 --------------------------------
 
 #include "PinDefinitionsRev1_00.h"
 

@@ -99,7 +99,7 @@ void Controller::update(){
 		} else if(controllerMode == 5){
 			frequencyResponse();	
 		} else {
-			SpinMotor(0, dirB);
+			SpinMotor(0, 0);
 		}
 
 		// freqRespSysIdTest();
@@ -121,8 +121,9 @@ void Controller::update(){
 			} 
 		}
 	} else {
-		SpinMotor(0, dirB);
+		SpinMotor(0, 0);
 	}
+	encoderUpdate();
 }
 
 //The position controller is a P loop with a single proportional gain.
@@ -167,7 +168,7 @@ void Controller::position(){
 	//Temp to skip velocity PI stage
 
 	//Limit the ouput velocity to 75 duty, Duty cycle can be 0-255
-	float vel_Limit = 75.0;
+	float vel_Limit = 150.0; // Had to increase limit to 150 for 2.0, possibly linked to higher PWM freq, refinement needed in HexaBridge
 	if (velDesired > vel_Limit) velDesired = vel_Limit;
 	if (velDesired < -vel_Limit) velDesired = -vel_Limit;
 
@@ -284,7 +285,7 @@ void Controller::frequencyResponse(){
 	
 	// stop step if 2+4 secconds
 	if (freqCurrentTime > 6000){
-		SpinMotor( 0 , dirB ); //Start motor
+		SpinMotor( 0 , dirB );
 		togglePosVel = false;
 		controllerMode = 0;
 		sampleRate = 10;
@@ -304,7 +305,6 @@ void Controller::frequencyResponse(){
 
 //TEST - Sine wave duty generator of frequency response system identification 
 void Controller::freqRespSysIdTest(){
-
 	// 10 updates per second of 0.05 PI rad steps
 	if (millis() - timeMS_freqResp > 100){
 		timeMS_freqResp = millis();

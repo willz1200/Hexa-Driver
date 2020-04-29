@@ -6,7 +6,7 @@
  * @Date		27/11/2019 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
-
+//#include <SPI.h>
 #include "CommandDefinitions.h"
 
 Controller *Dev_LA = &LA0;
@@ -14,9 +14,16 @@ Controller *Dev_LA = &LA0;
 unsigned long timeSince;
 
 void setup() {
+	pinMode(0, OUTPUT);
+	pinMode(2, OUTPUT);
+	digitalWrite(0,LOW);
+	digitalWrite(2,HIGH);
+
 	Serial.begin(115200);
 	CLI.bind(cmd_bind,cmd_total);
 	timeSince = millis();
+
+	Serial.println("Hexa Booted");
 }
 
 void loop() {

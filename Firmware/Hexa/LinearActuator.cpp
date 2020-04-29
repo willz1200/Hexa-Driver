@@ -2,33 +2,104 @@
  * @File		LinearActuator.cpp
  * @Brief		Linear actuator class, used to drive the motor H-Bridge and track
  *				encoder steps.
- * @Date		27/11/2019 (Last Updated)
+ * @Date		28/04/2020 (Last Updated)
  * @Author(s)	William Bednall
  ******************************************************************************/
 #include <Arduino.h>
 #include "LinearActuator.h"
 
+/*
+w 0
+o 0 1
+v 1
+r 1
+s 1000
+*/
+
 // Universal Code - Compatible with Hexa Driver 1.0 & 2.0 
 
+void LinearActuator::VelocityUpdate(){
+	int8_t dir;
+	int pulseDelta;
+	if (virtualPosition > velocityLastPos){
+		pulseDelta = virtualPosition - velocityLastPos;
+		dir = 1;
+	} else {
+		pulseDelta = velocityLastPos - virtualPosition;
+		dir = -1;
+	}
+	
+	//60000 milliseconds in 1 minute, used for rpm.
+	rpm = (pulseDelta * (60000 / (millis() - velocityTime))) / PulsesPerTurn;
+	//rpm = rpm / GearReduction; //Include Gear Reduction Ratio
+	rpm = dir * rpm;
+	velocityLastPos = virtualPosition;
+	velocityTime = millis();
+}
 
-// TBD - Move things here
+int LinearActuator::GetEncoderPos(){
+	return virtualPosition;
+}
 
+float LinearActuator::GetEncoderRPM(){
+	return rpm;
+}
+
+bool LinearActuator::getMotorDir(){
+	return motorDirection;
+}
 
 // Platform Specific Code
 
 #ifdef ESP8266
-// --- Hexa Driver 2.0 ---
+// -------------------------------- Hexa Driver 2.0 --------------------------------
 
 //Linear Actuator Constructor
 LinearActuator::LinearActuator(const byte _LinearActuatorID)
-	: LinearActuatorID (_LinearActuatorID){ //Used to store const values
+	: LinearActuatorID (_LinearActuatorID) { //Used to store const values // : HexaBridge()
+
+	// HB here
+
+	//Turn Motor Off
+	//SpinMotor(0, 0);
+
+	motorDirection = false;
+	enableLA = false;
+	velocityTime = millis();
+	velocityLastPos = 0;
+	rpm = 0;
+
+	//setMotor(1 << LinearActuatorID, 0, 0, 0);
 
 }
 
+void LinearActuator::SpinMotor(unsigned char dutyCycle, unsigned char direction){
+
+	switch(direction){
+		case 0: //Off
+			setMotor(1 << LinearActuatorID, 0, 0, dutyCycle);
+			break;
+
+		case 1: //Spin ->
+			setMotor(1 << LinearActuatorID, 1, 1, dutyCycle);
+			motorDirection = true;
+			break;
+
+		case 2: //Spin <-
+			setMotor(1 << LinearActuatorID, 1, 0, dutyCycle);
+			motorDirection = false;
+			break;
+	}
+
+}
+
+void LinearActuator::encoderUpdate(){
+	virtualPosition = readEncoder(1 << LinearActuatorID);
+}
 
 
 #elif defined MCU_STM32F103CB
-// --- Hexa Driver 1.0 ---
+// -------------------------------- Hexa Driver 1.0 --------------------------------
 
 //Linear Actuator Constructor
 LinearActuator::LinearActuator(const byte _LinearActuatorID)
@@ -93,33 +164,6 @@ void LinearActuator::EncoderInterruptHandler(){
 	} else {
 		virtualPosition++;
 	}
-}
-
-void LinearActuator::VelocityUpdate(){
-	int8_t dir;
-	int pulseDelta;
-	if (virtualPosition > velocityLastPos){
-		pulseDelta = virtualPosition - velocityLastPos;
-		dir = 1;
-	} else {
-		pulseDelta = velocityLastPos - virtualPosition;
-		dir = -1;
-	}
-	
-	//60000 milliseconds in 1 minute, used for rpm.
-	rpm = (pulseDelta * (60000 / (millis() - velocityTime))) / PulsesPerTurn;
-	//rpm = rpm / GearReduction; //Include Gear Reduction Ratio
-	rpm = dir * rpm;
-	velocityLastPos = virtualPosition;
-	velocityTime = millis();
-}
-
-int LinearActuator::GetEncoderPos(){
-	return virtualPosition;
-}
-
-float LinearActuator::GetEncoderRPM(){
-	return rpm;
 }
 
 void LinearActuator::ResetEncoderPos(){
@@ -194,10 +238,4 @@ void LinearActuator::SpinMotor(unsigned char dutyCycle, unsigned char direction)
 	
 }
 
-bool LinearActuator::getMotorDir(){
-	return motorDirection;
-}
-
 #endif
-
-

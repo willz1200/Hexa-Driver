@@ -13,6 +13,7 @@
 // --- Hexa Driver 2.0 ---
 
 #include "PinDefinitionsRev2_00.h"
+#include <SPI.h>
 
 class HexaBridge {
 
@@ -21,6 +22,11 @@ class HexaBridge {
 		
 	public:
 		HexaBridge();
+		void init();
+		int32_t readEncoder(uint8_t laAddr);
+		void setMotor(uint8_t laAddr, uint8_t en, uint8_t dir, uint8_t dutyCycle);
+		uint8_t getVersion();
+		uint8_t getProtocol();
 
 };
 

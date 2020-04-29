@@ -10,7 +10,7 @@
 //uint8_t spinRunning = 0;
 
 void ledfunc(){
-	analogWrite(LED, CLI.readInt());
+	analogWrite(LED, CLI.readInt()); // This probably needs inverting for 2.0
 }
 
 /**
